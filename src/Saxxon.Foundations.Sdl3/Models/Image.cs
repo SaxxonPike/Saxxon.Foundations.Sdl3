@@ -1,0 +1,387 @@
+using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
+using Saxxon.Foundations.Sdl3.Interop;
+
+namespace Saxxon.Foundations.Sdl3.Models;
+
+/// <summary>
+/// Provides an object-oriented interface for handling image formats via
+/// SDL3_image.
+/// </summary>
+[PublicAPI]
+public static class Image
+{
+    /// <summary>
+    /// This function gets the version of the dynamically linked SDL_image library.
+    /// </summary>
+    /// <returns></returns>
+    public static int GetVersion() =>
+        IMG_Version();
+
+    /// <summary>
+    /// Loads an image from an SDL data source into a software surface.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadTypedIo(
+        IntPtr<SDL_IOStream> src,
+        bool closeIo,
+        ReadOnlySpan<char> type
+    )
+    {
+        using var typeStr = new Utf8Span(type);
+        return ((IntPtr<SDL_Surface>)IMG_LoadTyped_IO(src, closeIo, typeStr))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an image from a filesystem path into a software surface.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> Load(
+        ReadOnlySpan<char> file
+    )
+    {
+        using var fileStr = new Utf8Span(file);
+        return ((IntPtr<SDL_Surface>)IMG_Load(fileStr))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an image from an SDL data source into a software surface.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadIo(
+        IntPtr<SDL_IOStream> src,
+        bool closeIo
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_Load_IO(src, closeIo))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an AVIF image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadAvifIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadAVIF_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an ICO image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadIcoIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadICO_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a CUR image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadCurIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadCUR_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a BMP image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadBmpIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadBMP_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a GIF image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadGifIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadGIF_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a JPG image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadJpgIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadJPG_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a JXL image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadJxlIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadJXL_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an LBM image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadLbmIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadLBM_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a PCX image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadPcxIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadPCX_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a PNG image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadPngIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadPNG_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a PNM image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadPnmIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadPNM_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an SVG image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadSvgIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadSVG_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a QOI image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadQoiIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadQOI_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a TGA image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadTgaIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadTGA_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a TIF image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadTifIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadTIF_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an XCF image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadXcfIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadXCF_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an XPM image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadXpmIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadXPM_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an XV image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadXvIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadXV_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a WEBP image directly.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadWebpIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadWEBP_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an SVG image, scaled to a specific size.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> LoadSizedSvgIo(
+        IntPtr<SDL_IOStream> src,
+        int width,
+        int height
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_LoadSizedSVG_IO(src, width, height))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an XPM image from a memory array.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> ReadXpmFromArray(
+        IntPtr<IntPtr> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_ReadXPMFromArray((byte**)src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an XPM image from a memory array.
+    /// </summary>
+    public static unsafe IntPtr<SDL_Surface> ReadXpmFromArrayToRgb888(
+        IntPtr<IntPtr> src
+    )
+    {
+        return ((IntPtr<SDL_Surface>)IMG_ReadXPMFromArrayToRGB888((byte**)src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into an AVIF image file.
+    /// </summary>
+    public static unsafe void SaveAvif(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName,
+        int quality
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SaveAVIF(src, fileNameStr, quality)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into AVIF image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveAvifIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo,
+        int quality
+    )
+    {
+        IMG_SaveAVIF_IO(src, dst, closeIo, quality)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a JPG image file.
+    /// </summary>
+    public static unsafe void SaveJpg(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName,
+        int quality
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SaveJPG(src, fileNameStr, quality)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into JPG image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveJpgIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo,
+        int quality
+    )
+    {
+        IMG_SaveJPG_IO(src, dst, closeIo, quality)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a PNG image file.
+    /// </summary>
+    public static unsafe void SavePng(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SavePNG(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into PNG image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SavePngIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo
+    )
+    {
+        IMG_SavePNG_IO(src, dst, closeIo)
+            .AssertSdlSuccess();
+    }
+}
