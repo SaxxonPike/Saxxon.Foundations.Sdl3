@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace Saxxon.Foundations.Sdl3.Extensions;
 
+[PublicAPI]
 public static class AudioSpecExtensions
 {
     /// <summary>

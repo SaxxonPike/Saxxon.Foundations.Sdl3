@@ -18,6 +18,7 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         Stream stream
     )
     {
+        
         var io = IoStream.InitInterface();
 
         io.close = &IngressClose;
