@@ -20,31 +20,45 @@ public static class Channel
 
     public static int Expire(
         this Mix_ChannelId channel,
-        int ticks
+        TimeSpan timeout
     )
     {
-        return Mix_ExpireChannel((int)channel, ticks);
+        return Mix_ExpireChannel((int)channel, timeout.ToMilliseconds());
     }
 
     public static unsafe int FadeIn(
         this Mix_ChannelId channel,
         IntPtr<Mix_Chunk> chunk,
         int loops,
-        int ms
+        TimeSpan fadeDuration
     )
     {
-        return Mix_FadeInChannel((int)channel, chunk, loops, ms);
+        return Mix_FadeInChannel((int)channel, chunk, loops, fadeDuration.ToMilliseconds());
     }
 
     public static unsafe int FadeInTimed(
         this Mix_ChannelId channel,
         IntPtr<Mix_Chunk> chunk,
         int loops,
-        int ms,
-        int ticks
+        TimeSpan fadeDuration,
+        TimeSpan? totalDuration
     )
     {
-        return Mix_FadeInChannelTimed((int)channel, chunk, loops, ms, ticks);
+        return Mix_FadeInChannelTimed(
+            (int)channel,
+            chunk,
+            loops,
+            fadeDuration.ToMilliseconds(),
+            totalDuration is { } td ? td.ToMilliseconds() : -1
+        );
+    }
+
+    public static int FadeOut(
+        this Mix_ChannelId channel,
+        int ms
+    )
+    {
+        return Mix_FadeOutChannel((int)channel, ms);
     }
 
     public static Mix_Fading IsFading(this Mix_ChannelId channel)

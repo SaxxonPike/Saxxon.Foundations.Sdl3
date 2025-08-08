@@ -99,10 +99,15 @@ public static class Chunk
     {
         return Mix_FadingMusic();
     }
-    
+
     public static bool HasDecoder(ReadOnlySpan<char> name)
     {
         using var nameStr = new Utf8Span(name);
         return Mix_HasChunkDecoder(nameStr);
+    }
+
+    public static unsafe void Destroy(this IntPtr<Mix_Chunk> chunk)
+    {
+        Mix_FreeChunk(chunk);
     }
 }
