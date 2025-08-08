@@ -124,6 +124,19 @@ public static class Mem
         return result;
     }
 
+    /// <summary>
+    /// Frees allocated memory within SDL.
+    /// </summary>
+    /// <param name="ptr">
+    /// Pointer to the memory to free.
+    /// </param>
+    public static void Free<T>(
+        IntPtr<T> ptr
+    ) where T : unmanaged
+    {
+        SDL_free(ptr.Ptr);
+    }
+
     public static unsafe void SetFunctions(
         Func<UIntPtr, IntPtr> malloc,
         Func<UIntPtr, UIntPtr, IntPtr> calloc,
@@ -184,7 +197,7 @@ public static class Mem
         {
             if (size == 0)
                 return 0;
-            
+
             // Determine how much memory we will need.
 
             var count = (int)((size + 3) / 4);
