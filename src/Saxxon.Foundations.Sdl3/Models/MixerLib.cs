@@ -10,8 +10,14 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class MixerLib
 {
+    public static int GetVersion()
+    {
+        return MIX_Version();
+    }
+
     public static void Init()
     {
-        MIX_Init().AssertSdlSuccess();
+        MIX_Init()
+            .AssertSdlSuccess();
     }
 }
