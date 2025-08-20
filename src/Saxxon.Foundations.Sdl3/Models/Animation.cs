@@ -17,9 +17,13 @@ public static class Animation
         ReadOnlySpan<char> fileName
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
-        return ((IntPtr<IMG_Animation>)IMG_LoadAnimation(fileNameStr))
-            .AssertSdlNotNull();
+        var fileNameLen = fileName.MeasureUtf8();
+        Span<byte> fileNameStr = stackalloc byte[fileNameLen];
+        fileName.EncodeUtf8(fileNameStr);
+
+        fixed (byte* fileNameStrPtr = fileNameStr)
+            return ((IntPtr<IMG_Animation>)IMG_LoadAnimation(fileNameStrPtr))
+                .AssertSdlNotNull();
     }
 
     /// <summary>
@@ -42,9 +46,13 @@ public static class Animation
         bool closeIo,
         ReadOnlySpan<char> type)
     {
-        using var typeStr = new Utf8Span(type);
-        return ((IntPtr<IMG_Animation>)IMG_LoadAnimationTyped_IO(src, closeIo, typeStr))
-            .AssertSdlNotNull();
+        var typeLen = type.MeasureUtf8();
+        Span<byte> typeStr = stackalloc byte[typeLen];
+        type.EncodeUtf8(typeStr);
+
+        fixed (byte* typeStrPtr = typeStr)
+            return ((IntPtr<IMG_Animation>)IMG_LoadAnimationTyped_IO(src, closeIo, typeStrPtr))
+                .AssertSdlNotNull();
     }
 
     /// <summary>

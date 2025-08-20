@@ -2,6 +2,10 @@ using JetBrains.Annotations;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides object-oriented interfaces for <see cref="SDL_Rect"/> and
+/// <see cref="SDL_FRect"/>.
+/// </summary>
 [PublicAPI]
 public static class Rect
 {

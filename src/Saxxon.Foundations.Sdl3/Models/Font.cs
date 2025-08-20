@@ -14,9 +14,13 @@ public static class Font
 {
     public static unsafe IntPtr<TTF_Font> Open(ReadOnlySpan<char> file, float ptSize)
     {
-        using var fileStr = new Utf8Span(file);
-        return ((IntPtr<TTF_Font>)TTF_OpenFont(fileStr, ptSize))
-            .AssertSdlNotNull();
+        var fileLen = file.MeasureUtf8();
+        Span<byte> fileBytes = stackalloc byte[fileLen];
+        file.EncodeUtf8(fileBytes);
+
+        fixed (byte* filePtr = fileBytes)
+            return ((IntPtr<TTF_Font>)TTF_OpenFont(filePtr, ptSize))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<TTF_Font> OpenIo(IntPtr<SDL_IOStream> src, bool closeIo, float ptSize)
@@ -223,9 +227,13 @@ public static class Font
 
     public static unsafe void SetLanguage(this IntPtr<TTF_Font> font, ReadOnlySpan<char> language)
     {
-        using var languageStr = new Utf8Span(language);
-        TTF_SetFontLanguage(font, languageStr)
-            .AssertSdlSuccess();
+        var languageLen = language.MeasureUtf8();
+        Span<byte> languageBytes = stackalloc byte[languageLen];
+        language.EncodeUtf8(languageBytes);
+
+        fixed (byte* languagePtr = languageBytes)
+            TTF_SetFontLanguage(font, languagePtr)
+                .AssertSdlSuccess();
     }
 
     public static unsafe bool HasGlyph(this IntPtr<TTF_Font> font, uint ch)
@@ -243,7 +251,7 @@ public static class Font
             .AssertSdlNotNull();
         return (surface, imageType);
     }
-    
+
     public static unsafe (IntPtr<SDL_Surface> Surface, TTF_ImageType ImageType) GetGlyphImageForIndex(
         this IntPtr<TTF_Font> font,
         uint glyphIndex
@@ -267,7 +275,7 @@ public static class Font
     }
 
     public static unsafe int GetGlyphKerning(
-        this IntPtr<TTF_Font> font, 
+        this IntPtr<TTF_Font> font,
         uint previousCh,
         uint ch
     )
@@ -279,14 +287,20 @@ public static class Font
     }
 
     public static unsafe (int W, int H) GetStringSize(
-        this IntPtr<TTF_Font> font, 
+        this IntPtr<TTF_Font> font,
         ReadOnlySpan<char> text
     )
     {
         int w, h;
-        using var textStr = new Utf8Span(text);
-        TTF_GetStringSize(font, textStr, SDL_strlen(textStr), &w, &h)
-            .AssertSdlSuccess();
+
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            TTF_GetStringSize(font, textPtr, (UIntPtr)(textLen - 1), &w, &h)
+                .AssertSdlSuccess();
+
         return (w, h);
     }
 
@@ -297,9 +311,15 @@ public static class Font
     )
     {
         int w, h;
-        using var textStr = new Utf8Span(text);
-        TTF_GetStringSizeWrapped(font, textStr, (UIntPtr)Encoding.UTF8.GetByteCount(text), wrapWidth, &w, &h)
-            .AssertSdlSuccess();
+
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            TTF_GetStringSizeWrapped(font, textPtr, (UIntPtr)(textLen - 1), wrapWidth, &w, &h)
+                .AssertSdlSuccess();
+
         return (w, h);
     }
 
@@ -311,9 +331,15 @@ public static class Font
     {
         int width;
         UIntPtr length;
-        using var textStr = new Utf8Span(text);
-        TTF_MeasureString(font, textStr, SDL_strlen(textStr), maxWidth, &width, &length)
-            .AssertSdlSuccess();
+
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            TTF_MeasureString(font, textPtr, (UIntPtr)(textLen - 1), maxWidth, &width, &length)
+                .AssertSdlSuccess();
+
         return (width, (int)length);
     }
 
@@ -323,11 +349,15 @@ public static class Font
         SDL_Color fg
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_Solid(font, textStr, SDL_strlen(textStr), fg))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_Solid(font, textPtr, (UIntPtr)(textLen - 1), fg))
+                .AssertSdlNotNull();
     }
-    
+
     public static unsafe IntPtr<SDL_Surface> RenderTextSolidWrapped(
         this IntPtr<TTF_Font> font,
         ReadOnlySpan<char> text,
@@ -335,9 +365,13 @@ public static class Font
         int wrapLength
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_Solid_Wrapped(font, textStr, SDL_strlen(textStr), fg, wrapLength))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_Solid_Wrapped(font, textPtr, (UIntPtr)(textLen - 1), fg, wrapLength))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderGlyphSolid(
@@ -357,9 +391,13 @@ public static class Font
         SDL_Color bg
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_Shaded(font, textStr, SDL_strlen(textStr), fg, bg))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_Shaded(font, textPtr, (UIntPtr)(textLen - 1), fg, bg))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderTextShadedWrapped(
@@ -370,10 +408,14 @@ public static class Font
         int wrapLength
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_Shaded_Wrapped(font, textStr, SDL_strlen(textStr), fg, bg,
-                wrapLength))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_Shaded_Wrapped(font, textPtr, (UIntPtr)(textLen - 1), fg, bg,
+                    wrapLength))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderGlyphShaded(
@@ -393,9 +435,13 @@ public static class Font
         SDL_Color fg
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_Blended(font, textStr, SDL_strlen(textStr), fg))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_Blended(font, textPtr, (UIntPtr)(textLen - 1), fg))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderTextBlendedWrapped(
@@ -405,9 +451,13 @@ public static class Font
         int wrapLength
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_Blended_Wrapped(font, textStr, SDL_strlen(textStr), fg, wrapLength))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_Blended_Wrapped(font, textPtr, (UIntPtr)(textLen - 1), fg, wrapLength))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderGlyphBlended(
@@ -427,9 +477,13 @@ public static class Font
         SDL_Color bg
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_LCD(font, textStr, SDL_strlen(textStr), fg, bg))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_LCD(font, textPtr, (UIntPtr)(textLen - 1), fg, bg))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderTextLcdWrapped(
@@ -440,9 +494,13 @@ public static class Font
         int wrapLength
     )
     {
-        using var textStr = new Utf8Span(text);
-        return ((IntPtr<SDL_Surface>)TTF_RenderText_LCD_Wrapped(font, textStr, SDL_strlen(textStr), fg, bg, wrapLength))
-            .AssertSdlNotNull();
+        var textLen = text.MeasureUtf8();
+        Span<byte> textBytes = stackalloc byte[textLen];
+        text.EncodeUtf8(textBytes);
+
+        fixed (byte* textPtr = textBytes)
+            return ((IntPtr<SDL_Surface>)TTF_RenderText_LCD_Wrapped(font, textPtr, (UIntPtr)(textLen - 1), fg, bg, wrapLength))
+                .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Surface> RenderGlyphLcd(
@@ -460,5 +518,4 @@ public static class Font
     {
         TTF_CloseFont(font);
     }
-
 }

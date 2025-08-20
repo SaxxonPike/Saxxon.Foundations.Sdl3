@@ -1,8 +1,10 @@
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Extensions;
 
+[PublicAPI]
 internal static class SdlArrayExtensions
 {
     public static List<T> ToList<T>(this SDLArray<T>? array)

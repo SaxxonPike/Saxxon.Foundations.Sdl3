@@ -3,6 +3,9 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an interface for getting or setting the SDL error.
+/// </summary>
 public static class SdlError
 {
     public static unsafe string Get()

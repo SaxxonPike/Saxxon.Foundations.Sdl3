@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
@@ -9,23 +10,14 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class MixerLib
 {
-    public static unsafe string? GetSoundFonts()
+    public static int GetVersion()
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Mix_GetSoundFonts());
+        return MIX_Version();
     }
 
-    public static unsafe string? GetTimidityConfig()
+    public static void Init()
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Mix_GetTimidityCfg());
-    }
-
-    public static Mix_InitFlags GetInitFlags()
-    {
-        return (Mix_InitFlags)Mix_Init(0);
-    }
-
-    public static Mix_InitFlags Init(Mix_InitFlags flags)
-    {
-        return (Mix_InitFlags)Mix_Init((uint)flags);
+        MIX_Init()
+            .AssertSdlSuccess();
     }
 }

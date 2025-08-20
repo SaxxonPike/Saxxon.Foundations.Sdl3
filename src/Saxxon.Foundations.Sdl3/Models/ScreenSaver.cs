@@ -2,6 +2,9 @@ using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an interface for manipulating screen saver settings.
+/// </summary>
 public static class ScreenSaver
 {
     public static void Enable()

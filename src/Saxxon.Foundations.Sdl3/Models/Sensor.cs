@@ -6,6 +6,10 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for <see cref="SDL_Sensor"/>.
+/// </summary>
+[PublicAPI]
 public static class Sensor
 {
     public static unsafe void Close(this IntPtr<SDL_Sensor> sensor)
