@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for SDL video drivers.
+/// </summary>
 public static class VideoDriver
 {
     public static unsafe string? GetCurrent()

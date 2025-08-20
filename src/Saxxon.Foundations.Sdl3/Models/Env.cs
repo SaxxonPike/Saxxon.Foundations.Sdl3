@@ -18,8 +18,12 @@ public static class Env
         ReadOnlySpan<char> name
     )
     {
-        var nameStr = new Utf8Span(name);
-        return SDL_UnsetEnvironmentVariable(env, nameStr);
+        var nameLen = name.MeasureUtf8();
+        Span<byte> nameBytes = stackalloc byte[nameLen];
+        name.EncodeUtf8(nameBytes);
+
+        fixed (byte* namePtr = nameBytes)
+            return SDL_UnsetEnvironmentVariable(env, namePtr);
     }
 
     public static unsafe bool SetVariable(
@@ -29,9 +33,16 @@ public static class Env
         bool overwrite = true
     )
     {
-        var nameStr = new Utf8Span(name);
-        var valueStr = new Utf8Span(value);
-        return SDL_SetEnvironmentVariable(env, nameStr, valueStr, overwrite);
+        var nameLen = name.MeasureUtf8();
+        var valueLen = value.MeasureUtf8();
+        Span<byte> nameBytes = stackalloc byte[nameLen];
+        Span<byte> valueBytes = stackalloc byte[valueLen];
+        name.EncodeUtf8(nameBytes);
+        value.EncodeUtf8(valueBytes);
+
+        fixed (byte* namePtr = nameBytes)
+        fixed (byte* valuePtr = valueBytes)
+            return SDL_SetEnvironmentVariable(env, namePtr, valuePtr, overwrite);
     }
 
     public static unsafe List<string> GetVariables(
@@ -61,8 +72,12 @@ public static class Env
         ReadOnlySpan<char> name
     )
     {
-        var nameStr = new Utf8Span(name);
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetEnvironmentVariable(env, nameStr.Ptr));
+        var nameLen = name.MeasureUtf8();
+        Span<byte> nameBytes = stackalloc byte[nameLen];
+        name.EncodeUtf8(nameBytes);
+
+        fixed (byte* namePtr = nameBytes)
+            return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetEnvironmentVariable(env, namePtr));
     }
 
     public static unsafe IntPtr<SDL_Environment> Create(bool populated)
