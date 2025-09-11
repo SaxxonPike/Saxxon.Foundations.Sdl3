@@ -13,17 +13,12 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class Window
 {
-    public static unsafe IntPtr<SDL_Window> CreatePopup(
-        this IntPtr<SDL_Window> ptr,
-        int offsetX,
-        int offsetY,
-        int width,
-        int height,
-        SDL_WindowFlags flags
+    public static unsafe void ClearComposition(
+        this IntPtr<SDL_Window> window
     )
     {
-        return ((IntPtr)SDL_CreatePopupWindow(ptr, offsetX, offsetY, width, height, flags))
-            .AssertSdlNotNull();
+        SDL_ClearComposition(window)
+            .AssertSdlSuccess();
     }
 
     public static unsafe IntPtr<SDL_Window> Create(
@@ -35,9 +30,16 @@ public static class Window
             .AssertSdlNotNull();
     }
 
-    public static unsafe IntPtr<SDL_Window> CreateWithProperties(SDL_PropertiesID props)
+    public static unsafe IntPtr<SDL_Window> CreatePopup(
+        this IntPtr<SDL_Window> ptr,
+        int offsetX,
+        int offsetY,
+        int width,
+        int height,
+        SDL_WindowFlags flags
+    )
     {
-        return ((IntPtr)SDL_CreateWindowWithProperties(props))
+        return ((IntPtr)SDL_CreatePopupWindow(ptr, offsetX, offsetY, width, height, flags))
             .AssertSdlNotNull();
     }
 
@@ -64,6 +66,12 @@ public static class Window
         return ((IntPtr)window, (IntPtr)renderer);
     }
 
+    public static unsafe IntPtr<SDL_Window> CreateWithProperties(SDL_PropertiesID props)
+    {
+        return ((IntPtr)SDL_CreateWindowWithProperties(props))
+            .AssertSdlNotNull();
+    }
+
     public static unsafe void Destroy(
         this IntPtr<SDL_Window> ptr
     )
@@ -84,6 +92,12 @@ public static class Window
     )
     {
         SDL_FlashWindow(ptr, operation);
+    }
+
+    public static List<IntPtr<SDL_Window>> GetAll(this IntPtr<SDL_Window> ptr)
+    {
+        using var values = SDL_GetWindows();
+        return values.ToList();
     }
 
     public static unsafe (float MinAspect, float MaxAspect) GetAspectRatio(this IntPtr<SDL_Window> ptr)
@@ -214,10 +228,14 @@ public static class Window
         return SDL_GetWindowProperties(ptr);
     }
 
-    public static List<IntPtr<SDL_Window>> GetAll(this IntPtr<SDL_Window> ptr)
+    public static unsafe SDL_ProgressState GetProgressState(this IntPtr<SDL_Window> ptr)
     {
-        using var values = SDL_GetWindows();
-        return values.ToList();
+        return SDL_GetWindowProgressState(ptr);
+    }
+
+    public static unsafe float GetProgressValue(this IntPtr<SDL_Window> ptr)
+    {
+        return SDL_GetWindowProgressValue(ptr);
     }
 
     public static unsafe SDL_Rect GetSafeArea(this IntPtr<SDL_Window> ptr)
@@ -258,15 +276,52 @@ public static class Window
         return vSync;
     }
 
+    public static unsafe (SDL_Rect Rect, int Cursor) GetTextInputArea(
+        this IntPtr<SDL_Window> window
+    )
+    {
+        SDL_Rect rect;
+        int cursor;
+        SDL_GetTextInputArea(window, &rect, &cursor)
+            .AssertSdlSuccess();
+        return (rect, cursor);
+    }
+
     public static unsafe string GetTitle(this IntPtr<SDL_Window> ptr)
     {
         return SDL_GetWindowTitle(ptr) ?? "";
+    }
+
+    public static unsafe bool HasSurface(this IntPtr<SDL_Window> ptr)
+    {
+        return SDL_WindowHasSurface(ptr);
     }
 
     public static unsafe void Hide(this IntPtr<SDL_Window> ptr)
     {
         SDL_HideWindow(ptr)
             .AssertSdlSuccess();
+    }
+
+    public static unsafe bool IsRelativeMouseMode(
+        this IntPtr<SDL_Window> window
+    )
+    {
+        return SDL_GetWindowRelativeMouseMode(window);
+    }
+
+    public static unsafe bool IsScreenKeyboardShown(
+        this IntPtr<SDL_Window> window
+    )
+    {
+        return SDL_ScreenKeyboardShown(window);
+    }
+
+    public static unsafe bool IsTextInputActive(
+        this IntPtr<SDL_Window> window
+    )
+    {
+        return SDL_TextInputActive(window);
     }
 
     public static unsafe void Maximize(this IntPtr<SDL_Window> ptr)
@@ -329,6 +384,33 @@ public static class Window
             .AssertSdlSuccess();
     }
 
+    public delegate SDL_HitTestResult HitTestDelegate(SDL_Point point);
+
+    private static readonly Dictionary<IntPtr<SDL_Window>, IntPtr> HitTestUserData = [];
+
+    public static unsafe void SetHitTest(this IntPtr<SDL_Window> ptr, HitTestDelegate? callback)
+    {
+        if (HitTestUserData.Remove(ptr, out var existing))
+            UserDataStore.Remove(existing);
+
+        if (callback == null)
+            return;
+
+        var userData = UserDataStore.Add(callback);
+        HitTestUserData.Add(ptr, userData);
+        SDL_SetWindowHitTest(ptr, &Execute, userData);
+
+        return;
+
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        static SDL_HitTestResult Execute(SDL_Window* window, SDL_Point* point, IntPtr userData)
+        {
+            return UserDataStore.TryGet<HitTestDelegate>(userData, out var target)
+                ? target!.Invoke(*point)
+                : default;
+        }
+    }
+
     public static unsafe void SetIcon(this IntPtr<SDL_Window> ptr, IntPtr<SDL_Surface> icon)
     {
         SDL_SetWindowIcon(ptr, icon)
@@ -389,6 +471,27 @@ public static class Window
             .AssertSdlSuccess();
     }
 
+    public static unsafe void SetProgressState(this IntPtr<SDL_Window> ptr, SDL_ProgressState value)
+    {
+        SDL_SetWindowProgressState(ptr, value)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SetProgressValue(this IntPtr<SDL_Window> ptr, float value)
+    {
+        SDL_SetWindowProgressValue(ptr, value)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SetRelativeMouseMode(
+        this IntPtr<SDL_Window> window,
+        bool enabled
+    )
+    {
+        SDL_SetWindowRelativeMouseMode(window, enabled)
+            .AssertSdlSuccess();
+    }
+
     public static unsafe void SetResizable(this IntPtr<SDL_Window> ptr, bool resizable)
     {
         SDL_SetWindowResizable(ptr, resizable)
@@ -407,9 +510,19 @@ public static class Window
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetVSync(this IntPtr<SDL_Window> ptr, int vSync)
+    public static unsafe void SetSurfaceVSync(this IntPtr<SDL_Window> ptr, int vSync)
     {
         SDL_SetWindowSurfaceVSync(ptr, vSync)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SetTextInputArea(
+        this IntPtr<SDL_Window> window,
+        SDL_Rect? rect,
+        int cursor
+    )
+    {
+        SDL_SetTextInputArea(window, rect is { } dr ? &dr : null, cursor)
             .AssertSdlSuccess();
     }
 
@@ -429,6 +542,31 @@ public static class Window
     public static unsafe void ShowSystemMenu(this IntPtr<SDL_Window> ptr, int x, int y)
     {
         SDL_ShowWindowSystemMenu(ptr, x, y)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void StartTextInput(
+        this IntPtr<SDL_Window> window
+    )
+    {
+        SDL_StartTextInput(window)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void StartTextInputWithProperties(
+        this IntPtr<SDL_Window> window,
+        SDL_PropertiesID props
+    )
+    {
+        SDL_StartTextInputWithProperties(window, props)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void StopTextInput(
+        this IntPtr<SDL_Window> window
+    )
+    {
+        SDL_StopTextInput(window)
             .AssertSdlSuccess();
     }
 
@@ -453,76 +591,6 @@ public static class Window
         }
     }
 
-    public static unsafe bool HasSurface(this IntPtr<SDL_Window> ptr)
-    {
-        return SDL_WindowHasSurface(ptr);
-    }
-
-    public static unsafe float GetProgressValue(this IntPtr<SDL_Window> ptr)
-    {
-        return SDL_GetWindowProgressValue(ptr);
-    }
-
-    public static unsafe void SetProgressValue(this IntPtr<SDL_Window> ptr, float value)
-    {
-        SDL_SetWindowProgressValue(ptr, value)
-            .AssertSdlSuccess();
-    }
-
-    public static unsafe SDL_ProgressState GetProgressState(this IntPtr<SDL_Window> ptr)
-    {
-        return SDL_GetWindowProgressState(ptr);
-    }
-
-    public static unsafe void SetProgressState(this IntPtr<SDL_Window> ptr, SDL_ProgressState value)
-    {
-        SDL_SetWindowProgressState(ptr, value)
-            .AssertSdlSuccess();
-    }
-
-    public delegate SDL_HitTestResult HitTestDelegate(SDL_Point point);
-
-    private static readonly Dictionary<IntPtr<SDL_Window>, IntPtr> HitTestUserData = [];
-
-    public static unsafe void SetHitTest(this IntPtr<SDL_Window> ptr, HitTestDelegate? callback)
-    {
-        if (HitTestUserData.Remove(ptr, out var existing))
-            UserDataStore.Remove(existing);
-
-        if (callback == null)
-            return;
-        
-        var userData = UserDataStore.Add(callback);
-        HitTestUserData.Add(ptr, userData);
-        SDL_SetWindowHitTest(ptr, &Execute, userData);
-        
-        return;
-
-        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static SDL_HitTestResult Execute(SDL_Window* window, SDL_Point* point, IntPtr userData)
-        {
-            return UserDataStore.TryGet<HitTestDelegate>(userData, out var target) 
-                ? target!.Invoke(*point)
-                : default;
-        }
-    }
-
-    public static unsafe bool IsRelativeMouseMode(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        return SDL_GetWindowRelativeMouseMode(window);
-    }
-
-    public static unsafe void SetRelativeMouseMode(
-        this IntPtr<SDL_Window> window,
-        bool enabled
-    )
-    {
-        SDL_SetWindowRelativeMouseMode(window, enabled)
-            .AssertSdlSuccess();
-    }
-
     public static unsafe void WarpMouse(
         this IntPtr<SDL_Window> window,
         float x,
@@ -530,73 +598,5 @@ public static class Window
     )
     {
         SDL_WarpMouseInWindow(window, x, y);
-    }
-
-    public static unsafe bool IsScreenKeyboardShown(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        return SDL_ScreenKeyboardShown(window);
-    }
-
-    public static unsafe (SDL_Rect Rect, int Cursor) GetTextInputArea(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        SDL_Rect rect;
-        int cursor;
-        SDL_GetTextInputArea(window, &rect, &cursor)
-            .AssertSdlSuccess();
-        return (rect, cursor);
-    }
-
-    public static unsafe void SetTextInputArea(
-        this IntPtr<SDL_Window> window,
-        SDL_Rect? rect,
-        int cursor
-    )
-    {
-        SDL_SetTextInputArea(window, rect is { } dr ? &dr : null, cursor)
-            .AssertSdlSuccess();
-    }
-
-    public static unsafe void ClearComposition(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        SDL_ClearComposition(window)
-            .AssertSdlSuccess();
-    }
-
-    public static unsafe void StopTextInput(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        SDL_StopTextInput(window)
-            .AssertSdlSuccess();
-    }
-
-    public static unsafe bool IsTextInputActive(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        return SDL_TextInputActive(window);
-    }
-
-    public static unsafe void StartTextInputWithProperties(
-        this IntPtr<SDL_Window> window,
-        SDL_PropertiesID props
-    )
-    {
-        SDL_StartTextInputWithProperties(window, props)
-            .AssertSdlSuccess();
-    }
-
-    public static unsafe void StartTextInput(
-        this IntPtr<SDL_Window> window
-    )
-    {
-        SDL_StartTextInput(window)
-            .AssertSdlSuccess();
     }
 }

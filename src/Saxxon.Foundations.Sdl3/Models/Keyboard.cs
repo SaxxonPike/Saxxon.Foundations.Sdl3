@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
@@ -24,7 +25,7 @@ public static class Keyboard
         this SDL_KeyboardID instanceId
     )
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetKeyboardNameForID(instanceId))
+        return ((IntPtr)Unsafe_SDL_GetKeyboardNameForID(instanceId)).GetString()
                ?? throw new SdlException();
     }
 

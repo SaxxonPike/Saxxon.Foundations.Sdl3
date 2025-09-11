@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
@@ -7,6 +9,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// rectangular margins used for nine-grid rendering.
 /// </summary>
 // ReSharper disable InconsistentNaming
+[PublicAPI]
 public record struct SDL_Margin
 {
     public int l;

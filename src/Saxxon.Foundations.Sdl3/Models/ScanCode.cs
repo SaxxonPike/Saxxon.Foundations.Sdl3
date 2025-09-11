@@ -26,7 +26,7 @@ public static class ScanCode
         this SDL_Scancode scan
     )
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetScancodeName(scan))!;
+        return ((IntPtr)Unsafe_SDL_GetScancodeName(scan)).GetString()!;
     }
 
     public static unsafe void SetName(

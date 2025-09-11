@@ -8,6 +8,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// <summary>
 /// Handles interaction with SDL's application lifecycle.
 /// </summary>
+[PublicAPI]
 internal sealed unsafe class AppMain
 {
     /// <summary>

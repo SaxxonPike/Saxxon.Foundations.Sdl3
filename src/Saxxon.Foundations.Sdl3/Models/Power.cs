@@ -1,7 +1,9 @@
+using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+[PublicAPI]
 public static class Power
 {
     public static unsafe (SDL_PowerState State, TimeSpan Time, int Percent) GetInfo()

@@ -533,10 +533,10 @@ public static class Renderer
 
     public static unsafe IntPtr<SDL_GPURenderState> CreateGpuRenderState(
         this IntPtr<SDL_Renderer> renderer,
-        SDL_GPURenderStateDesc desc
+        SDL_GPURenderStateCreateInfo createInfo
     )
     {
-        return ((IntPtr<SDL_GPURenderState>)SDL_CreateGPURenderState(renderer, &desc))
+        return ((IntPtr<SDL_GPURenderState>)SDL_CreateGPURenderState(renderer, &createInfo))
             .AssertSdlNotNull();
     }
 
@@ -686,7 +686,7 @@ public static class Renderer
         this IntPtr<SDL_Renderer> renderer
     )
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetRendererName(renderer)) ??
+        return ((IntPtr)Unsafe_SDL_GetRendererName(renderer)).GetString() ??
                throw new SdlException();
     }
 
@@ -718,7 +718,7 @@ public static class Renderer
 
     public static unsafe string? GetDriverName(int index)
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetRenderDriver(index));
+        return ((IntPtr)Unsafe_SDL_GetRenderDriver(index)).GetString();
     }
 
     public static unsafe List<string> GetDriverNames()
@@ -726,7 +726,7 @@ public static class Renderer
         var count = SDL_GetNumRenderDrivers();
         var result = new List<string>();
         for (var i = 0; i < count; i++)
-            result.Add(Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetRenderDriver(i))!);
+            result.Add(((IntPtr)Unsafe_SDL_GetRenderDriver(i)).GetString()!);
         return result;
     }
 }

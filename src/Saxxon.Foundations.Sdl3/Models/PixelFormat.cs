@@ -33,6 +33,6 @@ public static class PixelFormat
         this SDL_PixelFormat format
     )
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetPixelFormatName(format));
+        return ((IntPtr)Unsafe_SDL_GetPixelFormatName(format)).GetString();
     }
 }

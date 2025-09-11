@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.8" />
-    <PackageReference Include="ppy.SDL3-CS" Version="2025.816.0" />
-    <PackageReference Include="ppy.SDL3_image-CS" Version="2025.816.0" />
-    <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.816.0" />
-    <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.816.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.9" />
+    <PackageReference Include="ppy.SDL3-CS" Version="2025.828.0" />
+    <PackageReference Include="ppy.SDL3_image-CS" Version="2025.828.0" />
+    <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.828.0" />
+    <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.828.0" />
   </ItemGroup>
 
 </Project>

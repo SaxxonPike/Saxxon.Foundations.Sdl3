@@ -63,9 +63,7 @@ public static class AppMetadata
         
         key.EncodeUtf8(keyBytes);
 
-        fixed (byte* keyPtr = keyBytes)
-            return Marshal.PtrToStringUTF8(
-                (IntPtr)Unsafe_SDL_GetAppMetadataProperty(keyPtr)
-        );
+        fixed (byte* keyPtr = keyBytes) 
+            return ((IntPtr)Unsafe_SDL_GetAppMetadataProperty(keyPtr)).GetString();
     }
 }

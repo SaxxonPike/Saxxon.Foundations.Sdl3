@@ -66,6 +66,28 @@ public static class Animation
     }
 
     /// <summary>
+    /// Loads an APNG animation directly.
+    /// </summary>
+    public static unsafe IntPtr<IMG_Animation> LoadApngIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<IMG_Animation>)IMG_LoadAPNGAnimation_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an AVIF animation directly.
+    /// </summary>
+    public static unsafe IntPtr<IMG_Animation> LoadAvifIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<IMG_Animation>)IMG_LoadAVIFAnimation_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
     /// Loads a GIF animation directly.
     /// </summary>
     public static unsafe IntPtr<IMG_Animation> LoadGifIo(

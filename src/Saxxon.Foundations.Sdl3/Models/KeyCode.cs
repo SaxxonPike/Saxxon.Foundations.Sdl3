@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
@@ -22,7 +23,7 @@ public static class KeyCode
         this SDL_Keycode key
     )
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetKeyName(key))!;
+        return ((IntPtr)Unsafe_SDL_GetKeyName(key)).GetString()!;
     }
 
     public static unsafe (SDL_Scancode Scan, SDL_Keymod Mod) GetScan(

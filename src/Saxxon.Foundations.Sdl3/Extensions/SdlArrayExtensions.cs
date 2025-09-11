@@ -29,7 +29,7 @@ internal static class SdlArrayExtensions
         var result = new List<string?>(array.Count);
 
         foreach (var t in array)
-            result.Add(Marshal.PtrToStringUTF8(t));
+            result.Add(t.GetString());
 
         return result;
     }

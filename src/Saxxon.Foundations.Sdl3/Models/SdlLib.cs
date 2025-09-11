@@ -28,7 +28,7 @@ public static class SdlLib
 
     public static unsafe string? GetRevision()
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetRevision());
+        return ((IntPtr)Unsafe_SDL_GetRevision()).GetString();
     }
 
     public static int GetVersion()
@@ -38,7 +38,7 @@ public static class SdlLib
 
     public static unsafe string? GetPlatform()
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetPlatform());
+        return ((IntPtr)Unsafe_SDL_GetPlatform()).GetString();
     }
 
     public static void OpenUrl(

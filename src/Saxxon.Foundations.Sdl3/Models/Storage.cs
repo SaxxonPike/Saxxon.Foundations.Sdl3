@@ -32,7 +32,7 @@ public static class Storage
 
         for (var i = 0; i < count; i++)
         {
-            if (Marshal.PtrToStringUTF8((IntPtr)names[i]) is not { } name)
+            if (((IntPtr)names[i]).GetString() is not { } name)
                 continue;
 
             result.Add(name);
@@ -121,8 +121,8 @@ public static class Storage
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static SDL_EnumerationResult Execute(IntPtr userData, byte* dirName, byte* fileName)
         {
-            var dir = Marshal.PtrToStringUTF8((IntPtr)dirName);
-            var file = Marshal.PtrToStringUTF8((IntPtr)fileName);
+            var dir = ((IntPtr)dirName).GetString();
+            var file = ((IntPtr)fileName).GetString();
             return UserDataStore.Get<EnumerateDelegate>(userData)!.Invoke(dir!, file!);
         }
     }

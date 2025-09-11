@@ -16,7 +16,7 @@ public static class Event
         fixed (byte* ptr = str)
         {
             _ = SDL_GetEventDescription((SDL_Event*)Unsafe.AsPointer(ref ev), ptr, str.Length);
-            return Marshal.PtrToStringUTF8((IntPtr)ptr)!;
+            return ((IntPtr)ptr).GetString()!;
         }
     }
 

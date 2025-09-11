@@ -301,6 +301,34 @@ public static class Image
     }
 
     /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into an image file.
+    /// </summary>
+    public static unsafe void Save(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_Save(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into an <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveTypedIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo,
+        ReadOnlySpan<char> type
+    )
+    {
+        using var typeStr = new Utf8Span(type);
+        IMG_SaveTyped_IO(src, stream, closeIo, typeStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
     /// Saves an <see cref="SDL_Surface"/> into an AVIF image file.
     /// </summary>
     public static unsafe void SaveAvif(
@@ -326,6 +354,60 @@ public static class Image
     )
     {
         IMG_SaveAVIF_IO(src, dst, closeIo, quality)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a BMP image file.
+    /// </summary>
+    public static unsafe void SaveBmp(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SaveBMP(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into BMP image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveBmpIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo
+    )
+    {
+        IMG_SaveBMP_IO(src, dst, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a GIF image file.
+    /// </summary>
+    public static unsafe void SaveGif(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SaveGIF(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into GIF image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveGifIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo
+    )
+    {
+        IMG_SaveGIF_IO(src, dst, closeIo)
             .AssertSdlSuccess();
     }
 
@@ -382,6 +464,62 @@ public static class Image
     )
     {
         IMG_SavePNG_IO(src, dst, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a TGA image file.
+    /// </summary>
+    public static unsafe void SaveTga(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SaveTGA(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into TGA image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveTgaIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo
+    )
+    {
+        IMG_SaveTGA_IO(src, dst, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a WEBP image file.
+    /// </summary>
+    public static unsafe void SaveWebp(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName,
+        float quality
+    )
+    {
+        using var fileNameStr = new Utf8Span(fileName);
+        IMG_SaveWEBP(src, fileNameStr, quality)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into WEBP image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveWebpIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo,
+        float quality
+    )
+    {
+        IMG_SaveWEBP_IO(src, dst, closeIo, quality)
             .AssertSdlSuccess();
     }
 }

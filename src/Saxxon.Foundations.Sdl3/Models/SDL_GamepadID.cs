@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
@@ -7,4 +9,5 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// This is not an actual SDL type.
 /// </summary>
 // ReSharper disable InconsistentNaming
+[PublicAPI]
 public enum SDL_GamepadID : uint;

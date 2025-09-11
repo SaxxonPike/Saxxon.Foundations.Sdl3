@@ -1,9 +1,11 @@
 using System.Buffers;
+using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+[PublicAPI]
 public static class Process
 {
     public static unsafe void Destroy(

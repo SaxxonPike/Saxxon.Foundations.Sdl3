@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Models;
@@ -5,6 +6,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// <summary>
 /// Provides an interface for manipulating screen saver settings.
 /// </summary>
+[PublicAPI]
 public static class ScreenSaver
 {
     public static void Enable()

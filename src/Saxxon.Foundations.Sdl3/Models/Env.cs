@@ -1,9 +1,11 @@
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+[PublicAPI]
 public static class Env
 {
     public static unsafe void Destroy(
@@ -58,7 +60,7 @@ public static class Env
 
         while (vars[count] != IntPtr.Zero)
         {
-            if (Marshal.PtrToStringUTF8(vars[count]) is { } value)
+            if (vars[count].GetString() is { } value)
                 result.Add(value);
 
             count++;
@@ -77,7 +79,7 @@ public static class Env
         name.EncodeUtf8(nameBytes);
 
         fixed (byte* namePtr = nameBytes)
-            return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetEnvironmentVariable(env, namePtr));
+            return ((IntPtr)Unsafe_SDL_GetEnvironmentVariable(env, namePtr)).GetString();
     }
 
     public static unsafe IntPtr<SDL_Environment> Create(bool populated)

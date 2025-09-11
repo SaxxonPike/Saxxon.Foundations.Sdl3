@@ -1,15 +1,18 @@
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
 /// Provides an object-oriented interface for SDL video drivers.
 /// </summary>
+[PublicAPI]
 public static class VideoDriver
 {
     public static unsafe string? GetCurrent()
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetCurrentVideoDriver());
+        return ((IntPtr)Unsafe_SDL_GetCurrentVideoDriver()).GetString();
     }
 
     public static unsafe List<string> GetAll()
@@ -19,7 +22,7 @@ public static class VideoDriver
 
         for (var i = 0; i < count; i++)
         {
-            if (Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetVideoDriver(i)) is { } name)
+            if (((IntPtr)Unsafe_SDL_GetVideoDriver(i)).GetString() is { } name)
                 result.Add(name);
         }
 

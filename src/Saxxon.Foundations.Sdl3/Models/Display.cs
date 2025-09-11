@@ -1,10 +1,12 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+[PublicAPI]
 public static class Display
 {
     public static unsafe SDL_DisplayID GetForPoint(SDL_Point point)
@@ -82,7 +84,7 @@ public static class Display
 
     public static unsafe string? GetName(this SDL_DisplayID display)
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetDisplayName(display));
+        return ((IntPtr)Unsafe_SDL_GetDisplayName(display)).GetString();
     }
 
     public static SDL_PropertiesID GetProperties(this SDL_DisplayID display)

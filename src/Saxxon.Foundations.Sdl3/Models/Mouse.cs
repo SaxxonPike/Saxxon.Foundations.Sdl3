@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
@@ -31,7 +32,7 @@ public static class Mouse
         this SDL_MouseID instanceId
     )
     {
-        return Marshal.PtrToStringUTF8((IntPtr)Unsafe_SDL_GetMouseNameForID(instanceId));
+        return ((IntPtr<byte>)Unsafe_SDL_GetMouseNameForID(instanceId)).GetString();
     }
 
     public static unsafe IMemoryOwner<SDL_MouseID> GetAll()

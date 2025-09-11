@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
@@ -25,7 +26,7 @@ internal readonly ref struct Utf8SpanArray(ReadOnlySpan<IntPtr> pointers)
     {
         var result = new string?[Count];
         for (var i = 0; i < Count; i++)
-            result[i] = Marshal.PtrToStringUTF8(_pointers[i]);
+            result[i] = _pointers[i].GetString();
         return result;
     }
 
@@ -33,7 +34,7 @@ internal readonly ref struct Utf8SpanArray(ReadOnlySpan<IntPtr> pointers)
     {
         var result = new List<string>(Count);
         for (var i = 0; i < Count; i++)
-            result.Add(Marshal.PtrToStringUTF8(_pointers[i])!);
+            result.Add(_pointers[i].GetString()!);
         return result;
     }
 }

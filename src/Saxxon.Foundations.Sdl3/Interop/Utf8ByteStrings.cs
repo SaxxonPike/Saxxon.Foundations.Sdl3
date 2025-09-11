@@ -10,7 +10,7 @@ public sealed unsafe class Utf8ByteStrings : IDisposable
 {
     public IntPtr Ptr { get; }
 
-    public Utf8ByteStrings(params string[] values)
+    public Utf8ByteStrings(params ReadOnlySpan<string> values)
     {
         Span<int> byteSizes = stackalloc int[values.Length];
 
