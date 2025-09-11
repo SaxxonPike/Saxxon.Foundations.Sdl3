@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Delegates;
 using Saxxon.Foundations.Sdl3.Extensions;

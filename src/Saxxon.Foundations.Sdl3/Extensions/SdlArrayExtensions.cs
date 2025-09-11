@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Interop;
 

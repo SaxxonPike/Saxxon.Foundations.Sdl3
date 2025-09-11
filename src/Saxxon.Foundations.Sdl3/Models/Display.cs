@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;

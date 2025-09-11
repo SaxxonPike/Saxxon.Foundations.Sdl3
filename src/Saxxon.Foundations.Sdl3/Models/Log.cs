@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices.Marshalling;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Interop;
 

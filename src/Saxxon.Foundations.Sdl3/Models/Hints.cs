@@ -11,7 +11,10 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class Hints
 {
-    public static void Set(string name, string value)
+    /// <summary>
+    /// Sets a hint with normal priority.
+    /// </summary>
+    public static void Set(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
     {
         using var nameStr = new Utf8Span(name);
         using var valueStr = new Utf8Span(value);
@@ -19,17 +22,78 @@ public static class Hints
             .AssertSdlSuccess();
     }
 
-    public static void Set(ReadOnlySpan<byte> name, string value)
+    /// <summary>
+    /// Sets a hint with normal priority.
+    /// </summary>
+    public static void Set(ReadOnlySpan<byte> name, ReadOnlySpan<char> value)
     {
-        using var nameStr = new Utf8Span(name);
         using var valueStr = new Utf8Span(value);
-        SDL_SetHint(nameStr, valueStr)
+        SDL_SetHint(name, valueStr)
             .AssertSdlSuccess();
     }
 
-    public static unsafe string? Get(string name)
+    /// <summary>
+    /// Sets a hint with a specific priority.
+    /// </summary>
+    public static void SetWithPriority(ReadOnlySpan<char> name, ReadOnlySpan<char> value, SDL_HintPriority priority)
+    {
+        using var nameStr = new Utf8Span(name);
+        using var valueStr = new Utf8Span(value);
+        SDL_SetHintWithPriority(nameStr, valueStr, priority)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Sets a hint with a specific priority.
+    /// </summary>
+    public static void SetWithPriority(ReadOnlySpan<byte> name, ReadOnlySpan<char> value, SDL_HintPriority priority)
+    {
+        using var valueStr = new Utf8Span(value);
+        SDL_SetHintWithPriority(name, valueStr, priority)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Gets the value of a hint.
+    /// </summary>
+    public static unsafe string? Get(ReadOnlySpan<char> name)
     {
         using var nameStr = new Utf8Span(name);
         return Utf8StringMarshaller.ConvertToManaged(Unsafe_SDL_GetHint(nameStr.Ptr));
+    }
+
+    /// <summary>
+    /// Gets the value of a hint.
+    /// </summary>
+    public static string? Get(ReadOnlySpan<byte> name)
+    {
+        return SDL_GetHint(name);
+    }
+
+    /// <summary>
+    /// Resets a hint to the default value.
+    /// </summary>
+    public static void Reset(ReadOnlySpan<char> name)
+    {
+        using var nameStr = new Utf8Span(name);
+        SDL_ResetHint(nameStr)
+            .AssertSdlSuccess();
+    }
+    
+    /// <summary>
+    /// Resets a hint to the default value.
+    /// </summary>
+    public static void Reset(ReadOnlySpan<byte> name)
+    {
+        SDL_ResetHint(name)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Reset all hints to the default values.
+    /// </summary>
+    public static void ResetAll()
+    {
+        SDL_ResetHints();
     }
 }
