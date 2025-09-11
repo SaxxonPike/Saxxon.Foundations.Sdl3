@@ -216,7 +216,7 @@ public sealed unsafe class AppMain<TState> where TState : class
         _appMain = new AppMain
         {
             OnInit = args =>
-                OnInit?.Invoke(args.ToArray()) ??
+                OnInit?.Invoke(args.ToArray()!) ??
                 (SDL_AppResult.SDL_APP_CONTINUE, null),
             OnIter = state =>
                 OnIterate?.Invoke((TState)state!) ??

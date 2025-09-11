@@ -1,14 +1,19 @@
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
+/// <summary>
+/// Represents a pointer to an unmanaged structure.
+/// </summary>
+[PublicAPI]
 public readonly record struct IntPtr<T>(IntPtr Ptr)
     where T : unmanaged
 {
     public IntPtr(scoped ref T target) : this(FromRef(ref target))
     {
     }
-    
+
     public static implicit operator IntPtr(IntPtr<T> other)
     {
         return other.Ptr;

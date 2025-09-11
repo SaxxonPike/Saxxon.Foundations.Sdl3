@@ -77,24 +77,24 @@ public static class Gamepad
 
     public static unsafe List<SDL_GamepadBinding> GetBindings(this IntPtr<SDL_Gamepad> ptr)
     {
-        SDL_GamepadBinding** items = null;
+        IntPtr<IntPtr<SDL_GamepadBinding>> items = default;
 
         try
         {
             int count;
-            items = SDL_GetGamepadBindings(ptr, &count);
-            ((IntPtr)items).AssertSdlNotNull();
+            items = ((IntPtr<IntPtr<SDL_GamepadBinding>>)SDL_GetGamepadBindings(ptr, &count))
+                .AssertSdlNotNull();
 
             var result = new List<SDL_GamepadBinding>(count);
-            for (var i = 0; i < count; i++)
-                result.Add(*items[i]);
+            foreach (var item in items.AsSpan(count))
+                result.Add(item.AsReadOnlyRef());
 
             return result;
         }
         finally
         {
-            if (items != null)
-                SDL_free(items);
+            if (!items.IsNull)
+                SDL_free(items.Ptr);
         }
     }
 
@@ -141,12 +141,27 @@ public static class Gamepad
         return SDL_GetGamepadMappingForGUID(*(SDL_GUID*)&guid) ?? throw new SdlException();
     }
 
-    public static List<string?> GetMappings()
+    public static unsafe List<string> GetMappings()
     {
-        using var mappings = SDL_GetGamepadMappings();
-        if (mappings == null)
-            throw new SdlException();
-        return mappings.ToUtf8StringList();
+        var result = new List<string>();
+        IntPtr<IntPtr<byte>> mappings = default;
+
+        try
+        {
+            int count;
+            mappings = ((IntPtr<IntPtr<byte>>)SDL_GetGamepadMappings(&count))
+                .AssertSdlNotNull();
+
+            foreach (var mapping in mappings.AsSpan(count))
+                result.Add(mapping.GetString()!);
+
+            return result;
+        }
+        finally
+        {
+            if (!mappings.IsNull)
+                SDL_free(mappings.Ptr);
+        }
     }
 
     public static unsafe string? GetName(this IntPtr<SDL_Gamepad> ptr)
@@ -207,8 +222,11 @@ public static class Gamepad
         return SDL_GetGamepadSteamHandle(ptr);
     }
 
-    public static unsafe (bool Down, float X, float Y, float Pressure) GetTouchpadFinger(this IntPtr<SDL_Gamepad> ptr,
-        int touchPad, int finger)
+    public static unsafe (bool Down, float X, float Y, float Pressure) GetTouchpadFinger(
+        this IntPtr<SDL_Gamepad> ptr,
+        int touchPad,
+        int finger
+    )
     {
         SDLBool down;
         float x, y, pressure;
@@ -336,7 +354,7 @@ public static class Gamepad
     {
         SDL_UpdateGamepads();
     }
-    
+
     public static int GetProductVersion(
         this SDL_GamepadID id
     )
@@ -402,6 +420,4 @@ public static class Gamepad
         return ((IntPtr<SDL_Joystick>)SDL_OpenJoystick((SDL_JoystickID)id))
             .AssertSdlNotNull();
     }
-
-
 }

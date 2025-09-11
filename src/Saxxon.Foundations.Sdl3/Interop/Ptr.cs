@@ -1,7 +1,9 @@
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
+[PublicAPI]
 public static class Ptr
 {
     public static unsafe IntPtr<T> FromArray<T>(T* array) where T : unmanaged

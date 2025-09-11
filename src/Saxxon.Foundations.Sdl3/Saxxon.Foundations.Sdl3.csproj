@@ -1,19 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
+        <StripSymbols>false</StripSymbols>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.9" />
-    <PackageReference Include="ppy.SDL3-CS" Version="2025.828.0" />
-    <PackageReference Include="ppy.SDL3_image-CS" Version="2025.828.0" />
-    <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.828.0" />
-    <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.828.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.2"/>
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.9"/>
+        <PackageReference Include="ppy.SDL3-CS" Version="2025.828.0"/>
+        <PackageReference Include="ppy.SDL3_image-CS" Version="2025.828.0"/>
+        <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.828.0"/>
+        <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.828.0"/>
+    </ItemGroup>
 
 </Project>

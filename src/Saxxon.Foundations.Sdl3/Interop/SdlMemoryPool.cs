@@ -1,5 +1,6 @@
 using System.Buffers;
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
@@ -21,9 +22,7 @@ internal sealed unsafe class SdlMemoryPool<T> : MemoryPool<T>
     /// </summary>
     private SdlMemoryPool()
     {
-        // Janky SizeOf<T>.
-        _elementSize = (int)(IntPtr)(&((T*)0)[1]);
-
+        _elementSize = Mem.SizeOf<T>();
         MaxBufferSize = int.MaxValue / _elementSize;
         _managers = [];
     }
