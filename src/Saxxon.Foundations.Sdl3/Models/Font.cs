@@ -193,12 +193,12 @@ public static class Font
 
     public static unsafe string? GetFamilyName(this IntPtr<TTF_Font> font)
     {
-        return ((IntPtr)Unsafe_TTF_GetFontFamilyName(font)).GetString();
+        return Ptr.ToUtf8String(Unsafe_TTF_GetFontFamilyName(font));
     }
 
     public static unsafe string? GetStyleName(this IntPtr<TTF_Font> font)
     {
-        return ((IntPtr)Unsafe_TTF_GetFontStyleName(font)).GetString();
+        return Ptr.ToUtf8String(Unsafe_TTF_GetFontStyleName(font));
     }
 
     public static unsafe void SetDirection(this IntPtr<TTF_Font> font, TTF_Direction direction)

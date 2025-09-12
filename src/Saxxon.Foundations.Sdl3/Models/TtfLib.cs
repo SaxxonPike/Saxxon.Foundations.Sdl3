@@ -50,7 +50,7 @@ public static class TtfLib
         Span<byte> bytes = stackalloc byte[Encoding.UTF8.GetMaxByteCount(4)];
         fixed (byte* ptr = bytes)
             TTF_TagToString(tag, ptr, (UIntPtr)bytes.Length);
-        return Encoding.UTF8.GetString(bytes);
+        return bytes.GetString();
     }
 
     public static void Quit()

@@ -4,12 +4,26 @@ using Saxxon.Foundations.Sdl3.Extensions;
 namespace Saxxon.Foundations.Sdl3.Interop;
 
 [PublicAPI]
-internal readonly ref struct Utf8SpanArray(ReadOnlySpan<IntPtr> pointers)
+internal readonly ref struct Utf8SpanArray
 {
-    private readonly ReadOnlySpan<IntPtr> _pointers = pointers;
+    private readonly ReadOnlySpan<IntPtr> _pointers;
 
     public int Count => _pointers.Length;
 
+    public Utf8SpanArray(ReadOnlySpan<IntPtr> pointers)
+    {
+        _pointers = pointers;
+    }
+
+    public Utf8SpanArray(IntPtr<IntPtr> pointers)
+    {
+        var length = 0;
+        while (pointers[length] != IntPtr.Zero)
+            length++;
+
+        _pointers = pointers.AsReadOnlySpan(length);
+    }
+    
     public unsafe ReadOnlySpan<byte> this[int index]
     {
         get

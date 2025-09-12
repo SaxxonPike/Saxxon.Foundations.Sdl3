@@ -43,12 +43,12 @@ public static class Sensor
 
     public static unsafe string? GetName(this IntPtr<SDL_Sensor> sensor)
     {
-        return ((IntPtr)Unsafe_SDL_GetSensorName(sensor)).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetSensorName(sensor));
     }
 
     public static unsafe string? GetName(this SDL_SensorID sensorId)
     {
-        return ((IntPtr)Unsafe_SDL_GetSensorNameForID(sensorId)).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetSensorNameForID(sensorId));
     }
 
     public static unsafe SDL_PropertiesID GetProperties(this IntPtr<SDL_Sensor> sensor)

@@ -120,7 +120,7 @@ public static class Clipboard
     {
         var data = UserDataStore.Get<SetClipboardDataCallbackData>(userData);
         var result = IntPtr.Zero;
-        data?.Data.TryGetValue(((IntPtr)mimeType).GetString()!, out result);
+        data?.Data.TryGetValue(Ptr.ToUtf8String(mimeType)!, out result);
         return result;
     }
 

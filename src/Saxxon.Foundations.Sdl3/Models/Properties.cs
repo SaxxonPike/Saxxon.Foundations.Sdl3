@@ -343,7 +343,7 @@ public static class Properties
     /// Sets a native pointer on a property set. When the associated object
     /// is freed, the specified cleanup method is invoked.
     /// </summary>
-    public static unsafe void SetPointerWithCleanup(
+    public static void SetPointerWithCleanup(
         this SDL_PropertiesID id,
         ReadOnlySpan<char> name,
         IntPtr value,
@@ -358,7 +358,7 @@ public static class Properties
     /// Sets a native pointer on a property set. When the associated object
     /// is freed, the specified cleanup method is invoked.
     /// </summary>
-    public static unsafe void SetPointerWithCleanup(
+    public static void SetPointerWithCleanup(
         this SDL_PropertiesID id,
         ReadOnlySpan<byte> name,
         IntPtr value,

@@ -11,17 +11,27 @@ public static class Event
 {
     public static unsafe string GetDescription(this ref SDL_Event ev)
     {
+        return GetDescription((IntPtr<SDL_Event>)Unsafe.AsPointer(ref ev));
+    }
+
+    public static unsafe string GetDescription(this IntPtr<SDL_Event> ev)
+    {
         Span<byte> str = stackalloc byte[512];
         fixed (byte* ptr = str)
         {
-            _ = SDL_GetEventDescription((SDL_Event*)Unsafe.AsPointer(ref ev), ptr, str.Length);
-            return ((IntPtr)ptr).GetString()!;
+            _ = SDL_GetEventDescription(ev, ptr, str.Length);
+            return Ptr.ToUtf8String(ptr)!;
         }
     }
 
     public static unsafe IntPtr<SDL_Window> GetWindow(this ref SDL_Event ev)
     {
-        return SDL_GetWindowFromEvent((SDL_Event*)Unsafe.AsPointer(ref ev));
+        return GetWindow((IntPtr<SDL_Event>)Unsafe.AsPointer(ref ev));
+    }
+
+    public static unsafe IntPtr<SDL_Window> GetWindow(this IntPtr<SDL_Event> ev)
+    {
+        return SDL_GetWindowFromEvent(ev);
     }
 
     public static unsafe EventFilterFunction? GetFilter()
@@ -35,19 +45,34 @@ public static class Event
 
     public static unsafe void Push(this ref SDL_Event ev)
     {
-        SDL_PushEvent((SDL_Event*)Unsafe.AsPointer(ref ev))
+        Push((IntPtr<SDL_Event>)Unsafe.AsPointer(ref ev));
+    }
+
+    public static unsafe void Push(this IntPtr<SDL_Event> ev)
+    {
+        SDL_PushEvent(ev)
             .AssertSdlSuccess();
     }
 
     public static unsafe bool WaitTimeout(this ref SDL_Event ev, TimeSpan timeout)
     {
+        return WaitTimeout((IntPtr<SDL_Event>)Unsafe.AsPointer(ref ev), timeout);
+    }
+
+    public static unsafe bool WaitTimeout(this IntPtr<SDL_Event> ev, TimeSpan timeout)
+    {
         var ms = timeout.ToMilliseconds();
-        return SDL_WaitEventTimeout((SDL_Event*)Unsafe.AsPointer(ref ev), ms);
+        return SDL_WaitEventTimeout(ev, ms);
     }
 
     public static unsafe bool Wait(this ref SDL_Event ev)
     {
-        return SDL_WaitEvent((SDL_Event*)Unsafe.AsPointer(ref ev));
+        return Wait((IntPtr<SDL_Event>)Unsafe.AsPointer(ref ev));
+    }
+
+    public static unsafe bool Wait(this IntPtr<SDL_Event> ev)
+    {
+        return SDL_WaitEvent(ev);
     }
 
     public static unsafe SDL_Event? Poll()

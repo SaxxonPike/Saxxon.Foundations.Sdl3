@@ -294,20 +294,20 @@ public static class Gamepad
         SDL_ReloadGamepadMappings();
     }
 
-    public static unsafe void Rumble(this IntPtr<SDL_Gamepad> ptr, float lowIntensity, float highIntensity, int timeMs)
+    public static unsafe void Rumble(this IntPtr<SDL_Gamepad> ptr, float lowIntensity, float highIntensity, TimeSpan time)
     {
         var lowValue = (ushort)(lowIntensity * 65535f);
         var highValue = (ushort)(highIntensity * 65535f);
-        SDL_RumbleGamepad(ptr, lowValue, highValue, (uint)timeMs)
+        SDL_RumbleGamepad(ptr, lowValue, highValue, (uint)time.TotalMilliseconds)
             .AssertSdlSuccess();
     }
 
     public static unsafe void RumbleTriggers(this IntPtr<SDL_Gamepad> ptr, float leftIntensity, float rightIntensity,
-        int timeMs)
+        TimeSpan time)
     {
         var leftValue = (ushort)(leftIntensity * 65535f);
         var rightValue = (ushort)(rightIntensity * 65535f);
-        SDL_RumbleGamepadTriggers(ptr, leftValue, rightValue, (uint)timeMs)
+        SDL_RumbleGamepadTriggers(ptr, leftValue, rightValue, (uint)time.TotalMilliseconds)
             .AssertSdlSuccess();
     }
 

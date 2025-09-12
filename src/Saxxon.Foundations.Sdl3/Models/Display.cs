@@ -83,7 +83,7 @@ public static class Display
 
     public static unsafe string? GetName(this SDL_DisplayID display)
     {
-        return ((IntPtr)Unsafe_SDL_GetDisplayName(display)).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetDisplayName(display));
     }
 
     public static SDL_PropertiesID GetProperties(this SDL_DisplayID display)

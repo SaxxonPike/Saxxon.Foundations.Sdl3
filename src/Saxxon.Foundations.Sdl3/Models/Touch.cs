@@ -25,7 +25,7 @@ public static class Touch
 
     public static unsafe string? GetName(this SDL_TouchID touch)
     {
-        return ((IntPtr)Unsafe_SDL_GetTouchDeviceName(touch)).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetTouchDeviceName(touch));
     }
 
     public static unsafe IMemoryOwner<SDL_TouchID> GetDevices()

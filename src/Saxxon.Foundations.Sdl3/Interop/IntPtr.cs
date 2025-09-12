@@ -95,7 +95,7 @@ public readonly record struct IntPtr<T>(IntPtr Ptr)
 
     public unsafe T this[int index]
     {
-        get => *(T*)Ptr;
-        set => *(T*)Ptr = value;
+        get => ((T*)Ptr)[index];
+        set => ((T*)Ptr)[index] = value;
     }
 }

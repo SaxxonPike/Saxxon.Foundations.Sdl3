@@ -24,7 +24,7 @@ public static class Keyboard
         this SDL_KeyboardID instanceId
     )
     {
-        return ((IntPtr)Unsafe_SDL_GetKeyboardNameForID(instanceId)).GetString()
+        return Ptr.ToUtf8String(Unsafe_SDL_GetKeyboardNameForID(instanceId))
                ?? throw new SdlException();
     }
 

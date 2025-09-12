@@ -25,7 +25,7 @@ public static class ScanCode
         this SDL_Scancode scan
     )
     {
-        return ((IntPtr)Unsafe_SDL_GetScancodeName(scan)).GetString()!;
+        return Ptr.ToUtf8String(Unsafe_SDL_GetScancodeName(scan))!;
     }
 
     public static unsafe void SetName(

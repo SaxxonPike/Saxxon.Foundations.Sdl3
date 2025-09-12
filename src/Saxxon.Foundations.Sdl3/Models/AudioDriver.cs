@@ -5,31 +5,30 @@ using Saxxon.Foundations.Sdl3.Interop;
 namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
-/// Provides an object-oriented interface for SDL video drivers.
+/// Provides an object-oriented interface for SDL audio drivers.
 /// </summary>
 [PublicAPI]
-public static class VideoDriver
+public class AudioDriver
 {
     /// <summary>
-    /// Gets the current video driver.
+    /// Gets the current audio driver.
     /// </summary>
-    /// <returns></returns>
     public static unsafe string? GetCurrent()
     {
-        return Ptr.ToUtf8String(Unsafe_SDL_GetCurrentVideoDriver());
+        return Ptr.ToUtf8String(Unsafe_SDL_GetCurrentAudioDriver());
     }
 
     /// <summary>
-    /// Gets all available video drivers.
+    /// Gets all available audio drivers.
     /// </summary>
     public static unsafe List<string> GetAll()
     {
         var result = new List<string>();
-        var count = SDL_GetNumVideoDrivers();
+        var count = SDL_GetNumAudioDrivers();
 
         for (var i = 0; i < count; i++)
         {
-            if (Ptr.ToUtf8String(Unsafe_SDL_GetVideoDriver(i)) is { } name)
+            if (Ptr.ToUtf8String(Unsafe_SDL_GetAudioDriver(i)) is { } name)
                 result.Add(name);
         }
 

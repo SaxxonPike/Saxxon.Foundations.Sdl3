@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
+using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
@@ -15,7 +16,7 @@ public static class AppMetadata
         var appNameLen = appName.MeasureUtf8();
         var appVersionLen = appVersion.MeasureUtf8();
         var appIdentifierLen = appIdentifier.MeasureUtf8();
-        
+
         Span<byte> appNameBytes = stackalloc byte[appNameLen];
         Span<byte> appVersionBytes = stackalloc byte[appVersionLen];
         Span<byte> appIdentifierBytes = stackalloc byte[appIdentifierLen];
@@ -38,10 +39,10 @@ public static class AppMetadata
     {
         var keyLen = key.MeasureUtf8();
         var valueLen = value.MeasureUtf8();
-        
+
         Span<byte> keyBytes = stackalloc byte[keyLen];
         Span<byte> valueBytes = stackalloc byte[valueLen];
-        
+
         key.EncodeUtf8(keyBytes);
         value.EncodeUtf8(valueBytes);
 
@@ -56,12 +57,12 @@ public static class AppMetadata
     )
     {
         var keyLen = key.MeasureUtf8();
-        
+
         Span<byte> keyBytes = stackalloc byte[keyLen];
-        
+
         key.EncodeUtf8(keyBytes);
 
-        fixed (byte* keyPtr = keyBytes) 
-            return ((IntPtr)Unsafe_SDL_GetAppMetadataProperty(keyPtr)).GetString();
+        fixed (byte* keyPtr = keyBytes)
+            return Ptr.ToUtf8String(Unsafe_SDL_GetAppMetadataProperty(keyPtr));
     }
 }

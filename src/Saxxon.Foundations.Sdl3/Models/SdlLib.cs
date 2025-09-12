@@ -39,7 +39,7 @@ public static class SdlLib
     /// </summary>
     public static unsafe string? GetRevision()
     {
-        return ((IntPtr)Unsafe_SDL_GetRevision()).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetRevision());
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public static class SdlLib
     /// </summary>
     public static unsafe string? GetPlatform()
     {
-        return ((IntPtr)Unsafe_SDL_GetPlatform()).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetPlatform());
     }
 
     /// <summary>

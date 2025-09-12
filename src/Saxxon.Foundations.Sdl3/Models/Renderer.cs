@@ -685,7 +685,7 @@ public static class Renderer
         this IntPtr<SDL_Renderer> renderer
     )
     {
-        return ((IntPtr)Unsafe_SDL_GetRendererName(renderer)).GetString() ??
+        return Ptr.ToUtf8String(Unsafe_SDL_GetRendererName(renderer)) ??
                throw new SdlException();
     }
 
@@ -717,7 +717,7 @@ public static class Renderer
 
     public static unsafe string? GetDriverName(int index)
     {
-        return ((IntPtr)Unsafe_SDL_GetRenderDriver(index)).GetString();
+        return Ptr.ToUtf8String(Unsafe_SDL_GetRenderDriver(index));
     }
 
     public static unsafe List<string> GetDriverNames()
@@ -725,7 +725,7 @@ public static class Renderer
         var count = SDL_GetNumRenderDrivers();
         var result = new List<string>();
         for (var i = 0; i < count; i++)
-            result.Add(((IntPtr)Unsafe_SDL_GetRenderDriver(i)).GetString()!);
+            result.Add(Ptr.ToUtf8String(Unsafe_SDL_GetRenderDriver(i))!);
         return result;
     }
 }

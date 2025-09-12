@@ -22,7 +22,7 @@ public static class KeyCode
         this SDL_Keycode key
     )
     {
-        return ((IntPtr)Unsafe_SDL_GetKeyName(key)).GetString()!;
+        return Ptr.ToUtf8String(Unsafe_SDL_GetKeyName(key))!;
     }
 
     public static unsafe (SDL_Scancode Scan, SDL_Keymod Mod) GetScan(

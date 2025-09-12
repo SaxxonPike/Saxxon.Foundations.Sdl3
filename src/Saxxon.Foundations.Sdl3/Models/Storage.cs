@@ -121,8 +121,8 @@ public static class Storage
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static SDL_EnumerationResult Execute(IntPtr userData, byte* dirName, byte* fileName)
         {
-            var dir = ((IntPtr)dirName).GetString();
-            var file = ((IntPtr)fileName).GetString();
+            var dir = Ptr.ToUtf8String(dirName);
+            var file = Ptr.ToUtf8String(fileName);
             return UserDataStore.Get<EnumerateDelegate>(userData)!.Invoke(dir!, file!);
         }
     }

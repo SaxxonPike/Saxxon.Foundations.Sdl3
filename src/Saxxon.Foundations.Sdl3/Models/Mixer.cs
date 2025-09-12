@@ -109,7 +109,7 @@ public static class Mixer
         MIX_PauseTag(mixer, tagStr.Ptr)
             .AssertSdlSuccess();
     }
-    
+
     /// <summary>
     /// Plays a sound directly on a mixer without specifying a track.
     /// </summary>
@@ -179,21 +179,21 @@ public static class Mixer
 
     public static unsafe void StopAllTracks(
         this IntPtr<MIX_Mixer> mixer,
-        long fadeOutMs
+        TimeSpan fadeOut
     )
     {
-        MIX_StopAllTracks(mixer, fadeOutMs)
+        MIX_StopAllTracks(mixer, (long)fadeOut.TotalMilliseconds)
             .AssertSdlSuccess();
     }
 
     public static unsafe void StopTag(
         this IntPtr<MIX_Mixer> mixer,
         ReadOnlySpan<char> tag,
-        long fadeOutMs
+        TimeSpan fadeOut
     )
     {
         using var tagStr = new Utf8Span(tag);
-        MIX_StopTag(mixer, tagStr.Ptr, fadeOutMs)
+        MIX_StopTag(mixer, tagStr.Ptr, (long)fadeOut.TotalMilliseconds)
             .AssertSdlSuccess();
     }
 }

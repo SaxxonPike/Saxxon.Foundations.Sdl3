@@ -6,9 +6,11 @@ namespace Saxxon.Foundations.Sdl3.Interop;
 
 [PublicAPI]
 [MustDisposeResource]
-public sealed unsafe class Utf8ByteStrings : IDisposable
+internal sealed unsafe class Utf8ByteStrings : IDisposable
 {
     public IntPtr Ptr { get; }
+
+    public int Count { get; }
 
     public Utf8ByteStrings(params ReadOnlySpan<string> values)
     {
@@ -50,7 +52,12 @@ public sealed unsafe class Utf8ByteStrings : IDisposable
 
             dataBlock = dataBlock[byteSize..];
         }
+
+        Count = count;
     }
+
+    public ReadOnlySpan<IntPtr> AsSpan() =>
+        new((void*)Ptr, Count);
 
     public void Dispose()
     {
