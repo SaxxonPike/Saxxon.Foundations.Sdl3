@@ -6,6 +6,9 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for open and save file dialogs.
+/// </summary>
 [PublicAPI]
 public static class FileDialog
 {

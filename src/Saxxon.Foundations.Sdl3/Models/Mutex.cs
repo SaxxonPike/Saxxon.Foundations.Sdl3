@@ -3,6 +3,10 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for <see cref="SDL_Mutex"/>. Prefer
+/// using <see cref="System.Threading.Mutex"/> where possible.
+/// </summary>
 [PublicAPI]
 public static class Mutex
 {

@@ -3,6 +3,11 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for <see cref="SDL_Condition"/>.
+/// See <see cref="System.Threading.Channels.Channel"/> for a fully managed
+/// alternative.
+/// </summary>
 [PublicAPI]
 public static class Condition
 {

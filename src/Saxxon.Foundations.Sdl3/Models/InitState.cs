@@ -3,6 +3,10 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for initialization state during the
+/// application lifetime.
+/// </summary>
 [PublicAPI]
 public static class InitState
 {

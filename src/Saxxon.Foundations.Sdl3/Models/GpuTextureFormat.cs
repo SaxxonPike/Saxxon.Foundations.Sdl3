@@ -2,6 +2,9 @@ using JetBrains.Annotations;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for <see cref="SDL_GPUTextureFormat"/>.
+/// </summary>
 [PublicAPI]
 public static class GpuTextureFormat
 {

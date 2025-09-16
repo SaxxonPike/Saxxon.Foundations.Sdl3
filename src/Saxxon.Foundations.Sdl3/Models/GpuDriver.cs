@@ -4,6 +4,10 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
+/// <summary>
+/// Provides an object-oriented interface for drivers that are to be used with
+/// SDL_gpu.
+/// </summary>
 [PublicAPI]
 public static class GpuDriver
 {
