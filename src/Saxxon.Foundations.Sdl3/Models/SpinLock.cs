@@ -4,8 +4,6 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Models;
 
-public enum SDL_SpinLock;
-
 /// <summary>
 /// Provides an object-oriented interface for <see cref="SDL_SpinLock"/>.
 /// Prefer using <see cref="System.Threading.SpinLock"/> where possible.
