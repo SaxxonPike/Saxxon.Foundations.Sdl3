@@ -3,7 +3,6 @@ using System.Text;
 using JetBrains.Annotations;
 using Microsoft.Extensions.ObjectPool;
 using Saxxon.Foundations.Sdl3.Extensions;
-using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
