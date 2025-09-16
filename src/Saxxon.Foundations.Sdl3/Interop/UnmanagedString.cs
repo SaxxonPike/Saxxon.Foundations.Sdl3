@@ -89,7 +89,7 @@ public readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     private static void Free(IntPtr ptr)
     {
-        Marshal.FreeHGlobal(ptr);
+        //Marshal.FreeHGlobal(ptr);
     }
 
     /// <summary>
