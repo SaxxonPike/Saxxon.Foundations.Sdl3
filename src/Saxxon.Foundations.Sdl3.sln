@@ -14,7 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Files", "_Files", "{DC8367
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Workflows", "_Workflows", "{3B0D0D09-380A-4BC4-98CC-1C416A33BD1F}"
 	ProjectSection(SolutionItems) = preProject
-		..\.github\workflows\dotnet.yml = ..\.github\workflows\dotnet.yml
+		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
+		..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
 	EndProjectSection
 EndProject
 Global
