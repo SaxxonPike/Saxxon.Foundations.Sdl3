@@ -19,4 +19,9 @@ public static class MixerLib
         MIX_Init()
             .AssertSdlSuccess();
     }
+
+    public static void Quit()
+    {
+        MIX_Quit();
+    }
 }
