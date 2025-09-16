@@ -7,15 +7,17 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
-    
+
     <PropertyGroup>
         <PackageVersion>2025.828.0-alpha</PackageVersion>
         <PackageId>Saxxon.Foundations.Sdl3</PackageId>
         <Version>2025.828.0-alpha</Version>
         <Authors>SaxxonPike</Authors>
         <Description>Extension functions for use with ppy.SDL3-CS</Description>
+        <RepositoryUrl>https://github.com/SaxxonPike/Saxxon.Foundations.Sdl3</RepositoryUrl>
+        <Copyright>2025 Anthony Konzel</Copyright>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
         <StripSymbols>false</StripSymbols>
     </PropertyGroup>
@@ -27,6 +29,11 @@
         <PackageReference Include="ppy.SDL3_image-CS" Version="2025.828.0"/>
         <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.828.0"/>
         <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.828.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="\"/>
+        <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>
