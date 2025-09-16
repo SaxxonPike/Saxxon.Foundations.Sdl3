@@ -205,7 +205,7 @@ public static class Audio
         bool preDecode
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         return ((IntPtr<MIX_Audio>)MIX_LoadAudio(mixer, pathStr.Ptr, preDecode))
             .AssertSdlNotNull();
     }

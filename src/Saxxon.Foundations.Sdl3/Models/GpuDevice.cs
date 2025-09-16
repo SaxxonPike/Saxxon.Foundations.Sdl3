@@ -30,7 +30,7 @@ public static class GpuDevice
         ReadOnlySpan<char> name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return ((IntPtr<SDL_GPUDevice>)SDL_CreateGPUDevice(format, debugMode, nameStr))
             .AssertSdlNotNull();
     }
@@ -252,7 +252,7 @@ public static class GpuDevice
         ReadOnlySpan<char> name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetGPUBufferName(device, buffer, nameStr);
     }
 
@@ -273,7 +273,7 @@ public static class GpuDevice
         ReadOnlySpan<char> name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetGPUTextureName(device, texture, nameStr);
     }
 

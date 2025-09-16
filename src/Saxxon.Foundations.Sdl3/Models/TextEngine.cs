@@ -70,7 +70,7 @@ public static class TextEngine
         ReadOnlySpan<char> text
     )
     {
-        using var textStr = new Utf8Span(text);
+        using var textStr = new UnmanagedString(text);
         return ((IntPtr<TTF_Text>)TTF_CreateText(engine, font, textStr, SDL_strlen(textStr)))
             .AssertSdlNotNull();
     }

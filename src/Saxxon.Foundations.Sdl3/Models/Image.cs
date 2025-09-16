@@ -27,7 +27,7 @@ public static class Image
         ReadOnlySpan<char> type
     )
     {
-        using var typeStr = new Utf8Span(type);
+        using var typeStr = new UnmanagedString(type);
         return ((IntPtr<SDL_Surface>)IMG_LoadTyped_IO(src, closeIo, typeStr))
             .AssertSdlNotNull();
     }
@@ -39,7 +39,7 @@ public static class Image
         ReadOnlySpan<char> file
     )
     {
-        using var fileStr = new Utf8Span(file);
+        using var fileStr = new UnmanagedString(file);
         return ((IntPtr<SDL_Surface>)IMG_Load(fileStr))
             .AssertSdlNotNull();
     }
@@ -308,7 +308,7 @@ public static class Image
         ReadOnlySpan<char> fileName
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_Save(src, fileNameStr)
             .AssertSdlSuccess();
     }
@@ -323,7 +323,7 @@ public static class Image
         ReadOnlySpan<char> type
     )
     {
-        using var typeStr = new Utf8Span(type);
+        using var typeStr = new UnmanagedString(type);
         IMG_SaveTyped_IO(src, stream, closeIo, typeStr)
             .AssertSdlSuccess();
     }
@@ -337,7 +337,7 @@ public static class Image
         int quality
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SaveAVIF(src, fileNameStr, quality)
             .AssertSdlSuccess();
     }
@@ -365,7 +365,7 @@ public static class Image
         ReadOnlySpan<char> fileName
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SaveBMP(src, fileNameStr)
             .AssertSdlSuccess();
     }
@@ -392,7 +392,7 @@ public static class Image
         ReadOnlySpan<char> fileName
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SaveGIF(src, fileNameStr)
             .AssertSdlSuccess();
     }
@@ -420,7 +420,7 @@ public static class Image
         int quality
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SaveJPG(src, fileNameStr, quality)
             .AssertSdlSuccess();
     }
@@ -448,7 +448,7 @@ public static class Image
         ReadOnlySpan<char> fileName
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SavePNG(src, fileNameStr)
             .AssertSdlSuccess();
     }
@@ -475,7 +475,7 @@ public static class Image
         ReadOnlySpan<char> fileName
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SaveTGA(src, fileNameStr)
             .AssertSdlSuccess();
     }
@@ -503,7 +503,7 @@ public static class Image
         float quality
     )
     {
-        using var fileNameStr = new Utf8Span(fileName);
+        using var fileNameStr = new UnmanagedString(fileName);
         IMG_SaveWEBP(src, fileNameStr, quality)
             .AssertSdlSuccess();
     }

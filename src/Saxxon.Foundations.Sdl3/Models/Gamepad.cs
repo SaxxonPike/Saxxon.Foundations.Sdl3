@@ -17,14 +17,14 @@ public static class Gamepad
 
     public static bool AddMapping(ReadOnlySpan<char> mapping)
     {
-        using var mappingStr = new Utf8Span(mapping);
+        using var mappingStr = new UnmanagedString(mapping);
         return SDL_AddGamepadMapping(mappingStr)
             .AssertSdlNotEqual(-1) > 0;
     }
 
     public static int AddMappingsFromFile(ReadOnlySpan<char> file)
     {
-        using var fileStr = new Utf8Span(file);
+        using var fileStr = new UnmanagedString(file);
         return SDL_AddGamepadMappingsFromFile(fileStr)
             .AssertSdlNotEqual(-1);
     }
@@ -244,7 +244,7 @@ public static class Gamepad
 
     public static SDL_GamepadType GetGamepadTypeFromString(ReadOnlySpan<char> str)
     {
-        using var buttonStr = new Utf8Span(str);
+        using var buttonStr = new UnmanagedString(str);
         return SDL_GetGamepadTypeFromString(buttonStr);
     }
 
@@ -333,7 +333,7 @@ public static class Gamepad
 
     public static void SetMapping(SDL_JoystickID id, ReadOnlySpan<char> mapping)
     {
-        using var mappingStr = new Utf8Span(mapping);
+        using var mappingStr = new UnmanagedString(mapping);
         SDL_SetGamepadMapping(id, mappingStr)
             .AssertSdlSuccess();
     }

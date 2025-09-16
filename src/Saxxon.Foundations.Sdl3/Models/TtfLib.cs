@@ -41,7 +41,7 @@ public static class TtfLib
 
     public static uint StringToTag(ReadOnlySpan<char> @string)
     {
-        using var stringStr = new Utf8Span(@string);
+        using var stringStr = new UnmanagedString(@string);
         return TTF_StringToTag(stringStr);
     }
 

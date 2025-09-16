@@ -97,7 +97,7 @@ public static class GpuCommandBuffer
         ReadOnlySpan<char> label
     )
     {
-        using var labelStr = new Utf8Span(label);
+        using var labelStr = new UnmanagedString(label);
         SDL_InsertGPUDebugLabel(buffer, labelStr);
     }
 
@@ -128,7 +128,7 @@ public static class GpuCommandBuffer
         ReadOnlySpan<char> label
     )
     {
-        using var labelStr = new Utf8Span(label);
+        using var labelStr = new UnmanagedString(label);
         SDL_PushGPUDebugGroup(buffer, labelStr);
     }
 

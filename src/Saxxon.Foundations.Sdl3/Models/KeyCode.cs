@@ -11,7 +11,7 @@ public static class KeyCode
         ReadOnlySpan<char> name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         var result = SDL_GetKeyFromName(nameStr);
         if (result == SDL_Keycode.SDLK_UNKNOWN)
             throw new SdlException();

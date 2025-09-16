@@ -8,7 +8,7 @@ public static class GamepadButton
 {
     public static SDL_GamepadButton GetFromString(ReadOnlySpan<char> button)
     {
-        using var buttonStr = new Utf8Span(button);
+        using var buttonStr = new UnmanagedString(button);
         return SDL_GetGamepadButtonFromString(buttonStr);
     }
     

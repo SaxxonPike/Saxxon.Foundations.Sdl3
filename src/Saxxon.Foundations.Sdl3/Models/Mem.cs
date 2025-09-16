@@ -186,48 +186,54 @@ public static class Mem
 
     private static nuint _allocatedWords;
 
+    internal static unsafe IntPtr AllocInternal(nuint size, bool initialize)
+    {
+        if (size == 0)
+            return 0;
+
+        // Determine how much memory we will need.
+
+        var count = (int)((size + 3) / 4);
+        var mem = initialize
+            ? GC.AllocateArray<int>(count, true)
+            : GC.AllocateUninitializedArray<int>(count, true);
+
+        _allocatedWords += (UIntPtr)count;
+
+        fixed (int* memPtr = mem)
+        {
+            _allocations.TryAdd((IntPtr)memPtr, mem);
+            return (IntPtr)memPtr;
+        }
+    }
+    
+    internal static void FreeInternal(IntPtr mem)
+    {
+        if (_allocations.Remove(mem, out var array))
+            _allocatedWords -= (UIntPtr)array.Length;
+    }
+
     public static unsafe void SetDotNetFunctions()
     {
-        SDL_SetMemoryFunctions(&Malloc, &Calloc, &Realloc, &Free)
+        SDL_SetMemoryFunctions(&SdlMalloc, &SdlCalloc, &SdlRealloc, &SdlFree)
             .AssertSdlSuccess();
 
         return;
 
-        static IntPtr AllocInternal(nuint size, bool initialize)
-        {
-            if (size == 0)
-                return 0;
-
-            // Determine how much memory we will need.
-
-            var count = (int)((size + 3) / 4);
-            var mem = initialize
-                ? GC.AllocateArray<int>(count, true)
-                : GC.AllocateUninitializedArray<int>(count, true);
-
-            _allocatedWords += (UIntPtr)count;
-
-            fixed (int* memPtr = mem)
-            {
-                _allocations.TryAdd((IntPtr)memPtr, mem);
-                return (IntPtr)memPtr;
-            }
-        }
-
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static IntPtr Malloc(nuint size)
+        static IntPtr SdlMalloc(nuint size)
         {
             return AllocInternal(size, false);
         }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static IntPtr Calloc(nuint count, nuint elementSize)
+        static IntPtr SdlCalloc(nuint count, nuint elementSize)
         {
             return AllocInternal(count * elementSize, true);
         }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static IntPtr Realloc(IntPtr mem, UIntPtr newSize)
+        static IntPtr SdlRealloc(IntPtr mem, UIntPtr newSize)
         {
             // Shortcut: if it isn't memory we allocated, act like Malloc.
 
@@ -262,11 +268,7 @@ public static class Mem
         }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static void Free(IntPtr mem)
-        {
-            if (_allocations.Remove(mem, out var array))
-                _allocatedWords -= (UIntPtr)array.Length;
-        }
+        static void SdlFree(IntPtr mem) => FreeInternal(mem);
     }
 
     public static long GetTotalAllocated()

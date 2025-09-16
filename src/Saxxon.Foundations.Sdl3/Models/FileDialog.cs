@@ -28,7 +28,7 @@ public static class FileDialog
         bool allowMany
     )
     {
-        using var defaultLocationStr = new Utf8Span(defaultLocation);
+        using var defaultLocationStr = new UnmanagedString(defaultLocation);
         using var filterData = new DialogFileFilterList(filters ?? []);
         var userData = UserDataStore.Add(callback);
 
@@ -50,7 +50,7 @@ public static class FileDialog
         string? defaultLocation
     )
     {
-        using var defaultLocationStr = new Utf8Span(defaultLocation);
+        using var defaultLocationStr = new UnmanagedString(defaultLocation);
         using var filterData = new DialogFileFilterList(filters ?? []);
         var userData = UserDataStore.Add(callback);
 
@@ -102,7 +102,7 @@ public static class FolderDialog
         bool allowMany
     )
     {
-        using var defaultLocationStr = new Utf8Span(defaultLocation);
+        using var defaultLocationStr = new UnmanagedString(defaultLocation);
         var userData = UserDataStore.Add(callback);
 
         SDL_ShowOpenFolderDialog(

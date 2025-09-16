@@ -31,7 +31,7 @@ public static class Tray
 
     public static unsafe void SetToolTip(this IntPtr<SDL_Tray> tray, ReadOnlySpan<char> toolTip)
     {
-        using var toolTipStr = new Utf8Span(toolTip);
+        using var toolTipStr = new UnmanagedString(toolTip);
         SDL_SetTrayTooltip(tray, toolTipStr);
     }
 
@@ -42,7 +42,7 @@ public static class Tray
 
     public static unsafe IntPtr<SDL_Tray> Create(IntPtr<SDL_Surface> icon, ReadOnlySpan<char> toolTip)
     {
-        using var toolTipStr = new Utf8Span(toolTip);
+        using var toolTipStr = new UnmanagedString(toolTip);
         return SDL_CreateTray(icon, toolTipStr);
     }
 }

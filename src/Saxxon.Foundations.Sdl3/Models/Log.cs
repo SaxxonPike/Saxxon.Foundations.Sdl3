@@ -181,8 +181,8 @@ public static class Log
         Exception exception
     )
     {
-        using var sbStr0 = new Utf8Span("An exception occurred.");
-        using var sbStr1 = new Utf8Span(exception.ToString());
+        using var sbStr0 = new UnmanagedString("An exception occurred.");
+        using var sbStr1 = new UnmanagedString(exception.ToString());
         SDL_LogMessageV((int)category, priority, sbStr0, null);
         SDL_LogMessageV((int)category, priority, sbStr1, null);
     }
@@ -210,7 +210,7 @@ public static class Log
         params ReadOnlySpan<object?> args
     )
     {
-        using var sbStr = Utf8Span.Format(format, args);
+        using var sbStr = UnmanagedString.Format(format, args);
         SDL_LogMessageV((int)category, priority, sbStr, null);
     }
 
@@ -248,7 +248,7 @@ public static class Log
     /// </param>
     public static void SetPriorityPrefix(SDL_LogPriority priority, ReadOnlySpan<char> prefix)
     {
-        using var prefixStr = new Utf8Span(prefix);
+        using var prefixStr = new UnmanagedString(prefix);
         SDL_SetLogPriorityPrefix(priority, prefixStr);
     }
 

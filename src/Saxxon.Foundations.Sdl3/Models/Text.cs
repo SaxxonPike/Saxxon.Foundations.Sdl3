@@ -171,20 +171,20 @@ public static class Text
 
     public static unsafe void SetString(this IntPtr<TTF_Text> text, ReadOnlySpan<char> @string)
     {
-        using var stringStr = new Utf8Span(@string);
+        using var stringStr = new UnmanagedString(@string);
         TTF_SetTextString(text, stringStr, SDL_strlen(stringStr));
     }
 
     public static unsafe void InsertString(this IntPtr<TTF_Text> text, int offset, ReadOnlySpan<char> @string)
     {
-        using var stringStr = new Utf8Span(@string);
+        using var stringStr = new UnmanagedString(@string);
         TTF_InsertTextString(text, offset, stringStr, SDL_strlen(stringStr))
             .AssertSdlSuccess();
     }
 
     public static unsafe void AppendString(this IntPtr<TTF_Text> text, ReadOnlySpan<char> @string)
     {
-        using var stringStr = new Utf8Span(@string);
+        using var stringStr = new UnmanagedString(@string);
         TTF_AppendTextString(text, stringStr, SDL_strlen(stringStr))
             .AssertSdlSuccess();
     }

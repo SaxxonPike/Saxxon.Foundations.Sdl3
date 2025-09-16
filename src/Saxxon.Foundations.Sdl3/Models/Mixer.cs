@@ -105,7 +105,7 @@ public static class Mixer
         ReadOnlySpan<char> tag
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_PauseTag(mixer, tagStr.Ptr)
             .AssertSdlSuccess();
     }
@@ -134,7 +134,7 @@ public static class Mixer
         SDL_PropertiesID options = 0
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_PlayTag(mixer, tagStr.Ptr, options)
             .AssertSdlSuccess();
     }
@@ -152,7 +152,7 @@ public static class Mixer
         ReadOnlySpan<char> tag
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_ResumeTag(mixer, tagStr.Ptr)
             .AssertSdlSuccess();
     }
@@ -172,7 +172,7 @@ public static class Mixer
         float gain
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_SetTagGain(mixer, tagStr.Ptr, gain)
             .AssertSdlSuccess();
     }
@@ -192,7 +192,7 @@ public static class Mixer
         TimeSpan fadeOut
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_StopTag(mixer, tagStr.Ptr, (long)fadeOut.TotalMilliseconds)
             .AssertSdlSuccess();
     }

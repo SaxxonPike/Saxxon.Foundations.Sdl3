@@ -26,7 +26,7 @@ public static class Properties
     /// </summary>
     public static void Clear(this SDL_PropertiesID id, ReadOnlySpan<char> name)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_ClearProperty(id, nameStr)
             .AssertSdlSuccess();
     }
@@ -102,7 +102,7 @@ public static class Properties
     /// </summary>
     public static bool GetBoolean(this SDL_PropertiesID id, ReadOnlySpan<char> name, bool defaultValue = false)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetBooleanProperty(id, nameStr, defaultValue);
     }
 
@@ -111,7 +111,7 @@ public static class Properties
     /// </summary>
     public static bool GetBoolean(this SDL_PropertiesID id, ReadOnlySpan<byte> name, bool defaultValue = false)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetBooleanProperty(id, nameStr, defaultValue);
     }
 
@@ -120,7 +120,7 @@ public static class Properties
     /// </summary>
     public static float GetFloat(this SDL_PropertiesID id, ReadOnlySpan<char> name, float defaultValue = 0)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetFloatProperty(id, nameStr, defaultValue);
     }
 
@@ -129,7 +129,7 @@ public static class Properties
     /// </summary>
     public static float GetFloat(this SDL_PropertiesID id, ReadOnlySpan<byte> name, float defaultValue = 0)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetFloatProperty(id, nameStr, defaultValue);
     }
 
@@ -138,7 +138,7 @@ public static class Properties
     /// </summary>
     public static long GetNumber(this SDL_PropertiesID id, ReadOnlySpan<char> name, long defaultValue = 0)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetNumberProperty(id, nameStr, defaultValue);
     }
 
@@ -147,7 +147,7 @@ public static class Properties
     /// </summary>
     public static long GetNumber(this SDL_PropertiesID id, ReadOnlySpan<byte> name, long defaultValue = 0)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetNumberProperty(id, nameStr, defaultValue);
     }
 
@@ -156,7 +156,7 @@ public static class Properties
     /// </summary>
     public static IntPtr GetPointer(this SDL_PropertiesID id, ReadOnlySpan<char> name, IntPtr defaultValue = 0)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetPointerProperty(id, nameStr, defaultValue);
     }
 
@@ -165,7 +165,7 @@ public static class Properties
     /// </summary>
     public static IntPtr GetPointer(this SDL_PropertiesID id, ReadOnlySpan<byte> name, IntPtr defaultValue = 0)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetPointerProperty(id, nameStr, defaultValue);
     }
 
@@ -175,8 +175,8 @@ public static class Properties
     public static string? GetString(this SDL_PropertiesID id, ReadOnlySpan<char> name,
         ReadOnlySpan<char> defaultValue = default)
     {
-        using var nameStr = new Utf8Span(name);
-        using var defaultStr = new Utf8Span(defaultValue);
+        using var nameStr = new UnmanagedString(name);
+        using var defaultStr = new UnmanagedString(defaultValue);
         return SDL_GetStringProperty(id, nameStr, defaultStr);
     }
 
@@ -186,8 +186,8 @@ public static class Properties
     public static string? GetString(this SDL_PropertiesID id, ReadOnlySpan<byte> name,
         ReadOnlySpan<char> defaultValue = default)
     {
-        using var nameStr = new Utf8Span(name);
-        using var defaultStr = new Utf8Span(defaultValue);
+        using var nameStr = new UnmanagedString(name);
+        using var defaultStr = new UnmanagedString(defaultValue);
         return SDL_GetStringProperty(id, nameStr, defaultStr);
     }
 
@@ -196,7 +196,7 @@ public static class Properties
     /// </summary>
     public static SDL_PropertyType GetType(this SDL_PropertiesID id, ReadOnlySpan<char> name)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetPropertyType(id, nameStr);
     }
 
@@ -205,7 +205,7 @@ public static class Properties
     /// </summary>
     public static SDL_PropertyType GetType(this SDL_PropertiesID id, ReadOnlySpan<byte> name)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_GetPropertyType(id, nameStr);
     }
 
@@ -214,7 +214,7 @@ public static class Properties
     /// </summary>
     public static bool Has(this SDL_PropertiesID id, ReadOnlySpan<char> name)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_HasProperty(id, nameStr);
     }
 
@@ -223,7 +223,7 @@ public static class Properties
     /// </summary>
     public static bool Has(this SDL_PropertiesID id, ReadOnlySpan<byte> name)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return SDL_HasProperty(id, nameStr);
     }
 
@@ -241,7 +241,7 @@ public static class Properties
     /// </summary>
     public static void SetBoolean(this SDL_PropertiesID id, ReadOnlySpan<char> name, bool value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetBooleanProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -251,7 +251,7 @@ public static class Properties
     /// </summary>
     public static void SetBoolean(this SDL_PropertiesID id, ReadOnlySpan<byte> name, bool value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetBooleanProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -261,7 +261,7 @@ public static class Properties
     /// </summary>
     public static void SetFloat(this SDL_PropertiesID id, ReadOnlySpan<char> name, float value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetFloatProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -271,7 +271,7 @@ public static class Properties
     /// </summary>
     public static void SetFloat(this SDL_PropertiesID id, ReadOnlySpan<byte> name, float value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetFloatProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -281,7 +281,7 @@ public static class Properties
     /// </summary>
     public static void SetNumber(this SDL_PropertiesID id, ReadOnlySpan<char> name, long value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetNumberProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -291,7 +291,7 @@ public static class Properties
     /// </summary>
     public static void SetNumber(this SDL_PropertiesID id, ReadOnlySpan<byte> name, long value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetNumberProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -301,7 +301,7 @@ public static class Properties
     /// </summary>
     public static void SetPointer(this SDL_PropertiesID id, ReadOnlySpan<char> name, IntPtr value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetPointerProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -311,7 +311,7 @@ public static class Properties
     /// </summary>
     public static void SetPointer(this SDL_PropertiesID id, ReadOnlySpan<byte> name, IntPtr value)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetPointerProperty(id, nameStr, value)
             .AssertSdlSuccess();
     }
@@ -322,7 +322,7 @@ public static class Properties
     /// </summary>
     private static unsafe void SetPointerWithCleanupInternal(
         this SDL_PropertiesID id,
-        Utf8Span name,
+        UnmanagedString name,
         IntPtr value,
         Action<IntPtr> cleanUp
     )
@@ -350,7 +350,7 @@ public static class Properties
         Action<IntPtr> cleanUp
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SetPointerWithCleanupInternal(id, nameStr, value, cleanUp);
     }
 
@@ -365,7 +365,7 @@ public static class Properties
         Action<IntPtr> cleanUp
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SetPointerWithCleanupInternal(id, nameStr, value, cleanUp);
     }
 
@@ -374,8 +374,8 @@ public static class Properties
     /// </summary>
     public static void SetString(this SDL_PropertiesID id, ReadOnlySpan<char> name, ReadOnlySpan<char> value)
     {
-        using var nameStr = new Utf8Span(name);
-        using var valueStr = new Utf8Span(value);
+        using var nameStr = new UnmanagedString(name);
+        using var valueStr = new UnmanagedString(value);
 
         SDL_SetStringProperty(id, nameStr, valueStr)
             .AssertSdlSuccess();

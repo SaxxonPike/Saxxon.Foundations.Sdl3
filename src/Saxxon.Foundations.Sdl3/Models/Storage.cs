@@ -19,8 +19,8 @@ public static class Storage
         SDL_GlobFlags flags
     )
     {
-        using var pathStr = new Utf8Span(path);
-        using var patternStr = new Utf8Span(pattern);
+        using var pathStr = new UnmanagedString(path);
+        using var patternStr = new UnmanagedString(pattern);
 
         int count;
         var names = SDL_GlobStorageDirectory(storage, pathStr, patternStr, flags, &count);
@@ -54,7 +54,7 @@ public static class Storage
     )
     {
         SDL_PathInfo info;
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         SDL_GetStoragePathInfo(storage, pathStr, &info)
             .AssertSdlSuccess();
         return info;
@@ -66,8 +66,8 @@ public static class Storage
         ReadOnlySpan<char> dst
     )
     {
-        using var srcStr = new Utf8Span(src);
-        using var dstStr = new Utf8Span(dst);
+        using var srcStr = new UnmanagedString(src);
+        using var dstStr = new UnmanagedString(dst);
 
         SDL_CopyStorageFile(storage, srcStr, dstStr)
             .AssertSdlSuccess();
@@ -79,8 +79,8 @@ public static class Storage
         ReadOnlySpan<char> dst
     )
     {
-        using var srcStr = new Utf8Span(src);
-        using var dstStr = new Utf8Span(dst);
+        using var srcStr = new UnmanagedString(src);
+        using var dstStr = new UnmanagedString(dst);
 
         SDL_RenameStoragePath(storage, srcStr, dstStr)
             .AssertSdlSuccess();
@@ -91,7 +91,7 @@ public static class Storage
         ReadOnlySpan<char> path
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
 
         SDL_RemoveStoragePath(storage, pathStr)
             .AssertSdlSuccess();
@@ -105,7 +105,7 @@ public static class Storage
         EnumerateDelegate func
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         var userData = UserDataStore.Add(func);
 
         SDL_EnumerateStorageDirectory(
@@ -132,7 +132,7 @@ public static class Storage
         ReadOnlySpan<char> path
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         SDL_CreateStorageDirectory(storage, pathStr)
             .AssertSdlSuccess();
     }
@@ -143,7 +143,7 @@ public static class Storage
         ReadOnlySpan<byte> data
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         fixed (byte* dataPtr = data)
         {
             SDL_WriteStorageFile(storage, pathStr, (IntPtr)dataPtr, (ulong)data.Length)
@@ -157,7 +157,7 @@ public static class Storage
         Span<byte> data
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         fixed (byte* dataPtr = data)
         {
             SDL_ReadStorageFile(storage, pathStr, (IntPtr)dataPtr, (ulong)data.Length)
@@ -170,7 +170,7 @@ public static class Storage
         ReadOnlySpan<char> path
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         ulong length;
         SDL_GetStorageFileSize(storage, pathStr, &length)
             .AssertSdlSuccess();
@@ -208,8 +208,8 @@ public static class Storage
         SDL_PropertiesID props = 0
     )
     {
-        using var orgStr = new Utf8Span(org);
-        using var appStr = new Utf8Span(app);
+        using var orgStr = new UnmanagedString(org);
+        using var appStr = new UnmanagedString(app);
 
         return SDL_OpenUserStorage(orgStr, appStr, props);
     }
@@ -219,7 +219,7 @@ public static class Storage
         SDL_PropertiesID props = 0
     )
     {
-        using var overrideStr = new Utf8Span(@override);
+        using var overrideStr = new UnmanagedString(@override);
 
         return SDL_OpenTitleStorage(overrideStr, props);
     }

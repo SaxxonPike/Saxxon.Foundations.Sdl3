@@ -24,8 +24,8 @@ public static class MessageBox
         IntPtr<SDL_Window> parent = default
     )
     {
-        using var titleStr = new Utf8Span(title);
-        using var messageStr = new Utf8Span(message);
+        using var titleStr = new UnmanagedString(title);
+        using var messageStr = new UnmanagedString(message);
 
         SDL_ShowSimpleMessageBox(
             flags,

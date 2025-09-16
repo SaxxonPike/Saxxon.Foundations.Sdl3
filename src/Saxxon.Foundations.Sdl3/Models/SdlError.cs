@@ -24,7 +24,7 @@ public static class SdlError
     /// </summary>
     public static unsafe void Set(string message)
     {
-        using var messageStr = new Utf8Span(message);
+        using var messageStr = new UnmanagedString(message);
         fixed (byte* abc = "%s"u8)
             SDL_SetErrorV(abc, messageStr.Ptr);
     }

@@ -251,7 +251,7 @@ public static class Track
         ReadOnlySpan<char> tag
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_TagTrack(track, tagStr.Ptr)
             .AssertSdlSuccess();
     }
@@ -261,7 +261,7 @@ public static class Track
         ReadOnlySpan<char> tag
     )
     {
-        using var tagStr = new Utf8Span(tag);
+        using var tagStr = new UnmanagedString(tag);
         MIX_UntagTrack(track, tagStr.Ptr);
     }
 }

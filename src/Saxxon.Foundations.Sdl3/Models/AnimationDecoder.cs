@@ -9,7 +9,7 @@ public static class AnimationDecoder
 {
     public static unsafe IntPtr<IMG_AnimationDecoder> Create(ReadOnlySpan<char> name)
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         return ((IntPtr<IMG_AnimationDecoder>)IMG_CreateAnimationDecoder(nameStr))
             .AssertSdlNotNull();
     }
@@ -20,7 +20,7 @@ public static class AnimationDecoder
         ReadOnlySpan<char> type
     )
     {
-        using var typeStr = new Utf8Span(type);
+        using var typeStr = new UnmanagedString(type);
         return ((IntPtr<IMG_AnimationDecoder>)IMG_CreateAnimationDecoder_IO(dst, closeIo, typeStr))
             .AssertSdlNotNull();
     }

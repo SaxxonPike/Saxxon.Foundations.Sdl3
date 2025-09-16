@@ -24,7 +24,7 @@ public static class Renderer
 
     public static unsafe void DebugText(this IntPtr<SDL_Renderer> ptr, float x, float y, ReadOnlySpan<char> text)
     {
-        using var bytes = new Utf8Span(text);
+        using var bytes = new UnmanagedString(text);
         SDL_RenderDebugText(ptr, x, y, bytes)
             .AssertSdlSuccess();
     }
@@ -38,7 +38,7 @@ public static class Renderer
         params ReadOnlySpan<object?> args
     )
     {
-        using var bytes = Utf8Span.Format(format, args);
+        using var bytes = UnmanagedString.Format(format, args);
         SDL_RenderDebugText(ptr, x, y, bytes)
             .AssertSdlSuccess();
     }
@@ -496,7 +496,7 @@ public static class Renderer
         ReadOnlySpan<char> type
     )
     {
-        using var typeStr = new Utf8Span(type);
+        using var typeStr = new UnmanagedString(type);
         return ((IntPtr<SDL_Texture>)IMG_LoadTextureTyped_IO(renderer, src, closeIo, typeStr))
             .AssertSdlNotNull();
     }
@@ -506,7 +506,7 @@ public static class Renderer
         ReadOnlySpan<char> file
     )
     {
-        using var fileStr = new Utf8Span(file);
+        using var fileStr = new UnmanagedString(file);
         return ((IntPtr<SDL_Texture>)IMG_LoadTexture(renderer, fileStr))
             .AssertSdlNotNull();
     }

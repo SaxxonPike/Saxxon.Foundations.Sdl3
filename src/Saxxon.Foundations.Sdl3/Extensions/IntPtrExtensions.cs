@@ -48,4 +48,16 @@ public static class IntPtrExtensions
     {
         return Marshal.PtrToStringUTF8(value, byteCount);
     }
+
+    public static unsafe ReadOnlySpan<byte> GetUtf8Span(this IntPtr value)
+    {
+        var ptr = (byte*)value;
+        return new ReadOnlySpan<byte>(ptr, (int)SDL_strlen(ptr));
+    }
+
+    public static unsafe ReadOnlySpan<byte> GetUtf8Span(this IntPtr<byte> value)
+    {
+        var ptr = (byte*)value.Ptr;
+        return new ReadOnlySpan<byte>(ptr, (int)SDL_strlen(ptr));
+    }
 }

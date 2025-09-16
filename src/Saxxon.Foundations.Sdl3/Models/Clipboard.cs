@@ -21,7 +21,7 @@ public static class Clipboard
 
     public static unsafe IMemoryOwner<byte> GetData(ReadOnlySpan<char> mimeType)
     {
-        using var mimeTypeStr = new Utf8Span(mimeType);
+        using var mimeTypeStr = new UnmanagedString(mimeType);
         UIntPtr size;
         var data = SDL_GetClipboardData(mimeTypeStr.Ptr, &size)
             .AssertSdlNotNull();
@@ -63,7 +63,7 @@ public static class Clipboard
 
     public static bool HasData(ReadOnlySpan<char> mimeType)
     {
-        var mimeTypeStr = new Utf8Span(mimeType);
+        var mimeTypeStr = new UnmanagedString(mimeType);
         return SDL_HasClipboardData(mimeTypeStr);
     }
 
@@ -126,14 +126,14 @@ public static class Clipboard
 
     public static void SetClipboardText(ReadOnlySpan<char> text)
     {
-        using var textStr = new Utf8Span(text);
+        using var textStr = new UnmanagedString(text);
         SDL_SetClipboardText(textStr)
             .AssertSdlSuccess();
     }
 
     public static void SetPrimarySelectionText(ReadOnlySpan<char> text)
     {
-        using var textStr = new Utf8Span(text);
+        using var textStr = new UnmanagedString(text);
         SDL_SetPrimarySelectionText(textStr)
             .AssertSdlSuccess();
     }

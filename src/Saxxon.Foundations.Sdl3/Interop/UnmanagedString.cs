@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.Extensions.ObjectPool;
+using Saxxon.Foundations.Sdl3.Extensions;
+using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
@@ -9,19 +11,31 @@ namespace Saxxon.Foundations.Sdl3.Interop;
 /// Fast UTF8 string interop functions, including formatting.
 /// </summary>
 [PublicAPI]
-public readonly ref struct Utf8Span : IDisposable
+public readonly ref struct UnmanagedString : IDisposable
 {
     private static readonly ObjectPool<StringBuilder> StringBuilderPool =
         new DefaultObjectPool<StringBuilder>(new StringBuilderPooledObjectPolicy());
+
+    private readonly byte[] _gcRef;
 
     /// <summary>
     /// Retrieves the Utf8Span as a Utf8String for use with SDL3-CS.
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static unsafe implicit operator Utf8String(Utf8Span value)
+    public static unsafe implicit operator Utf8String(UnmanagedString value)
     {
-        return new ReadOnlySpan<byte>(value.Ptr, (int)SDL_utf8strlen(value.Ptr));
+        return new ReadOnlySpan<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
+    }
+
+    public static unsafe implicit operator ReadOnlySpan<byte>(UnmanagedString value)
+    {
+        return new ReadOnlySpan<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
+    }
+
+    public static unsafe implicit operator Span<byte>(UnmanagedString value)
+    {
+        return new Span<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
     }
 
     // /// <summary>
@@ -44,29 +58,31 @@ public readonly ref struct Utf8Span : IDisposable
     /// Allocates a memory buffer and converts the given character span into
     /// UTF8 bytes. A null terminator is added if it is absent.
     /// </summary>
-    private static unsafe IntPtr Alloc(ReadOnlySpan<char> chars)
+    private static unsafe (IntPtr, byte[]) Alloc(ReadOnlySpan<char> chars)
     {
         var cLen = chars.Length;
         var bMaxLen = Encoding.UTF8.GetMaxByteCount(cLen) + (chars.EndsWith('\0') ? 0 : 1);
-        var ptr = Marshal.AllocHGlobal(bMaxLen);
-        var bytes = new Span<byte>((void*)ptr, bMaxLen);
+        var gcRef = GC.AllocateUninitializedArray<byte>(bMaxLen, pinned: true);
+        var ptr = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(gcRef, 0);
+        var bytes = new Span<byte>(ptr, bMaxLen);
         var byteCount = Encoding.UTF8.GetBytes(chars, bytes);
         bytes[byteCount] = 0;
-        return ptr;
+        return ((IntPtr)ptr, gcRef);
     }
 
     /// <summary>
     /// Allocates a memory buffer for the UTF8 byte span. A null terminator is
     /// added if it is absent.
     /// </summary>
-    private static unsafe IntPtr Alloc(ReadOnlySpan<byte> bytes)
+    private static unsafe (IntPtr, byte[]) Alloc(ReadOnlySpan<byte> bytes)
     {
         var byteCount = bytes.Length + (bytes.EndsWith((byte)0) ? 0 : 1);
-        var ptr = Marshal.AllocHGlobal(byteCount);
-        var buffer = new Span<byte>((void*)ptr, byteCount);
+        var gcRef = GC.AllocateUninitializedArray<byte>(byteCount, pinned: true);
+        var ptr = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(gcRef, 0);
+        var buffer = new Span<byte>(ptr, byteCount);
         buffer.Clear();
         bytes.CopyTo(buffer);
-        return ptr;
+        return ((IntPtr)ptr, gcRef);
     }
 
     /// <summary>
@@ -78,12 +94,12 @@ public readonly ref struct Utf8Span : IDisposable
     }
 
     /// <summary>
-    /// Allocates a <see cref="Utf8Span"/> from a format string and arguments.
+    /// Allocates a <see cref="UnmanagedString"/> from a format string and arguments.
     /// Use this instead of string.Format to avoid unnecessary allocations when
     /// constructing Utf8Span instances.
     /// </summary>
     [StringFormatMethod(nameof(format))]
-    public static Utf8Span Format(
+    public static UnmanagedString Format(
         string format,
         params ReadOnlySpan<object?> args
     )
@@ -94,7 +110,7 @@ public readonly ref struct Utf8Span : IDisposable
         {
             sb = StringBuilderPool.Get();
             sb.AppendFormat(format, args);
-            return new Utf8Span(sb);
+            return new UnmanagedString(sb);
         }
         finally
         {
@@ -104,43 +120,58 @@ public readonly ref struct Utf8Span : IDisposable
     }
 
     /// <summary>
-    /// Allocates a <see cref="Utf8Span"/> from a string.
+    /// Allocates a <see cref="UnmanagedString"/> from a string.
     /// </summary>
-    public Utf8Span(string? value)
+    public UnmanagedString(string? value)
     {
-        Address = Alloc(value);
+        (Address, _gcRef) = Alloc(value);
     }
 
     /// <summary>
     /// Allocates a character span.
     /// </summary>
-    public Utf8Span(ReadOnlySpan<char> value)
+    public UnmanagedString(ReadOnlySpan<char> value)
     {
-        Address = Alloc(value);
+        (Address, _gcRef) = Alloc(value);
     }
 
     /// <summary>
-    /// Allocates a <see cref="Utf8Span"/> from a <see cref="StringBuilder"/>.
+    /// Allocates a <see cref="UnmanagedString"/> from a <see cref="StringBuilder"/>.
     /// The characters in the StringBuilder are copied.
     /// </summary>
-    public Utf8Span(StringBuilder value)
+    public UnmanagedString(StringBuilder value)
     {
         Span<char> chars = stackalloc char[value.Length];
         value.CopyTo(0, chars, chars.Length);
-        Address = Alloc(chars);
+        (Address, _gcRef) = Alloc(chars);
     }
 
     /// <summary>
     /// Allocates a byte span.
     /// </summary>
-    public Utf8Span(ReadOnlySpan<byte> value)
+    public UnmanagedString(ReadOnlySpan<byte> value)
     {
-        Address = Alloc(value);
+        (Address, _gcRef) = Alloc(value);
+    }
+
+    /// <summary>
+    /// Allocates a byte span over a pointer, zero terminated.
+    /// </summary>
+    /// <param name="value"></param>
+    public unsafe UnmanagedString(byte* value)
+    {
+        var span = new Span<byte>(value, (int)SDL_strlen(value));
+        (Address, _gcRef) = Alloc(span);
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
         Free(Address);
+    }
+
+    public override string? ToString()
+    {
+        return Address.GetString();
     }
 }

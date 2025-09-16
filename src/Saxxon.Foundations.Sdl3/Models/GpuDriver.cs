@@ -50,7 +50,7 @@ public static class GpuDriver
         if (driver.IsEmpty)
             return SDL_GPUSupportsShaderFormats(format, (byte*)null);
 
-        using var driverStr = new Utf8Span(driver);
+        using var driverStr = new UnmanagedString(driver);
         return SDL_GPUSupportsShaderFormats(format, driverStr);
     }
 

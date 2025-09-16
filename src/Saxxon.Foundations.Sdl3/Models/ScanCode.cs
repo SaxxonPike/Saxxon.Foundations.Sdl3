@@ -14,7 +14,7 @@ public static class ScanCode
         ReadOnlySpan<char> name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         var result = SDL_GetScancodeFromName(nameStr);
         if (result == SDL_Scancode.SDL_SCANCODE_UNKNOWN)
             throw new SdlException();
@@ -33,7 +33,7 @@ public static class ScanCode
         ReadOnlySpan<char> name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
         SDL_SetScancodeName(scan, nameStr)
             .AssertSdlSuccess();
     }

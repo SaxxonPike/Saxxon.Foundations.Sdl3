@@ -198,7 +198,7 @@ public static class Surface
         string name
     )
     {
-        using var nameStr = new Utf8Span(name);
+        using var nameStr = new UnmanagedString(name);
 
         return ((IntPtr)SDL_LoadBMP(nameStr))
             .AssertSdlNotNull();

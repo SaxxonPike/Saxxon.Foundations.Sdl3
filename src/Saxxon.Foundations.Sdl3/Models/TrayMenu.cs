@@ -28,7 +28,7 @@ public static class TrayMenu
         SDL_TrayEntryFlags flags
     )
     {
-        using var labelStr = new Utf8Span(label);
+        using var labelStr = new UnmanagedString(label);
         return ((IntPtr<SDL_TrayEntry>)SDL_InsertTrayEntryAt(menu, pos, labelStr, flags))
             .AssertSdlNotNull();
     }

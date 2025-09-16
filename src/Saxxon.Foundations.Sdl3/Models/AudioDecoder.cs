@@ -15,7 +15,7 @@ public static class AudioDecoder
         SDL_PropertiesID props
     )
     {
-        using var pathStr = new Utf8Span(path);
+        using var pathStr = new UnmanagedString(path);
         return ((IntPtr<MIX_AudioDecoder>)MIX_CreateAudioDecoder(pathStr.Ptr, props))
             .AssertSdlNotNull();
     }

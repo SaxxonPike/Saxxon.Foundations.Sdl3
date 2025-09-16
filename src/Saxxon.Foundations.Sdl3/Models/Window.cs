@@ -25,7 +25,7 @@ public static class Window
         string title, int w, int h, SDL_WindowFlags flags
     )
     {
-        using var titleStr = new Utf8Span(title);
+        using var titleStr = new UnmanagedString(title);
         return ((IntPtr)SDL_CreateWindow(titleStr, w, h, flags))
             .AssertSdlNotNull();
     }
@@ -50,7 +50,7 @@ public static class Window
         SDL_WindowFlags windowFlags
     )
     {
-        using var titleStr = new Utf8Span(title);
+        using var titleStr = new UnmanagedString(title);
         SDL_Window* window;
         SDL_Renderer* renderer;
 
@@ -528,7 +528,7 @@ public static class Window
 
     public static unsafe void SetTitle(this IntPtr<SDL_Window> ptr, string title)
     {
-        using var titleStr = new Utf8Span(title);
+        using var titleStr = new UnmanagedString(title);
         SDL_SetWindowTitle(ptr, titleStr)
             .AssertSdlSuccess();
     }

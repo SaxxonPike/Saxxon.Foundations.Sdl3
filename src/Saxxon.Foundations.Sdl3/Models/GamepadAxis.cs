@@ -8,7 +8,7 @@ public static class GamepadAxis
 {
     public static SDL_GamepadAxis GetFromString(ReadOnlySpan<char> axis)
     {
-        using var axisStr = new Utf8Span(axis);
+        using var axisStr = new UnmanagedString(axis);
         return SDL_GetGamepadAxisFromString(axisStr);
     }
     

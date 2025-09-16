@@ -65,7 +65,7 @@ public static class SdlLib
         ReadOnlySpan<char> url
     )
     {
-        using var urlStr = new Utf8Span(url);
+        using var urlStr = new UnmanagedString(url);
         SDL_OpenURL(urlStr)
             .AssertSdlSuccess();
     }
