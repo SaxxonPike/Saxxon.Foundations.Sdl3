@@ -6,7 +6,14 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+    
+    <PropertyGroup>
         <PackageVersion>2025.828.0-alpha</PackageVersion>
+        <PackageId>Saxxon.Foundations.Sdl3</PackageId>
+        <Version>2025.828.0-alpha</Version>
+        <Authors>SaxxonPike</Authors>
+        <Description>Extension functions for use with ppy.SDL3-CS</Description>
     </PropertyGroup>
     
     <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
