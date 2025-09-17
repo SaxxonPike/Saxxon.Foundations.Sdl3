@@ -18,7 +18,7 @@ public readonly ref struct UnmanagedString : IDisposable
     private readonly byte[] _gcRef;
 
     /// <summary>
-    /// Retrieves the Utf8Span as a Utf8String for use with SDL3-CS.
+    /// Retrieves the UnmanagedString as a Utf8String for use with SDL3-CS.
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
@@ -36,12 +36,6 @@ public readonly ref struct UnmanagedString : IDisposable
     {
         return new Span<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
     }
-
-    // /// <summary>
-    // /// Retrieves the Utf8Span as a byte pointer.
-    // /// </summary>
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    // public static unsafe implicit operator byte*(Utf8Span value) => value.Ptr;
 
     /// <summary>
     /// Retrieves the unmanaged address where the UTF8 bytes reside.
@@ -95,7 +89,7 @@ public readonly ref struct UnmanagedString : IDisposable
     /// <summary>
     /// Allocates a <see cref="UnmanagedString"/> from a format string and arguments.
     /// Use this instead of string.Format to avoid unnecessary allocations when
-    /// constructing Utf8Span instances.
+    /// constructing UnmanagedString instances.
     /// </summary>
     [StringFormatMethod(nameof(format))]
     public static UnmanagedString Format(

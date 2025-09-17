@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -182,7 +183,7 @@ public static class Mem
         );
     }
 
-    private static ConcurrentDictionary<IntPtr, int[]> _allocations = [];
+    private static ConcurrentDictionary<IntPtr, (GCHandle Handle, int[] Array)> _allocations = [];
 
     private static nuint _allocatedWords;
 
@@ -194,23 +195,71 @@ public static class Mem
         // Determine how much memory we will need.
 
         var count = (int)((size + 3) / 4);
-        var mem = initialize
-            ? GC.AllocateArray<int>(count, true)
-            : GC.AllocateUninitializedArray<int>(count, true);
+        var mem = ArrayPool<int>.Shared.Rent(count);
+        var handle = GCHandle.Alloc(mem, GCHandleType.Pinned);
 
-        _allocatedWords += (UIntPtr)count;
+        if (initialize)
+            mem.AsSpan().Clear();
+
+        _allocatedWords += (UIntPtr)mem.Length;
 
         fixed (int* memPtr = mem)
         {
-            _allocations.TryAdd((IntPtr)memPtr, mem);
+            _allocations.TryAdd((IntPtr)memPtr, (handle, mem));
             return (IntPtr)memPtr;
         }
     }
-    
+
     internal static void FreeInternal(IntPtr mem)
     {
-        if (_allocations.Remove(mem, out var array))
-            _allocatedWords -= (UIntPtr)array.Length;
+        if (!_allocations.Remove(mem, out var alloc))
+            return;
+
+        alloc.Handle.Free();
+        _allocatedWords -= (UIntPtr)alloc.Array.Length;
+    }
+
+    internal static IntPtr MallocInternal(nuint size) =>
+        AllocInternal(size, false);
+
+    internal static IntPtr CallocInternal(nuint count, nuint elementSize) =>
+        AllocInternal(count * elementSize, true);
+
+    internal static unsafe IntPtr ReallocInternal(IntPtr mem, UIntPtr newSize)
+    {
+        // Shortcut: if it isn't memory we allocated, act like Malloc.
+
+        if (!_allocations.Remove(mem, out var alloc))
+            return AllocInternal(newSize, false);
+
+        alloc.Handle.Free();
+        _allocatedWords -= (UIntPtr)alloc.Array.Length;
+
+        // Shortcut: if the new size is zero, don't allocate anything new
+        // (but freeing the old pointer is fine.)
+
+        if (newSize == 0)
+            return 0;
+
+        // Shortcut: if the new size matches the existing size, there
+        // is no need to allocate anything.
+
+        var newCount = (int)((newSize + 3) / 4);
+        if (alloc.Array.Length == newCount)
+        {
+            var handle = GCHandle.Alloc(alloc.Array, GCHandleType.Pinned);
+            _allocations.TryAdd(mem, (handle, alloc.Array));
+            _allocatedWords += (UIntPtr)alloc.Array.Length;
+            return mem;
+        }
+
+        var newMem = AllocInternal(newSize, false);
+
+        var copyCount = Math.Min(newCount, alloc.Array.Length);
+        new Span<int>((void*)mem, copyCount)
+            .CopyTo(new Span<int>((void*)newMem, copyCount));
+
+        return newMem;
     }
 
     public static unsafe void SetDotNetFunctions()
@@ -221,54 +270,20 @@ public static class Mem
         return;
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static IntPtr SdlMalloc(nuint size)
-        {
-            return AllocInternal(size, false);
-        }
+        static IntPtr SdlMalloc(nuint size) =>
+            MallocInternal(size);
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static IntPtr SdlCalloc(nuint count, nuint elementSize)
-        {
-            return AllocInternal(count * elementSize, true);
-        }
+        static IntPtr SdlCalloc(nuint count, nuint elementSize) =>
+            CallocInternal(count, elementSize);
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static IntPtr SdlRealloc(IntPtr mem, UIntPtr newSize)
-        {
-            // Shortcut: if it isn't memory we allocated, act like Malloc.
-
-            if (!_allocations.Remove(mem, out var array))
-                return AllocInternal(newSize, false);
-            _allocatedWords -= (UIntPtr)array.Length;
-
-            // Shortcut: if the new size is zero, don't allocate anything new
-            // (but freeing the old pointer is fine.)
-
-            if (newSize == 0)
-                return 0;
-
-            // Shortcut: if the new size matches the existing size, there
-            // is no need to allocate anything.
-
-            var newCount = (int)((newSize + 3) / 4);
-            if (array.Length == newCount)
-            {
-                _allocations.TryAdd(mem, array);
-                _allocatedWords += (UIntPtr)array.Length;
-                return mem;
-            }
-
-            var newMem = AllocInternal(newSize, false);
-
-            var copyCount = Math.Min(newCount, array.Length);
-            new Span<int>((void*)mem, copyCount)
-                .CopyTo(new Span<int>((void*)newMem, copyCount));
-
-            return newMem;
-        }
+        static IntPtr SdlRealloc(IntPtr mem, UIntPtr newSize) =>
+            ReallocInternal(mem, newSize);
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static void SdlFree(IntPtr mem) => FreeInternal(mem);
+        static void SdlFree(IntPtr mem) =>
+            FreeInternal(mem);
     }
 
     public static long GetTotalAllocated()

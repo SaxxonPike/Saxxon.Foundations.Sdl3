@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("HeroesOnTime.Engine.Test")]
+[assembly: InternalsVisibleTo("Saxxon.Foundations.Sdl3.Test")]
