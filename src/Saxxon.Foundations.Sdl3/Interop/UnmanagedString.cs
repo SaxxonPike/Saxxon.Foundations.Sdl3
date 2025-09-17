@@ -3,6 +3,7 @@ using System.Text;
 using JetBrains.Annotations;
 using Microsoft.Extensions.ObjectPool;
 using Saxxon.Foundations.Sdl3.Extensions;
+using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
@@ -10,12 +11,10 @@ namespace Saxxon.Foundations.Sdl3.Interop;
 /// Fast UTF8 string interop functions, including formatting.
 /// </summary>
 [PublicAPI]
-public readonly ref struct UnmanagedString : IDisposable
+internal readonly ref struct UnmanagedString : IDisposable
 {
     private static readonly ObjectPool<StringBuilder> StringBuilderPool =
         new DefaultObjectPool<StringBuilder>(new StringBuilderPooledObjectPolicy());
-
-    private readonly byte[] _gcRef;
 
     /// <summary>
     /// Retrieves the UnmanagedString as a Utf8String for use with SDL3-CS.
@@ -51,39 +50,29 @@ public readonly ref struct UnmanagedString : IDisposable
     /// Allocates a memory buffer and converts the given character span into
     /// UTF8 bytes. A null terminator is added if it is absent.
     /// </summary>
-    private static unsafe (IntPtr, byte[]) Alloc(ReadOnlySpan<char> chars)
+    private static unsafe IntPtr Alloc(ReadOnlySpan<char> chars)
     {
         var cLen = chars.Length;
         var bMaxLen = Encoding.UTF8.GetMaxByteCount(cLen) + (chars.EndsWith('\0') ? 0 : 1);
-        var gcRef = GC.AllocateUninitializedArray<byte>(bMaxLen, pinned: true);
-        var ptr = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(gcRef, 0);
-        var bytes = new Span<byte>(ptr, bMaxLen);
+        var arr = Mem.AllocInternal((UIntPtr)bMaxLen, false);
+        var bytes = new Span<byte>((void*)arr, bMaxLen);
         var byteCount = Encoding.UTF8.GetBytes(chars, bytes);
         bytes[byteCount] = 0;
-        return ((IntPtr)ptr, gcRef);
+        return arr;
     }
 
     /// <summary>
     /// Allocates a memory buffer for the UTF8 byte span. A null terminator is
     /// added if it is absent.
     /// </summary>
-    private static unsafe (IntPtr, byte[]) Alloc(ReadOnlySpan<byte> bytes)
+    private static unsafe IntPtr Alloc(ReadOnlySpan<byte> bytes)
     {
         var byteCount = bytes.Length + (bytes.EndsWith((byte)0) ? 0 : 1);
-        var gcRef = GC.AllocateUninitializedArray<byte>(byteCount, pinned: true);
-        var ptr = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(gcRef, 0);
-        var buffer = new Span<byte>(ptr, byteCount);
+        var arr = Mem.AllocInternal((UIntPtr)byteCount, false);
+        var buffer = new Span<byte>((void*)arr, byteCount);
         buffer.Clear();
         bytes.CopyTo(buffer);
-        return ((IntPtr)ptr, gcRef);
-    }
-
-    /// <summary>
-    /// Frees a previously allocated memory buffer.
-    /// </summary>
-    private static void Free(IntPtr ptr)
-    {
-        //Marshal.FreeHGlobal(ptr);
+        return arr;
     }
 
     /// <summary>
@@ -117,7 +106,7 @@ public readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     public UnmanagedString(string? value)
     {
-        (Address, _gcRef) = Alloc(value);
+        Address = Alloc(value);
     }
 
     /// <summary>
@@ -125,7 +114,7 @@ public readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     public UnmanagedString(ReadOnlySpan<char> value)
     {
-        (Address, _gcRef) = Alloc(value);
+        Address = Alloc(value);
     }
 
     /// <summary>
@@ -136,7 +125,7 @@ public readonly ref struct UnmanagedString : IDisposable
     {
         Span<char> chars = stackalloc char[value.Length];
         value.CopyTo(0, chars, chars.Length);
-        (Address, _gcRef) = Alloc(chars);
+        Address = Alloc(chars);
     }
 
     /// <summary>
@@ -144,7 +133,7 @@ public readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     public UnmanagedString(ReadOnlySpan<byte> value)
     {
-        (Address, _gcRef) = Alloc(value);
+        Address = Alloc(value);
     }
 
     /// <summary>
@@ -154,13 +143,13 @@ public readonly ref struct UnmanagedString : IDisposable
     public unsafe UnmanagedString(byte* value)
     {
         var span = new Span<byte>(value, (int)SDL_strlen(value));
-        (Address, _gcRef) = Alloc(span);
+        Address = Alloc(span);
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        Free(Address);
+        Mem.FreeInternal(Address);
     }
 
     public override string? ToString()

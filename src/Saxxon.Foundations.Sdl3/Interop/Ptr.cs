@@ -5,7 +5,7 @@ using Saxxon.Foundations.Sdl3.Extensions;
 namespace Saxxon.Foundations.Sdl3.Interop;
 
 [PublicAPI]
-public static class Ptr
+internal static class Ptr
 {
     public static unsafe string? ToUtf8String(byte* ptr)
     {
