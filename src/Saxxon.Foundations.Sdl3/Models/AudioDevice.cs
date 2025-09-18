@@ -87,10 +87,10 @@ public static class AudioDevice
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public static unsafe ReadOnlySpan<byte> GetName(this SDL_AudioDeviceID id)
+    public static unsafe string? GetName(this SDL_AudioDeviceID id)
     {
-        var result = Unsafe_SDL_GetAudioDeviceName(id);
-        return new ReadOnlySpan<byte>(result, (int)SDL_utf8strlen(result));
+        var result = (IntPtr<byte>)Unsafe_SDL_GetAudioDeviceName(id);
+        return result.GetString();
     }
 
     /// <summary>

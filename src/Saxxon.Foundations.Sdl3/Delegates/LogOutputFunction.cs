@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Interop;
 
@@ -11,7 +12,7 @@ public sealed unsafe class LogOutputFunction(LogOutputFunction.Del func) : IDisp
     public delegate void Del(
         int category,
         SDL_LogPriority priority,
-        ReadOnlySpan<byte> message
+        ReadOnlySpan<char> message
     );
 
     public IntPtr UserData { get; } = UserDataStore.Add(func);
@@ -25,12 +26,19 @@ public sealed unsafe class LogOutputFunction(LogOutputFunction.Del func) : IDisp
         byte* message
     )
     {
-        if (UserDataStore.TryGet<Del>(userdata, out var handler))
-            handler!(
-                category,
-                priority,
-                new ReadOnlySpan<byte>(message, (int)SDL_utf8strlen(message))
-            );
+        if (!UserDataStore.TryGet<Del>(userdata, out var handler))
+            return;
+
+        var messageLength = (int)SDL_strlen(message);
+        var messageBytes = new Span<byte>(message, messageLength);
+        Span<char> messageChars = stackalloc char[Encoding.UTF8.GetCharCount(message, messageLength)];
+        Encoding.UTF8.GetChars(messageBytes, messageChars);
+
+        handler!(
+            category,
+            priority,
+            messageChars
+        );
     }
 
     public void Dispose()

@@ -76,27 +76,11 @@ public static class Gamepad
         return Math.Clamp(SDL_GetGamepadAxis(ptr, axis), MinAxisValue, MaxAxisValue) / AxisValueScale;
     }
 
-    public static unsafe List<SDL_GamepadBinding> GetBindings(this IntPtr<SDL_Gamepad> ptr)
+    public static unsafe IMemoryOwner<IntPtr<SDL_GamepadBinding>> GetBindings(this IntPtr<SDL_Gamepad> ptr)
     {
-        IntPtr<IntPtr<SDL_GamepadBinding>> items = default;
-
-        try
-        {
-            int count;
-            items = ((IntPtr<IntPtr<SDL_GamepadBinding>>)SDL_GetGamepadBindings(ptr, &count))
-                .AssertSdlNotNull();
-
-            var result = new List<SDL_GamepadBinding>(count);
-            foreach (var item in items.AsSpan(count))
-                result.Add(item.AsReadOnlyRef());
-
-            return result;
-        }
-        finally
-        {
-            if (!items.IsNull)
-                SDL_free(items.Ptr);
-        }
+        int count;
+        var items = SDL_GetGamepadBindings(ptr, &count);
+        return SdlMemoryManager.Owned(items, count);
     }
 
     public static unsafe bool GetButton(this IntPtr<SDL_Gamepad> ptr, SDL_GamepadButton button)

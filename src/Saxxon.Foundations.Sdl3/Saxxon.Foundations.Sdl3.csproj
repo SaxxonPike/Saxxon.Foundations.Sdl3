@@ -9,9 +9,9 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageVersion>2025.828.0.4-alpha</PackageVersion>
+        <PackageVersion>2025.828.0.5-alpha</PackageVersion>
         <PackageId>Saxxon.Foundations.Sdl3</PackageId>
-        <Version>2025.828.0.4-alpha</Version>
+        <Version>2025.828.0.5-alpha</Version>
         <Authors>SaxxonPike</Authors>
         <Description>Extension functions for use with ppy.SDL3-CS</Description>
         <RepositoryUrl>https://github.com/SaxxonPike/Saxxon.Foundations.Sdl3</RepositoryUrl>

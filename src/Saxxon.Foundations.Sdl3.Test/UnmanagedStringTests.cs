@@ -13,7 +13,7 @@ public class UnmanagedStringTests
         using var str = new UnmanagedString("test123");
         ((IntPtr<byte>)str.Ptr).GetString().ShouldBe("test123");
     }
-    
+
     [Test]
     public unsafe void TestWithBytes()
     {

@@ -94,10 +94,12 @@ public static class Window
         SDL_FlashWindow(ptr, operation);
     }
 
-    public static List<IntPtr<SDL_Window>> GetAll(this IntPtr<SDL_Window> ptr)
+    public static unsafe IMemoryOwner<IntPtr<SDL_Window>> GetAll(this IntPtr<SDL_Window> ptr)
     {
-        using var values = SDL_GetWindows();
-        return values.ToList();
+        int count;
+        var values = SDL_GetWindows(&count);
+
+        return SdlMemoryManager.Owned(values, count);
     }
 
     public static unsafe (float MinAspect, float MaxAspect) GetAspectRatio(this IntPtr<SDL_Window> ptr)
