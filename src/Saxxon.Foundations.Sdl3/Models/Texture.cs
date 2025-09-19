@@ -202,10 +202,9 @@ public static class Texture
     /// <summary>
     /// Gets the blend mode of a texture.
     /// </summary>
-    public static unsafe void SetBlendMode(this IntPtr<SDL_Texture> ptr, SDL_BlendMode mode)
+    public static unsafe bool SetBlendMode(this IntPtr<SDL_Texture> ptr, SDL_BlendMode mode)
     {
-        SDL_SetTextureBlendMode(ptr, mode)
-            .AssertSdlSuccess();
+        return SDL_SetTextureBlendMode(ptr, mode);
     }
 
     /// <summary>
