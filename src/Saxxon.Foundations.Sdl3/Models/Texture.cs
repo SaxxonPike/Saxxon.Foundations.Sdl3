@@ -200,6 +200,15 @@ public static class Texture
     }
 
     /// <summary>
+    /// Gets the blend mode of a texture.
+    /// </summary>
+    public static unsafe void SetBlendMode(this IntPtr<SDL_Texture> ptr, SDL_BlendMode mode)
+    {
+        SDL_SetTextureBlendMode(ptr, mode)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
     /// Sets the scale mode of a texture.
     /// </summary>
     public static unsafe void SetScaleMode(this IntPtr<SDL_Texture> ptr, SDL_ScaleMode mode)

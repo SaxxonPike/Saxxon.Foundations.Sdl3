@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.ObjectPool;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Models;
+using Saxxon.Foundations.Sdl3.Utils;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
@@ -11,11 +12,8 @@ namespace Saxxon.Foundations.Sdl3.Interop;
 /// Fast UTF8 string interop functions, including formatting.
 /// </summary>
 [PublicAPI]
-internal readonly ref struct UnmanagedString : IDisposable
+public readonly ref struct UnmanagedString : IDisposable
 {
-    private static readonly ObjectPool<StringBuilder> StringBuilderPool =
-        new DefaultObjectPool<StringBuilder>(new StringBuilderPooledObjectPolicy());
-
     /// <summary>
     /// Retrieves the UnmanagedString as a Utf8String for use with SDL3-CS.
     /// </summary>
@@ -90,7 +88,7 @@ internal readonly ref struct UnmanagedString : IDisposable
 
         try
         {
-            sb = StringBuilderPool.Get();
+            sb = StringBuilderPool.Rent();
             sb.AppendFormat(format, args);
             return new UnmanagedString(sb);
         }
