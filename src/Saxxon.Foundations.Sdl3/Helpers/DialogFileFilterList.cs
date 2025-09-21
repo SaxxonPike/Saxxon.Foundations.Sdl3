@@ -5,15 +5,28 @@ using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Helpers;
 
+/// <summary>
+/// Represents a list of file filters for when file or folder dialogs are opened.
+/// </summary>
 [PublicAPI]
 internal sealed class DialogFileFilterList : IDisposable
 {
     private readonly Utf8ByteStrings? _stringData;
     private readonly IntPtr<SDL_DialogFileFilter> _filterData;
 
+    /// <summary>
+    /// Raw pointer for the unmanaged data.
+    /// </summary>
     public IntPtr<SDL_DialogFileFilter> Ptr => _filterData;
+    
+    /// <summary>
+    /// Number of file filters.
+    /// </summary>
     public int Count { get; }
 
+    /// <summary>
+    /// Creates an unmanaged list of file filters for use with SDL calls.
+    /// </summary>
     public unsafe DialogFileFilterList(IReadOnlyList<(string Name, string Pattern)> filters)
     {
         Count = filters.Count;
@@ -45,6 +58,7 @@ internal sealed class DialogFileFilterList : IDisposable
         }
     }
 
+    /// <inheritdoc cref="IDisposable.Dispose"/>
     public void Dispose()
     {
         _stringData?.Dispose();

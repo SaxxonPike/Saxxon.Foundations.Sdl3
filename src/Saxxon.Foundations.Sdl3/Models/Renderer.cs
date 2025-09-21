@@ -11,27 +11,75 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class Renderer
 {
-    public static unsafe void Clear(this IntPtr<SDL_Renderer> ptr)
+    /// <summary>
+    /// Clears the current rendering target with the drawing color.
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    public static unsafe void Clear(this IntPtr<SDL_Renderer> renderer)
     {
-        SDL_RenderClear(ptr)
+        SDL_RenderClear(renderer)
             .AssertSdlSuccess();
     }
 
-    public static unsafe bool IsClipEnabled(this IntPtr<SDL_Renderer> ptr)
+    /// <summary>
+    /// Gets whether clipping is enabled on the given render target.
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    /// <returns>
+    /// True if clipping is enabled or false if not.
+    /// </returns>
+    public static unsafe bool IsClipEnabled(this IntPtr<SDL_Renderer> renderer)
     {
-        return SDL_RenderClipEnabled(ptr);
+        return SDL_RenderClipEnabled(renderer);
     }
 
-    public static unsafe void DebugText(this IntPtr<SDL_Renderer> ptr, float x, float y, ReadOnlySpan<char> text)
+    /// <summary>
+    /// Draws debug text to a renderer.
+    /// </summary>
+    /// <param name="renderer">
+    /// The renderer which should draw a line of text.
+    /// </param>
+    /// <param name="x">
+    /// The x coordinate where the top-left corner of the text will draw.
+    /// </param>
+    /// <param name="y">
+    /// The y coordinate where the top-left corner of the text will draw.
+    /// </param>
+    /// <param name="text">
+    /// The string to render.
+    /// </param>
+    public static unsafe void DebugText(this IntPtr<SDL_Renderer> renderer, float x, float y, ReadOnlySpan<char> text)
     {
         using var bytes = new UnmanagedString(text);
-        SDL_RenderDebugText(ptr, x, y, bytes)
+        SDL_RenderDebugText(renderer, x, y, bytes)
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Draws debug text to a renderer using a .NET string formatter.
+    /// </summary>
+    /// <param name="renderer">
+    /// The renderer which should draw a line of text.
+    /// </param>
+    /// <param name="x">
+    /// The x coordinate where the top-left corner of the text will draw.
+    /// </param>
+    /// <param name="y">
+    /// The y coordinate where the top-left corner of the text will draw.
+    /// </param>
+    /// <param name="format">
+    /// Formatting to use for assembling the string from argument values.
+    /// </param>
+    /// <param name="args">
+    /// Arguments for use with the format string.
+    /// </param>
     [StringFormatMethod(nameof(format))]
     public static unsafe void DebugText(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         float x,
         float y,
         string format,
@@ -39,27 +87,61 @@ public static class Renderer
     )
     {
         using var bytes = UnmanagedString.Format(format, args);
-        SDL_RenderDebugText(ptr, x, y, bytes)
+        SDL_RenderDebugText(renderer, x, y, bytes)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void FillRect(this IntPtr<SDL_Renderer> ptr, SDL_FRect rect)
+    /// <summary>
+    /// Fill a rectangle on the current rendering target with the drawing color at subpixel precision.
+    /// </summary>
+    /// <param name="renderer">
+    /// The renderer which should fill a rectangle.
+    /// </param>
+    /// <param name="rect">
+    /// The destination rectangle, or null for the entire rendering target.
+    /// </param>
+    public static unsafe void FillRect(this IntPtr<SDL_Renderer> renderer, SDL_FRect? rect)
     {
-        SDL_RenderFillRect(ptr, &rect)
+        SDL_RenderFillRect(renderer, rect is {} r ? &r : null)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void FillRects(this IntPtr<SDL_Renderer> ptr, ReadOnlySpan<SDL_FRect> rects)
+    /// <summary>
+    /// Fill some number of rectangles on the current rendering target with the drawing color at subpixel precision.
+    /// </summary>
+    /// <param name="renderer">
+    /// The renderer which should fill multiple rectangles.
+    /// </param>
+    /// <param name="rects">
+    /// A span of destination rectangles.
+    /// </param>
+    public static unsafe void FillRects(this IntPtr<SDL_Renderer> renderer, ReadOnlySpan<SDL_FRect> rects)
     {
         fixed (SDL_FRect* data = rects)
         {
-            SDL_RenderFillRects(ptr, data, rects.Length)
+            SDL_RenderFillRects(renderer, data, rects.Length)
                 .AssertSdlSuccess();
         }
     }
 
+    /// <summary>
+    /// Render a list of triangles, optionally using a texture and indices into the vertex array. Color and alpha
+    /// modulation is done per vertex (the texture's ColorMod and AlphaMod are ignored).
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    /// <param name="texture">
+    /// The SDL texture to use, or null.
+    /// </param>
+    /// <param name="vertices">
+    /// Vertex data of the geometry to render.
+    /// </param>
+    /// <param name="indices">
+    /// Render order of vertices.
+    /// </param>
     public static unsafe void Geometry(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         ReadOnlySpan<SDL_Vertex> vertices,
         ReadOnlySpan<int> indices
@@ -69,7 +151,7 @@ public static class Renderer
         fixed (int* indexData = indices)
         {
             SDL_RenderGeometry(
-                ptr,
+                renderer,
                 texture,
                 data,
                 vertices.Length,
@@ -79,8 +161,39 @@ public static class Renderer
         }
     }
 
+    /// <summary>
+    /// Render a list of triangles, optionally using a texture and indices into the vertex arrays. Color and alpha
+    /// modulation is done per vertex (the texture's ColorMod and AlphaMod are ignored).
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    /// <param name="texture">
+    /// The SDL texture to use, or null.
+    /// </param>
+    /// <param name="vertices">
+    /// Vertex data of the geometry to render.
+    /// </param>
+    /// <param name="xyOffset">
+    /// Offset within TVertex of vertex X/Y coordinates.
+    /// </param>
+    /// <param name="colorOffset">
+    /// Offset within TVertex of RGBA color values.
+    /// </param>
+    /// <param name="uvOffset">
+    /// Offset within TVertex of texture U/V coordinates.
+    /// </param>
+    /// <param name="indices">
+    /// Render order of vertices.
+    /// </param>
+    /// <typeparam name="TIndex">
+    /// Type of indices into vertex data.
+    /// </typeparam>
+    /// <typeparam name="TVertex">
+    /// Type of vertex data.
+    /// </typeparam>
     public static unsafe void GeometryRaw<TIndex, TVertex>(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         ReadOnlySpan<TVertex> vertices,
         int xyOffset,
@@ -89,46 +202,86 @@ public static class Renderer
         ReadOnlySpan<TIndex> indices
     ) where TIndex : unmanaged where TVertex : unmanaged
     {
+        var vertexSize = sizeof(TVertex);
+        var indexSize = sizeof(TIndex);
+
         fixed (TVertex* vertexData = vertices)
         fixed (void* indexData = indices)
         {
             SDL_RenderGeometryRaw(
-                ptr,
+                renderer,
                 texture,
                 (float*)((byte*)vertexData + xyOffset),
-                sizeof(TVertex),
+                vertexSize,
                 (SDL_FColor*)((byte*)vertexData + colorOffset),
-                sizeof(TVertex),
+                vertexSize,
                 (float*)((byte*)vertexData + uvOffset),
-                sizeof(TVertex),
+                vertexSize,
                 vertices.Length,
                 (IntPtr)indexData,
-                indices.Length * sizeof(TIndex),
-                sizeof(TIndex)
+                indices.Length * indexSize,
+                indexSize
             ).AssertSdlSuccess();
         }
     }
 
+    /// <summary>
+    /// Render a list of triangles, optionally using a texture and indices into the vertex arrays. Color and alpha
+    /// modulation is done per vertex (the texture's ColorMod and AlphaMod are ignored).
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    /// <param name="texture">
+    /// The SDL texture to use, or null.
+    /// </param>
+    /// <param name="xy">
+    /// Reference to the first X/Y coordinate.
+    /// </param>
+    /// <param name="xyStride">
+    /// Number of bytes between X/Y coordinate data.
+    /// </param>
+    /// <param name="color">
+    /// Reference to the first color.
+    /// </param>
+    /// <param name="colorStride">
+    /// Number of bytes between color data.
+    /// </param>
+    /// <param name="uv">
+    /// Reference to the first U/V texture coordinate.
+    /// </param>
+    /// <param name="uvStride">
+    /// Number of bytes between U/V coordinate data.
+    /// </param>
+    /// <param name="numVertices">
+    /// Number of vertices.
+    /// </param>
+    /// <param name="indices">
+    /// Render order of vertices.
+    /// </param>
+    /// <typeparam name="TIndex">
+    /// Type of indices into vertex data.
+    /// </typeparam>
     public static unsafe void GeometryRaw<TIndex>(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
-        ReadOnlySpan<SDL_FPoint> xy,
+        ref readonly SDL_FPoint xy,
         int xyStride,
-        ReadOnlySpan<SDL_FColor> color,
+        ref readonly SDL_FColor color,
         int colorStride,
-        ReadOnlySpan<SDL_FPoint> uv,
+        ref readonly SDL_FPoint uv,
         int uvStride,
         int numVertices,
         ReadOnlySpan<TIndex> indices
     ) where TIndex : unmanaged
     {
-        fixed (void* xyData = xy)
-        fixed (void* colorData = color)
-        fixed (void* uvData = uv)
+        fixed (void* xyData = &xy)
+        fixed (void* colorData = &color)
+        fixed (void* uvData = &uv)
         fixed (void* indexData = indices)
         {
             SDL_RenderGeometryRaw(
-                ptr,
+                renderer,
                 texture,
                 (float*)xyData,
                 xyStride,
@@ -144,56 +297,133 @@ public static class Renderer
         }
     }
 
-    public static unsafe void Line(this IntPtr<SDL_Renderer> ptr, float x1, float y1, float x2, float y2)
+    
+    /// <summary>
+    /// Render a list of triangles, optionally using a texture and indices into the vertex arrays. Color and alpha
+    /// modulation is done per vertex (the texture's ColorMod and AlphaMod are ignored).
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    /// <param name="texture">
+    /// The SDL texture to use, or null.
+    /// </param>
+    /// <param name="xy">
+    /// Vertex X/Y coordinate data.
+    /// </param>
+    /// <param name="color">
+    /// Vertex color data.
+    /// </param>
+    /// <param name="uv">
+    /// Vertex U/V texture coordinate data.
+    /// </param>
+    /// <param name="indices">
+    /// Render order of vertices.
+    /// </param>
+    /// <typeparam name="TIndex">
+    /// Type of indices into vertex data.
+    /// </typeparam>
+    public static unsafe void GeometryRaw<TIndex>(
+        this IntPtr<SDL_Renderer> renderer,
+        IntPtr<SDL_Texture> texture,
+        ReadOnlySpan<SDL_FPoint> xy,
+        ReadOnlySpan<SDL_FColor> color,
+        ReadOnlySpan<SDL_FPoint> uv,
+        ReadOnlySpan<TIndex> indices
+    ) where TIndex : unmanaged
     {
-        SDL_RenderLine(ptr, x1, y1, x2, y2)
-            .AssertSdlSuccess();
-    }
+        var numVertices = Math.Min(Math.Min(xy.Length, color.Length), uv.Length);
 
-    public static unsafe void Lines(this IntPtr<SDL_Renderer> ptr, ReadOnlySpan<SDL_FPoint> points)
-    {
-        fixed (SDL_FPoint* data = points)
+        fixed (void* xyData = xy)
+        fixed (void* colorData = color)
+        fixed (void* uvData = uv)
+        fixed (void* indexData = indices)
         {
-            SDL_RenderLines(ptr, data, points.Length);
+            SDL_RenderGeometryRaw(
+                renderer,
+                texture,
+                (float*)xyData,
+                sizeof(float) * 2,
+                (SDL_FColor*)colorData,
+                sizeof(SDL_FColor),
+                (float*)uvData,
+                sizeof(float) * 2,
+                numVertices,
+                (IntPtr)indexData,
+                indices.Length * sizeof(TIndex),
+                sizeof(TIndex)
+            ).AssertSdlSuccess();
         }
     }
 
-    public static unsafe void Point(this IntPtr<SDL_Renderer> ptr, float x, float y)
+    /// <summary>
+    /// Draw a line on the current rendering target at subpixel precision.
+    /// </summary>
+    /// <param name="renderer">
+    /// The renderer which should draw a line.
+    /// </param>
+    /// <param name="x1">
+    /// The x coordinate of the start point.
+    /// </param>
+    /// <param name="y1">
+    /// The y coordinate of the start point.
+    /// </param>
+    /// <param name="x2">
+    /// The x coordinate of the end point.
+    /// </param>
+    /// <param name="y2">
+    /// The y coordinate of the end point.
+    /// </param>
+    public static unsafe void Line(this IntPtr<SDL_Renderer> renderer, float x1, float y1, float x2, float y2)
     {
-        SDL_RenderPoint(ptr, x, y);
-    }
-
-    public static unsafe void Points(this IntPtr<SDL_Renderer> ptr, ReadOnlySpan<SDL_FPoint> points)
-    {
-        fixed (SDL_FPoint* data = points)
-        {
-            SDL_RenderPoints(ptr, data, points.Length);
-        }
-    }
-
-    public static unsafe void Rect(this IntPtr<SDL_Renderer> ptr, SDL_FRect rect)
-    {
-        SDL_RenderRect(ptr, &rect)
+        SDL_RenderLine(renderer, x1, y1, x2, y2)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void Rects(this IntPtr<SDL_Renderer> ptr, ReadOnlySpan<SDL_FRect> rects)
+    public static unsafe void Lines(this IntPtr<SDL_Renderer> renderer, ReadOnlySpan<SDL_FPoint> points)
+    {
+        fixed (SDL_FPoint* data = points)
+        {
+            SDL_RenderLines(renderer, data, points.Length);
+        }
+    }
+
+    public static unsafe void Point(this IntPtr<SDL_Renderer> renderer, float x, float y)
+    {
+        SDL_RenderPoint(renderer, x, y);
+    }
+
+    public static unsafe void Points(this IntPtr<SDL_Renderer> renderer, ReadOnlySpan<SDL_FPoint> points)
+    {
+        fixed (SDL_FPoint* data = points)
+        {
+            SDL_RenderPoints(renderer, data, points.Length);
+        }
+    }
+
+    public static unsafe void Rect(this IntPtr<SDL_Renderer> renderer, SDL_FRect rect)
+    {
+        SDL_RenderRect(renderer, &rect)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void Rects(this IntPtr<SDL_Renderer> renderer, ReadOnlySpan<SDL_FRect> rects)
     {
         fixed (SDL_FRect* data = rects)
         {
-            SDL_RenderRects(ptr, data, rects.Length)
+            SDL_RenderRects(renderer, data, rects.Length)
                 .AssertSdlSuccess();
         }
     }
 
     public static unsafe void Texture(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         SDL_FRect? srcRect,
         SDL_FRect? dstRect)
     {
         SDL_RenderTexture(
-            ptr,
+            renderer,
             texture,
             srcRect is { } sr ? &sr : null,
             dstRect is { } dr ? &dr : null
@@ -201,7 +431,7 @@ public static class Renderer
     }
 
     public static unsafe void Texture9Grid(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         SDL_FRect? srcRect,
         float leftWidth,
@@ -212,7 +442,7 @@ public static class Renderer
         SDL_FRect? dstRect)
     {
         SDL_RenderTexture9Grid(
-            ptr,
+            renderer,
             texture,
             srcRect is { } sr ? &sr : null,
             leftWidth,
@@ -225,7 +455,7 @@ public static class Renderer
     }
 
     public static unsafe void Texture9GridTiled(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         SDL_FRect? srcRect,
         float leftWidth,
@@ -237,7 +467,7 @@ public static class Renderer
         float tileScale)
     {
         SDL_RenderTexture9GridTiled(
-            ptr,
+            renderer,
             texture,
             srcRect is { } sr ? &sr : null,
             leftWidth,
@@ -251,7 +481,7 @@ public static class Renderer
     }
 
     public static unsafe void TextureAffine(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         SDL_FRect? srcRect,
         SDL_FPoint? origin,
@@ -259,7 +489,7 @@ public static class Renderer
         SDL_FPoint? down)
     {
         SDL_RenderTextureAffine(
-            ptr,
+            renderer,
             texture,
             srcRect is { } sr ? &sr : null,
             origin is { } o ? &o : null,
@@ -269,7 +499,7 @@ public static class Renderer
     }
 
     public static unsafe void TextureRotated(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         SDL_FRect? srcRect,
         SDL_FRect? dstRect,
@@ -278,7 +508,7 @@ public static class Renderer
         SDL_FlipMode flip)
     {
         SDL_RenderTextureRotated(
-            ptr,
+            renderer,
             texture,
             srcRect is { } sr ? &sr : null,
             dstRect is { } dr ? &dr : null,
@@ -289,14 +519,14 @@ public static class Renderer
     }
 
     public static unsafe void TextureTiled(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         IntPtr<SDL_Texture> texture,
         SDL_FRect? srcRect,
         float scale,
         SDL_FRect? dstRect)
     {
         SDL_RenderTextureTiled(
-            ptr,
+            renderer,
             texture,
             srcRect is { } sr ? &sr : null,
             scale,
@@ -304,100 +534,100 @@ public static class Renderer
         ).AssertSdlSuccess();
     }
 
-    public static unsafe bool IsViewportSet(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe bool IsViewportSet(this IntPtr<SDL_Renderer> renderer)
     {
-        return SDL_RenderViewportSet(ptr);
+        return SDL_RenderViewportSet(renderer);
     }
 
-    public static unsafe void SetClipRect(this IntPtr<SDL_Renderer> ptr, SDL_Rect? rect)
+    public static unsafe void SetClipRect(this IntPtr<SDL_Renderer> renderer, SDL_Rect? rect)
     {
-        SDL_SetRenderClipRect(ptr, rect is { } r ? &r : null)
+        SDL_SetRenderClipRect(renderer, rect is { } r ? &r : null)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetColorScale(this IntPtr<SDL_Renderer> ptr, float scale)
+    public static unsafe void SetColorScale(this IntPtr<SDL_Renderer> renderer, float scale)
     {
-        SDL_SetRenderColorScale(ptr, scale)
+        SDL_SetRenderColorScale(renderer, scale)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetBlendMode(this IntPtr<SDL_Renderer> ptr, SDL_BlendMode blendMode)
+    public static unsafe void SetBlendMode(this IntPtr<SDL_Renderer> renderer, SDL_BlendMode blendMode)
     {
-        SDL_SetRenderDrawBlendMode(ptr, blendMode)
+        SDL_SetRenderDrawBlendMode(renderer, blendMode)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetColor(this IntPtr<SDL_Renderer> ptr, byte r, byte g, byte b, byte a)
+    public static unsafe void SetColor(this IntPtr<SDL_Renderer> renderer, byte r, byte g, byte b, byte a)
     {
-        SDL_SetRenderDrawColor(ptr, r, g, b, a)
+        SDL_SetRenderDrawColor(renderer, r, g, b, a)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetColorFloat(this IntPtr<SDL_Renderer> ptr, float r, float g, float b, float a)
+    public static unsafe void SetColorFloat(this IntPtr<SDL_Renderer> renderer, float r, float g, float b, float a)
     {
-        SDL_SetRenderDrawColorFloat(ptr, r, g, b, a)
+        SDL_SetRenderDrawColorFloat(renderer, r, g, b, a)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetScale(this IntPtr<SDL_Renderer> ptr, float x, float y)
+    public static unsafe void SetScale(this IntPtr<SDL_Renderer> renderer, float x, float y)
     {
-        SDL_SetRenderScale(ptr, x, y)
+        SDL_SetRenderScale(renderer, x, y)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetTarget(this IntPtr<SDL_Renderer> ptr, IntPtr<SDL_Texture> texture)
+    public static unsafe void SetTarget(this IntPtr<SDL_Renderer> renderer, IntPtr<SDL_Texture> texture)
     {
-        SDL_SetRenderTarget(ptr, texture)
+        SDL_SetRenderTarget(renderer, texture)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetViewport(this IntPtr<SDL_Renderer> ptr, SDL_Rect? rect)
+    public static unsafe void SetViewport(this IntPtr<SDL_Renderer> renderer, SDL_Rect? rect)
     {
-        SDL_SetRenderViewport(ptr, rect is { } r ? &r : null)
+        SDL_SetRenderViewport(renderer, rect is { } r ? &r : null)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetVSync(this IntPtr<SDL_Renderer> ptr, int vsync)
+    public static unsafe void SetVSync(this IntPtr<SDL_Renderer> renderer, int vsync)
     {
-        SDL_SetRenderVSync(ptr, vsync);
+        SDL_SetRenderVSync(renderer, vsync);
     }
 
-    public static unsafe (int W, int H) GetCurrentOutputSize(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe (int W, int H) GetCurrentOutputSize(this IntPtr<SDL_Renderer> renderer)
     {
         int w, h;
-        SDL_GetCurrentRenderOutputSize(ptr, &w, &h)
+        SDL_GetCurrentRenderOutputSize(renderer, &w, &h)
             .AssertSdlSuccess();
         return (w, h);
     }
 
-    public static unsafe SDL_Rect? GetClipRect(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_Rect? GetClipRect(this IntPtr<SDL_Renderer> renderer)
     {
         SDL_Rect result;
-        SDL_GetRenderClipRect(ptr, &result)
+        SDL_GetRenderClipRect(renderer, &result)
             .AssertSdlSuccess();
         return result is { w: 0, h: 0 } ? null : *&result;
     }
 
-    public static unsafe float GetColorScale(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe float GetColorScale(this IntPtr<SDL_Renderer> renderer)
     {
         float result;
-        SDL_GetRenderColorScale(ptr, &result)
+        SDL_GetRenderColorScale(renderer, &result)
             .AssertSdlSuccess();
         return result;
     }
 
-    public static unsafe SDL_BlendMode GetBlendMode(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_BlendMode GetBlendMode(this IntPtr<SDL_Renderer> renderer)
     {
         SDL_BlendMode result;
-        SDL_GetRenderDrawBlendMode(ptr, &result)
+        SDL_GetRenderDrawBlendMode(renderer, &result)
             .AssertSdlSuccess();
         return result;
     }
 
-    public static unsafe SDL_Color GetColor(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_Color GetColor(this IntPtr<SDL_Renderer> renderer)
     {
         SDL_Color result;
-        SDL_GetRenderDrawColor(ptr, &result.r, &result.g, &result.b, &result.a)
+        SDL_GetRenderDrawColor(renderer, &result.r, &result.g, &result.b, &result.a)
             .AssertSdlSuccess();
 
         return new SDL_Color
@@ -406,86 +636,86 @@ public static class Renderer
         };
     }
 
-    public static unsafe SDL_FColor GetColorFloat(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_FColor GetColorFloat(this IntPtr<SDL_Renderer> renderer)
     {
         SDL_FColor result;
-        SDL_GetRenderDrawColorFloat(ptr, &result.r, &result.g, &result.b, &result.a)
+        SDL_GetRenderDrawColorFloat(renderer, &result.r, &result.g, &result.b, &result.a)
             .AssertSdlSuccess();
         return *&result;
     }
 
-    public static unsafe SDL_PropertiesID GetProperties(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_PropertiesID GetProperties(this IntPtr<SDL_Renderer> renderer)
     {
-        return SDL_GetRendererProperties(ptr);
+        return SDL_GetRendererProperties(renderer);
     }
 
-    public static unsafe (int W, int H) GetOutputSize(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe (int W, int H) GetOutputSize(this IntPtr<SDL_Renderer> renderer)
     {
         int w, h;
-        SDL_GetRenderOutputSize(ptr, &w, &h)
+        SDL_GetRenderOutputSize(renderer, &w, &h)
             .AssertSdlSuccess();
         return (w, h);
     }
 
-    public static unsafe SDL_Rect GetSafeArea(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_Rect GetSafeArea(this IntPtr<SDL_Renderer> renderer)
     {
         SDL_Rect result;
-        SDL_GetRenderSafeArea(ptr, &result)
+        SDL_GetRenderSafeArea(renderer, &result)
             .AssertSdlSuccess();
         return *&result;
     }
 
-    public static unsafe float GetScale(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe float GetScale(this IntPtr<SDL_Renderer> renderer)
     {
         float result;
-        SDL_GetRenderScale(ptr, &result, &result)
+        SDL_GetRenderScale(renderer, &result, &result)
             .AssertSdlSuccess();
         return result;
     }
 
-    public static unsafe IntPtr<SDL_Texture> GetTarget(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe IntPtr<SDL_Texture> GetTarget(this IntPtr<SDL_Renderer> renderer)
     {
-        var result = SDL_GetRenderTarget(ptr);
+        var result = SDL_GetRenderTarget(renderer);
         return result != null ? result : IntPtr<SDL_Texture>.Zero;
     }
 
-    public static unsafe SDL_Rect GetViewport(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe SDL_Rect GetViewport(this IntPtr<SDL_Renderer> renderer)
     {
         SDL_Rect result;
-        SDL_GetRenderViewport(ptr, &result)
+        SDL_GetRenderViewport(renderer, &result)
             .AssertSdlSuccess();
         return *&result;
     }
 
-    public static unsafe int GetVSync(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe int GetVSync(this IntPtr<SDL_Renderer> renderer)
     {
         int result;
-        SDL_GetRenderVSync(ptr, &result)
+        SDL_GetRenderVSync(renderer, &result)
             .AssertSdlSuccess();
         return result;
     }
 
-    public static unsafe IntPtr<SDL_Window> GetWindow(this IntPtr<SDL_Renderer> ptr)
+    public static unsafe IntPtr<SDL_Window> GetWindow(this IntPtr<SDL_Renderer> renderer)
     {
-        return SDL_GetRenderWindow(ptr);
+        return SDL_GetRenderWindow(renderer);
     }
 
     public static unsafe void SetLogicalPresentation(
-        this IntPtr<SDL_Renderer> ptr,
+        this IntPtr<SDL_Renderer> renderer,
         int w,
         int h,
         SDL_RendererLogicalPresentation mode
     )
     {
-        SDL_SetRenderLogicalPresentation(ptr, w, h, mode)
+        SDL_SetRenderLogicalPresentation(renderer, w, h, mode)
             .AssertSdlSuccess();
     }
 
     public static unsafe void Present(
-        this IntPtr<SDL_Renderer> ptr
+        this IntPtr<SDL_Renderer> renderer
     )
     {
-        SDL_RenderPresent(ptr)
+        SDL_RenderPresent(renderer)
             .AssertSdlSuccess();
     }
 

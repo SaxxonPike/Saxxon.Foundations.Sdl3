@@ -17,18 +17,22 @@ public readonly ref struct UnmanagedString : IDisposable
     /// <summary>
     /// Retrieves the UnmanagedString as a Utf8String for use with SDL3-CS.
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
     public static unsafe implicit operator Utf8String(UnmanagedString value)
     {
         return new ReadOnlySpan<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
     }
 
+    /// <summary>
+    /// Retrieves the UnmanagedString as a read only span of bytes.
+    /// </summary>
     public static unsafe implicit operator ReadOnlySpan<byte>(UnmanagedString value)
     {
         return new ReadOnlySpan<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
     }
 
+    /// <summary>
+    /// Retrieves the UnmanagedString as a span of bytes.
+    /// </summary>
     public static unsafe implicit operator Span<byte>(UnmanagedString value)
     {
         return new Span<byte>(value.Ptr, (int)SDL_strlen(value.Ptr));
@@ -150,6 +154,9 @@ public readonly ref struct UnmanagedString : IDisposable
         Mem.FreeInternal(Address);
     }
 
+    /// <summary>
+    /// Returns the UTF8 string content.
+    /// </summary>
     public override string? ToString()
     {
         return Address.GetString();

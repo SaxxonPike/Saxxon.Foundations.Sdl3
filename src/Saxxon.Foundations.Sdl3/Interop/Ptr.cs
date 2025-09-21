@@ -4,6 +4,9 @@ using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
+/// <summary>
+/// Pointer operations.
+/// </summary>
 [PublicAPI]
 internal static class Ptr
 {

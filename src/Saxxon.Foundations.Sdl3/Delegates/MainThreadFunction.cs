@@ -5,12 +5,28 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Delegates;
 
+/// <summary>
+/// A callback that describes a function that must run on the main thread.
+/// </summary>
+/// <param name="func">
+/// Target that will be invoked when the callback fires.
+/// </param>
 [PublicAPI]
 public sealed unsafe class MainThreadFunction(Action func) : IDisposable
 {
+    /// <summary>
+    /// SDL user data ID.
+    /// </summary>
     public IntPtr UserData { get; } = UserDataStore.Add(func);
-    public static delegate* unmanaged[Cdecl]<IntPtr, void> Callback => &Ingress;
 
+    /// <summary>
+    /// Pointer to the static function that receives calls from SDL.
+    /// </summary>
+    internal static delegate* unmanaged[Cdecl]<IntPtr, void> Callback => &Ingress;
+
+    /// <summary>
+    /// Ingress function from SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void Ingress(
         IntPtr userdata
@@ -20,6 +36,7 @@ public sealed unsafe class MainThreadFunction(Action func) : IDisposable
             handler!();
     }
 
+    /// <inheritdoc cref="IDisposable.Dispose"/>
     public void Dispose()
     {
         UserDataStore.Remove(UserData);

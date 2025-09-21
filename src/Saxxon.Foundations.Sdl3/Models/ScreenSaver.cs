@@ -9,18 +9,30 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class ScreenSaver
 {
+    /// <summary>
+    /// Allows the screen to be blanked by a screen saver.
+    /// </summary>
     public static void Enable()
     {
         SDL_EnableScreenSaver()
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Prevents the screen from being blanked by a screen saver.
+    /// </summary>
     public static void Disable()
     {
         SDL_DisableScreenSaver()
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Checks whether the screensaver is currently enabled.
+    /// </summary>
+    /// <returns>
+    /// True if the screensaver is enabled, false if it is disabled.
+    /// </returns>
     public static bool IsEnabled()
     {
         return SDL_ScreenSaverEnabled();

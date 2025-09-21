@@ -3,9 +3,15 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Extensions;
 
+/// <summary>
+/// Extensions for integers.
+/// </summary>
 [PublicAPI]
 internal static class IntExtensions
 {
+    /// <summary>
+    /// Throws an exception if the values are not equal after an SDL operation.
+    /// </summary>
     // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
     public static int AssertSdlNotEqual(this int value, int check)
     {

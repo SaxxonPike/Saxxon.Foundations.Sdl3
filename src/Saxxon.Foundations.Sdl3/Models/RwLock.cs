@@ -5,6 +5,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
 /// Provides an object-oriented interface for <see cref="SDL_RWLock"/>.
+/// Prefer using <see cref="ReaderWriterLockSlim"/> where possible.
 /// </summary>
 [PublicAPI]
 public static class RwLock

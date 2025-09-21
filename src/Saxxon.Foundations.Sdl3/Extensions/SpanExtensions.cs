@@ -3,6 +3,9 @@ using JetBrains.Annotations;
 
 namespace Saxxon.Foundations.Sdl3.Extensions;
 
+/// <summary>
+/// Extensions for <see cref="Span{T}"/> and <see cref="ReadOnlySpan{T}"/>.
+/// </summary>
 [PublicAPI]
 internal static class SpanExtensions
 {

@@ -3,6 +3,9 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Extensions;
 
+/// <summary>
+/// Extensions for floats.
+/// </summary>
 [PublicAPI]
 internal static class FloatExtensions
 {

@@ -6,14 +6,34 @@ using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Helpers;
 
+/// <summary>
+/// Wraps an <see cref="SDL_IOStream"/> around a managed <see cref="Stream"/>.
+/// </summary>
 [PublicAPI]
 [MustDisposeResource]
 public sealed unsafe class IoStreamWrapper : IDisposable
 {
+    /// <summary>
+    /// SDL user data value.
+    /// </summary>
     public IntPtr UserData { get; }
+    
+    /// <summary>
+    /// <see cref="SDL_IOStream"/> reference.
+    /// </summary>
     public IntPtr<SDL_IOStream> SdlIoStream { get; }
+    
+    /// <summary>
+    /// Managed <see cref="Stream"/> reference.
+    /// </summary>
     public Stream BaseStream { get; }
 
+    /// <summary>
+    /// Creates an <see cref="SDL_IOStream"/> wrapper around a <see cref="Stream"/>.
+    /// </summary>
+    /// <param name="stream">
+    /// Managed <see cref="Stream"/> to wrap.
+    /// </param>
     public IoStreamWrapper(
         Stream stream
     )
@@ -33,6 +53,9 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         SdlIoStream = IoStream.Open(io, UserData);
     }
 
+    /// <summary>
+    /// Size function exposed to SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static long IngressSize(
         IntPtr userdata)
@@ -49,6 +72,9 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         }
     }
 
+    /// <summary>
+    /// Seek function exposed to SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static long IngressSeek(
         IntPtr userdata,
@@ -73,6 +99,9 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         }
     }
 
+    /// <summary>
+    /// Read function exposed to SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static UIntPtr IngressRead(
         IntPtr userdata,
@@ -109,6 +138,9 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         }
     }
 
+    /// <summary>
+    /// Write function exposed to SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static UIntPtr IngressWrite(
         IntPtr userdata,
@@ -145,6 +177,9 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         }
     }
 
+    /// <summary>
+    /// Flush function exposed to SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static SDLBool IngressFlush(
         IntPtr userdata,
@@ -164,6 +199,9 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         }
     }
 
+    /// <summary>
+    /// Close function exposed to SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static SDLBool IngressClose(
         IntPtr userdata)
@@ -181,6 +219,7 @@ public sealed unsafe class IoStreamWrapper : IDisposable
         }
     }
 
+    /// <inheritdoc cref="IDisposable.Dispose"/>
     public void Dispose()
     {
         UserDataStore.Remove(UserData);

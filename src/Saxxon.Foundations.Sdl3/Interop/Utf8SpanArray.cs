@@ -3,11 +3,17 @@ using Saxxon.Foundations.Sdl3.Extensions;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
 
+/// <summary>
+/// Represents an unmanaged list of string values, where the values are from an unmanaged source.
+/// </summary>
 [PublicAPI]
 internal readonly ref struct Utf8SpanArray
 {
     private readonly ReadOnlySpan<IntPtr> _pointers;
 
+    /// <summary>
+    /// Number of items in the list.
+    /// </summary>
     public int Count => _pointers.Length;
 
     public Utf8SpanArray(ReadOnlySpan<IntPtr> pointers)
@@ -35,6 +41,9 @@ internal readonly ref struct Utf8SpanArray
         }
     }
 
+    /// <summary>
+    /// Converts the pointer table to a managed array.
+    /// </summary>
     public string?[] ToArray()
     {
         var result = new string?[Count];
@@ -43,6 +52,9 @@ internal readonly ref struct Utf8SpanArray
         return result;
     }
 
+    /// <summary>
+    /// Converts the pointer table to a managed list.
+    /// </summary>
     public List<string> ToList()
     {
         var result = new List<string>(Count);

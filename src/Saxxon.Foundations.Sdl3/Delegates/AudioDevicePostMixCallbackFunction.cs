@@ -5,19 +5,38 @@ using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3.Delegates;
 
+/// <summary>
+/// A callback that fires when data is about to be fed to an audio device.
+/// </summary>
+/// <param name="func">
+/// Target that will be invoked when the callback fires.
+/// </param>
 [PublicAPI]
 public sealed unsafe class AudioDevicePostMixCallbackFunction(
     AudioDevicePostMixCallbackFunction.Del func
 ) : IDisposable
 {
+    /// <summary>
+    /// Delegate for the callback target.
+    /// </summary>
     public delegate void Del(
         SDL_AudioSpec spec,
         Span<float> buffer
     );
 
+    /// <summary>
+    /// SDL user data ID.
+    /// </summary>
     public IntPtr UserData { get; } = UserDataStore.Add(func);
-    public static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioSpec*, float*, int, void> Callback => &Ingress;
+    
+    /// <summary>
+    /// Pointer to the static function that receives calls from SDL.
+    /// </summary>
+    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioSpec*, float*, int, void> Callback => &Ingress;
 
+    /// <summary>
+    /// Ingress function from SDL.
+    /// </summary>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void Ingress(
         IntPtr userdata,
@@ -33,6 +52,7 @@ public sealed unsafe class AudioDevicePostMixCallbackFunction(
             );
     }
 
+    /// <inheritdoc cref="IDisposable.Dispose"/>
     public void Dispose()
     {
         UserDataStore.Remove(UserData);

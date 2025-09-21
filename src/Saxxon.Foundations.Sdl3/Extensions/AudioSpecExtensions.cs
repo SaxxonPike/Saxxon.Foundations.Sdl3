@@ -2,6 +2,9 @@ using JetBrains.Annotations;
 
 namespace Saxxon.Foundations.Sdl3.Extensions;
 
+/// <summary>
+/// Extensions for <see cref="SDL_AudioSpec"/>.
+/// </summary>
 [PublicAPI]
 public static class AudioSpecExtensions
 {
