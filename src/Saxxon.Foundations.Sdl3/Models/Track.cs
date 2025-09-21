@@ -235,6 +235,17 @@ public static class Track
             .AssertSdlSuccess();
     }
 
+    public static unsafe void SetRawIoStream(
+        this IntPtr<MIX_Track> track,
+        IntPtr<SDL_IOStream> stream,
+        SDL_AudioSpec spec,
+        bool closeIo
+    )
+    {
+        MIX_SetTrackRawIOStream(track, stream, &spec, closeIo)
+            .AssertSdlSuccess();
+    }
+
     public static unsafe void SetStereo(
         this IntPtr<MIX_Track> track,
         MIX_StereoGains? gains
