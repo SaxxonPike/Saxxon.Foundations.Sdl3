@@ -1,0 +1,21 @@
+<Project>
+    <PropertyGroup>
+        <PackageVersion>2025.828.0.8-alpha</PackageVersion>
+        <Version>2025.828.0.8-alpha</Version>
+        <RepositoryUrl>https://github.com/SaxxonPike/Saxxon.Foundations.Sdl3</RepositoryUrl>
+        <Copyright>2025 Anthony Konzel</Copyright>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
+        <StripSymbols>false</StripSymbols>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="ppy.SDL3-CS" Version="2025.828.0"/>
+        <PackageReference Include="ppy.SDL3_image-CS" Version="2025.828.0"/>
+        <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.828.0"/>
+        <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.828.0"/>
+    </ItemGroup>
+</Project>

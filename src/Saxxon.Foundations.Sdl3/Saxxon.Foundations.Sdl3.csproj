@@ -10,15 +10,9 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageVersion>2025.828.0.7-alpha</PackageVersion>
         <PackageId>Saxxon.Foundations.Sdl3</PackageId>
-        <Version>2025.828.0.7-alpha</Version>
         <Authors>SaxxonPike</Authors>
         <Description>Extension functions for use with ppy.SDL3-CS</Description>
-        <RepositoryUrl>https://github.com/SaxxonPike/Saxxon.Foundations.Sdl3</RepositoryUrl>
-        <Copyright>2025 Anthony Konzel</Copyright>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
@@ -28,10 +22,6 @@
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2025.2.2"/>
         <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.9"/>
-        <PackageReference Include="ppy.SDL3-CS" Version="2025.828.0"/>
-        <PackageReference Include="ppy.SDL3_image-CS" Version="2025.828.0"/>
-        <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.828.0"/>
-        <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.828.0"/>
     </ItemGroup>
 
     <ItemGroup>
