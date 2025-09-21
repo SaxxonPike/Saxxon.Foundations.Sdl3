@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Interop;
 
@@ -74,6 +75,28 @@ public static class IntPtrExtensions
     public static string GetString(this IntPtr<byte> value, int byteCount)
     {
         return Marshal.PtrToStringUTF8(value, byteCount);
+    }
+
+    /// <summary>
+    /// Interprets data reference by a byte pointer as a null-terminated wchar_t encoded string.
+    /// </summary>
+    internal static unsafe string? GetWString(this IntPtr value)
+    {
+        // There is no cozy way to determine the size of wchar_t.
+        // We are operating on the assumption that Windows will always use 2-byte, whereas all
+        // other platforms will use 4-byte...
+
+        var platform = ((IntPtr<byte>)Unsafe_SDL_GetPlatform()).GetUtf8Span();
+        if (platform.StartsWith("Windows"u8))
+        {
+            return Marshal.PtrToStringUni(value);
+        }
+
+        var ptr = (int*)value;
+        var length = 0;
+        while (*ptr++ != 0)
+            length++;
+        return Encoding.UTF32.GetString((byte*)value, length * sizeof(int));
     }
 
     /// <summary>

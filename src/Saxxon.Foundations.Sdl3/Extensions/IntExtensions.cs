@@ -19,4 +19,15 @@ internal static class IntExtensions
             throw new SdlException();
         return value;
     }
+    
+    /// <summary>
+    /// Throws an exception if the value is not zero after an SDL operation.
+    /// </summary>
+    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
+    public static int AssertSdlZero(this int value)
+    {
+        if (value == 0)
+            throw new SdlException();
+        return value;
+    }
 }
