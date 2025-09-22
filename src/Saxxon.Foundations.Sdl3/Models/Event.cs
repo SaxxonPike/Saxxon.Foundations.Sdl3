@@ -96,10 +96,7 @@ public static class Event
         fixed (SDL_Event* evPtr = events)
         {
             var count = SDL_PeepEvents(evPtr, events.Length, action, minType, maxType);
-            if (count < 0)
-                throw new SdlException();
-
-            return events[..count];
+            return count < 0 ? throw new SdlException() : events[..count];
         }
     }
 }

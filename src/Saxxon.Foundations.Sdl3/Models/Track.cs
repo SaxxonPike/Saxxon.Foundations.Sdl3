@@ -80,9 +80,7 @@ public static class Track
     )
     {
         var result = MIX_GetTrackProperties(track);
-        if (result == 0)
-            throw new SdlException();
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 
     public static unsafe long? GetRemaining(

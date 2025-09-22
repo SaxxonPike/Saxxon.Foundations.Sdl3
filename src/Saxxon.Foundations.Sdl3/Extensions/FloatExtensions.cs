@@ -13,8 +13,6 @@ internal static class FloatExtensions
     public static float AssertSdlNotEqual(this float value, float check)
     {
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (value == check)
-            throw new SdlException();
-        return value;
+        return value == check ? throw new SdlException() : value;
     }
 }

@@ -15,9 +15,7 @@ public static class KeyCode
     {
         using var nameStr = new UnmanagedString(name);
         var result = SDL_GetKeyFromName(nameStr);
-        if (result == SDL_Keycode.SDLK_UNKNOWN)
-            throw new SdlException();
-        return result;
+        return result == SDL_Keycode.SDLK_UNKNOWN ? throw new SdlException() : result;
     }
 
     public static unsafe string GetName(

@@ -13,8 +13,8 @@ public static class Power
     {
         int seconds, percent;
         var result = SDL_GetPowerInfo(&seconds, &percent);
-        if (result == SDL_PowerState.SDL_POWERSTATE_ERROR)
-            throw new SdlException();
-        return (result, TimeSpan.FromSeconds(seconds), percent);
+        return result == SDL_PowerState.SDL_POWERSTATE_ERROR 
+            ? throw new SdlException() 
+            : (result, TimeSpan.FromSeconds(seconds), percent);
     }
 }

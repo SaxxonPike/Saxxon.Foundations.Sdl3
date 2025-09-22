@@ -178,9 +178,7 @@ public static class Audio
     )
     {
         var result = MIX_GetAudioProperties(audio);
-        if (result == 0)
-            throw new SdlException();
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 
     /// <summary>

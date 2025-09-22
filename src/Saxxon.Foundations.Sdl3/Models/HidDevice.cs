@@ -94,4 +94,35 @@ public static class HidDevice
             return result - 1;
         }
     }
+
+    /// <summary>
+    /// Opens a HID device using a Vendor ID (VID), Product ID (PID) and optionally a serial number.
+    /// </summary>
+    /// <param name="vendorId">
+    /// The Vendor ID (VID) of the device to open.
+    /// </param>
+    /// <param name="productId">
+    /// The Product ID (PID) of the device to open.
+    /// </param>
+    /// <param name="serialNumber">
+    /// The Serial Number of the device to open.
+    /// </param>
+    /// <returns>
+    /// A pointer to a <see cref="SDL_hid_device"/> object.
+    /// </returns>
+    public static unsafe IntPtr<SDL_hid_device> Open(ushort vendorId, ushort productId, string? serialNumber)
+    {
+        IntPtr<byte> serialNumberPtr = IntPtr.Zero;
+
+        try
+        {
+            serialNumberPtr = serialNumber == null ? 0 : Wchar.AllocString(serialNumber);
+            return SDL_hid_open(vendorId, productId, serialNumberPtr);
+        }
+        finally
+        {
+            if (!serialNumberPtr.IsNull)
+                Mem.Free(serialNumberPtr);
+        }
+    }
 }

@@ -11,14 +11,14 @@ namespace Saxxon.Foundations.Sdl3.Extensions;
 [PublicAPI]
 public static class IntPtrExtensions
 {
+    private static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
     /// <summary>
     /// Throws an exception if the value is a null pointer after an SDL operation.
     /// </summary>
     internal static IntPtr AssertSdlNotNull(this IntPtr value)
     {
-        if (value == IntPtr.Zero)
-            throw new SdlException();
-        return value;
+        return value == IntPtr.Zero ? throw new SdlException() : value;
     }
 
     /// <summary>

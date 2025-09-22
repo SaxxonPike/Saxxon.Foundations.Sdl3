@@ -30,8 +30,6 @@ public static class Group
     )
     {
         var result = MIX_GetGroupProperties(group);
-        if (result == 0)
-            throw new SdlException();
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 }

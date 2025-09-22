@@ -116,10 +116,7 @@ public static class Surface
     )
     {
         var result = SDL_CreateSurfacePalette(ptr);
-        if (result == null)
-            throw new SdlException();
-
-        return result;
+        return result == null ? throw new SdlException() : result;
     }
 
     public static unsafe void Destroy(
@@ -174,10 +171,7 @@ public static class Surface
     )
     {
         var result = SDL_GetSurfaceProperties(ptr);
-        if (result == 0)
-            throw new SdlException();
-
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 
     public static unsafe bool HasColorKey(

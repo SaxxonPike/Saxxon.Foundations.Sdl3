@@ -28,7 +28,7 @@ public static class ScanCode
         return Ptr.ToUtf8String(Unsafe_SDL_GetScancodeName(scan))!;
     }
 
-    public static unsafe void SetName(
+    public static void SetName(
         this SDL_Scancode scan,
         ReadOnlySpan<char> name
     )
@@ -38,7 +38,7 @@ public static class ScanCode
             .AssertSdlSuccess();
     }
 
-    public static unsafe SDL_Keycode GetKey(
+    public static SDL_Keycode GetKey(
         this SDL_Scancode scan,
         SDL_Keymod mod,
         bool isForEvents

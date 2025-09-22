@@ -142,10 +142,7 @@ public static class AudioDevice
         var spec = format ?? default;
         var result = SDL_OpenAudioDevice(id, &spec);
 
-        if (result == 0)
-            throw new SdlException();
-
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 
     /// <summary>

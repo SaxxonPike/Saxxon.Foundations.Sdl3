@@ -87,9 +87,7 @@ public static class Mixer
     )
     {
         var result = MIX_GetMixerProperties(mixer);
-        if (result == 0)
-            throw new SdlException();
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 
     public static unsafe void PauseAllTracks(

@@ -71,9 +71,7 @@ public static class Process
     )
     {
         var result = SDL_GetProcessProperties(process);
-        if (result == 0)
-            throw new SdlException();
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 
     public static unsafe IntPtr<SDL_Process> CreateWithProperties(

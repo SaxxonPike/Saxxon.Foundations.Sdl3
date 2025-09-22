@@ -184,9 +184,7 @@ public static class Gamepad
     public static unsafe SDL_PropertiesID GetProperties(this IntPtr<SDL_Gamepad> ptr)
     {
         var id = SDL_GetGamepadProperties(ptr);
-        if (id == 0)
-            throw new SdlException();
-        return id;
+        return id == 0 ? throw new SdlException() : id;
     }
 
     [MustDisposeResource]

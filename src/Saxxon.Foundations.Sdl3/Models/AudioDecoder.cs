@@ -55,7 +55,7 @@ public static class AudioDecoder
             .AssertSdlNotNull();
     }
 
-    public static unsafe int GetCount()
+    public static int GetCount()
     {
         return MIX_GetNumAudioDecoders();
     }
@@ -73,8 +73,6 @@ public static class AudioDecoder
     public static unsafe SDL_PropertiesID GetProperties(this IntPtr<MIX_AudioDecoder> decoder)
     {
         var result = MIX_GetAudioDecoderProperties(decoder);
-        if (result == 0)
-            throw new SdlException();
-        return result;
+        return result == 0 ? throw new SdlException() : result;
     }
 }

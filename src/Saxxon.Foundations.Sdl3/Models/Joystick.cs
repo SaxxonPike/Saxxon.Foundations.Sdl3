@@ -32,9 +32,7 @@ public static class Joystick
     {
         var value = SDL_GetJoystickGUID(joystick);
         var result = *(Guid*)&value;
-        if (result == Guid.Empty)
-            throw new SdlException();
-        return result;
+        return result == Guid.Empty ? throw new SdlException() : result;
     }
 
     public static unsafe Guid GetGuid(
@@ -43,9 +41,7 @@ public static class Joystick
     {
         var value = SDL_GetJoystickGUIDForID(id);
         var result = *(Guid*)&value;
-        if (result == Guid.Empty)
-            throw new SdlException();
-        return result;
+        return result == Guid.Empty ? throw new SdlException() : result;
     }
 
     public static string? GetName(

@@ -15,9 +15,7 @@ internal static class IntExtensions
     // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
     public static int AssertSdlNotEqual(this int value, int check)
     {
-        if (value == check)
-            throw new SdlException();
-        return value;
+        return value == check ? throw new SdlException() : value;
     }
     
     /// <summary>
@@ -26,8 +24,6 @@ internal static class IntExtensions
     // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
     public static int AssertSdlZero(this int value)
     {
-        if (value == 0)
-            throw new SdlException();
-        return value;
+        return value == 0 ? throw new SdlException() : value;
     }
 }

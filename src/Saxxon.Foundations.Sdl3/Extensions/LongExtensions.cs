@@ -15,8 +15,6 @@ internal static class LongExtensions
     // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
     public static long AssertSdlNotEqual(this long value, long check)
     {
-        if (value == check)
-            throw new SdlException();
-        return value;
+        return value == check ? throw new SdlException() : value;
     }
 }
