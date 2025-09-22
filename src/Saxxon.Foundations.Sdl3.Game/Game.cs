@@ -86,14 +86,7 @@ public abstract class Game : IDisposable
         set => _updateInterval = TimeSpan.FromSeconds(1) / value;
     }
 
-    /// <summary>
-    /// Maximum number of game state updates that are pending. If the game is
-    /// running too slow, the game will skip updates to compensate.
-    /// </summary>
-    protected virtual int MaxPendingUpdates => 3;
-
     private CancellationTokenSource _closeToken = new();
-    private ulong _lastUpdate;
     private ulong _lastDraw;
     private ulong _lastPresent;
     private Dictionary<SDL_JoystickID, IntPtr<SDL_Gamepad>> _gamepads = [];
@@ -259,7 +252,7 @@ public abstract class Game : IDisposable
         // Initialize game state.
         //
 
-        game._lastDraw = game._lastUpdate = game._lastPresent = Time.GetNowNanoseconds();
+        game._lastDraw = game._lastPresent = Time.GetNowNanoseconds();
         game.OnInit();
 
         //
