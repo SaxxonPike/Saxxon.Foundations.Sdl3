@@ -6,9 +6,10 @@ using Saxxon.Foundations.Sdl3.Interop;
 using Saxxon.Foundations.Sdl3.Models;
 using SDL;
 using static SDL.SDL3;
+using Mutex = System.Threading.Mutex;
+using Timer = Saxxon.Foundations.Sdl3.Models.Timer;
 
 namespace Saxxon.Foundations.Sdl3.Game;
-
 
 /// <summary>
 /// Base class for game, window and render operations.
@@ -76,6 +77,21 @@ public abstract class Game : IDisposable
     /// </summary>
     public bool IsFocused { get; private set; }
 
+    /// <summary>
+    /// Number of times per second that game state updates should be performed.
+    /// </summary>
+    protected virtual double UpdatesPerSecond
+    {
+        get => TimeSpan.FromSeconds(1) / _updateInterval;
+        set => _updateInterval = TimeSpan.FromSeconds(1) / value;
+    }
+
+    /// <summary>
+    /// Maximum number of game state updates that are pending. If the game is
+    /// running too slow, the game will skip updates to compensate.
+    /// </summary>
+    protected virtual int MaxPendingUpdates => 3;
+
     private CancellationTokenSource _closeToken = new();
     private ulong _lastUpdate;
     private ulong _lastDraw;
@@ -86,6 +102,11 @@ public abstract class Game : IDisposable
     private IntPtr<SDL_Texture> _scaleTexture;
     private LogOutputFunction? _logOutputFunction;
     private string _title = "";
+    private bool _quitting;
+    private bool _crashing;
+    private Timer.TimerCallback? _updateCallback;
+    private Mutex _updateMutex = new();
+    private TimeSpan _updateInterval = TimeSpan.FromSeconds(1) / 200;
 
     /// <summary>
     /// Gets or sets the title of the game window.
@@ -139,6 +160,7 @@ public abstract class Game : IDisposable
         }
         catch
         {
+            _crashing = true;
             if (Debugger.IsAttached)
                 throw;
             return -1;
@@ -147,10 +169,6 @@ public abstract class Game : IDisposable
         {
             SdlLib.Quit();
         }
-
-        //
-        // The quit function is called when the game is about to exit.
-        //
     }
 
     /// <summary>
@@ -161,7 +179,7 @@ public abstract class Game : IDisposable
         if (!PendingGames.TryDequeue(out var game))
             return (SDL_AppResult.SDL_APP_FAILURE, null!);
 
-        game._logOutputFunction = new LogOutputFunction(game.OnLog);
+        game._logOutputFunction = new LogOutputFunction(game.OnLogMessage);
 
         //
         // Configure SDL to use .NET memory management. This allows SDL to
@@ -200,6 +218,8 @@ public abstract class Game : IDisposable
 
         (game.Window, game.Renderer) = Saxxon.Foundations.Sdl3.Models.Window
             .CreateWithRenderer(game.Title, 1280, 720, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+
+        game.SetLetterboxOn();
 
         Hint.Set(SDL_HINT_RENDER_VSYNC, "1");
         Hint.Set(SDL_HINT_EVENT_LOGGING, "1");
@@ -242,6 +262,28 @@ public abstract class Game : IDisposable
         game._lastDraw = game._lastUpdate = game._lastPresent = Time.GetNowNanoseconds();
         game.OnInit();
 
+        //
+        // Initialize update timer.
+        //
+
+        game._updateInterval = TimeSpan.FromSeconds(1) / game.UpdatesPerSecond;
+        game._updateCallback = (_, elapsed) =>
+        {
+            if (game._closeToken.IsCancellationRequested)
+                return TimeSpan.Zero;
+
+            // While this callback may run on a different thread, it can be
+            // assumed that the letterbox mode is on when entering the mutex.
+
+            game._updateMutex.WaitOne();
+            game.OnUpdate(elapsed);
+            game._updateMutex.ReleaseMutex();
+
+            return game._updateInterval;
+        };
+
+        Timer.Create(game._updateCallback, game._updateInterval);
+
         return (SDL_AppResult.SDL_APP_CONTINUE, game);
     }
 
@@ -262,6 +304,8 @@ public abstract class Game : IDisposable
     /// </summary>
     private static SDL_AppResult MainEvent(Game game, ref SDL_Event e)
     {
+        game._updateMutex.WaitOne();
+
         //
         // Handle the raw event.
         //
@@ -279,6 +323,8 @@ public abstract class Game : IDisposable
         //
         // Handle the event.
         //
+
+        var result = SDL_AppResult.SDL_APP_CONTINUE;
 
         switch (e.Type)
         {
@@ -327,12 +373,12 @@ public abstract class Game : IDisposable
             }
             case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                game.OnMouseDown(e.button.which, (SDLButton)e.button.button);
+                game.OnMouseButtonDown(e.button.which, (SDLButton)e.button.button);
                 break;
             }
             case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                game.OnMouseUp(e.button.which, (SDLButton)e.button.button);
+                game.OnMouseButtonUp(e.button.which, (SDLButton)e.button.button);
                 break;
             }
             case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
@@ -427,15 +473,25 @@ public abstract class Game : IDisposable
             }
             case SDL_EventType.SDL_EVENT_QUIT:
             {
+                if (!game._quitting)
+                {
+                    game._quitting = true;
+                    game.OnQuitting();
+                }
+
+                game._closeToken.Cancel();
                 game.OnQuit();
-                return game._closeToken.IsCancellationRequested
-                    ? SDL_AppResult.SDL_APP_SUCCESS
-                    : SDL_AppResult.SDL_APP_CONTINUE;
+
+                result = game._crashing
+                    ? SDL_AppResult.SDL_APP_FAILURE
+                    : SDL_AppResult.SDL_APP_SUCCESS;
+                break;
             }
         }
 
         game.OnEvent(e);
-        return SDL_AppResult.SDL_APP_CONTINUE;
+        game._updateMutex.ReleaseMutex();
+        return result;
     }
 
     /// <summary>
@@ -447,15 +503,7 @@ public abstract class Game : IDisposable
             return SDL_AppResult.SDL_APP_SUCCESS;
 
         var renderer = game.Renderer;
-
-        //
-        // Perform game logic updates.
-        //
-
-        game.SetLetterboxOff();
-        var thisUpdate = Time.GetNowNanoseconds();
-        game.OnUpdate(Time.GetFromNanoseconds(thisUpdate - game._lastUpdate));
-        game._lastUpdate = thisUpdate;
+        game._updateMutex.WaitOne();
 
         //
         // Render game objects.
@@ -511,6 +559,7 @@ public abstract class Game : IDisposable
         // accordance with Vsync.
         //
 
+        game._updateMutex.ReleaseMutex();
         renderer.Present();
         return SDL_AppResult.SDL_APP_CONTINUE;
     }
@@ -562,22 +611,34 @@ public abstract class Game : IDisposable
     /// this can be disabled.
     /// </summary>
     protected virtual bool ShouldInitMixer => true;
-    
+
     /// <summary>
-    /// Handles when SDL is logging a message. By default, messages are logged
-    /// to the console.
+    /// Handler for when SDL is logging a message.
     /// </summary>
-    protected virtual void OnLog(int category, SDL_LogPriority priority, ReadOnlySpan<char> message)
+    public delegate void LogMessageDelegate(int category, SDL_LogPriority priority, ReadOnlySpan<char> message);
+
+    public event LogMessageDelegate? LogMessage;
+
+    /// <inheritdoc cref="LogMessageDelegate"/>
+    protected virtual void OnLogMessage(int category, SDL_LogPriority priority, ReadOnlySpan<char> message)
     {
-        Console.Write("[{0}] ", priority);
-        Console.WriteLine(message);
+        LogMessage?.Invoke(category, priority, message);
     }
 
     /// <summary>
-    /// Handles when the game has first started.
+    /// Handler for when the game has first started.
     /// </summary>
+    public delegate void InitDelegate();
+
+    /// <summary>
+    /// Raised when the game first starts.
+    /// </summary>
+    public event Action? Init;
+
+    /// <inheritdoc cref="InitDelegate"/>
     protected virtual void OnInit()
     {
+        Init?.Invoke();
     }
 
     /// <summary>
@@ -587,30 +648,64 @@ public abstract class Game : IDisposable
     /// Amount of time that has passed since the last time game state was
     /// updated.
     /// </param>
+    public delegate void UpdateDelegate(TimeSpan delta);
+
+    /// <summary>
+    /// Raised when the game logic should update.
+    /// </summary>
+    public event UpdateDelegate? Update;
+
+    /// <inheritdoc cref="UpdateDelegate"/>
     protected virtual void OnUpdate(TimeSpan delta)
     {
+        Update?.Invoke(delta);
     }
 
     /// <summary>
-    /// Handles drawing game objects.
+    /// Handles rendering game objects.
     /// </summary>
     /// <param name="delta">
     /// Amount of time that has passed since the last time game objects were
     /// rendered.
     /// </param>
+    public delegate void DrawDelegate(TimeSpan delta);
+
+    /// <summary>
+    /// Raised when game objects should be rendered.
+    /// </summary>
+    public event DrawDelegate? Draw;
+
+    /// <inheritdoc cref="DrawDelegate"/>
     protected virtual void OnDraw(TimeSpan delta)
     {
+        Draw?.Invoke(delta);
     }
 
     /// <summary>
     /// Handles raw events from SDL.
     /// </summary>
     /// <param name="e">
-    /// Event data. This can be modified before it is replicated to other
-    /// event handlers.
+    /// Event data.
     /// </param>
+    /// <remarks>
+    /// Modifications to event data will be reflected when the event is
+    /// actually broadcast.
+    /// </remarks>
+    public delegate void PreEventDelegate(ref SDL_Event e);
+
+    /// <summary>
+    /// Raised when an SDL event is about to be handled.
+    /// </summary>
+    /// <remarks>
+    /// Modifications to event data will be reflected when the event is
+    /// actually broadcast.
+    /// </remarks>
+    public event PreEventDelegate? PreEvent;
+
+    /// <inheritdoc cref="PreEventDelegate"/>
     protected virtual void OnPreEvent(ref SDL_Event e)
     {
+        PreEvent?.Invoke(ref e);
     }
 
     /// <summary>
@@ -624,40 +719,91 @@ public abstract class Game : IDisposable
     /// have been converted to the renderer's coordinate system prior to the
     /// call.
     /// </remarks>
+    public delegate void EventDelegate(SDL_Event e);
+
+    /// <summary>
+    /// Raised when an SDL event was received and has been pre-processed.
+    /// </summary>
+    public event EventDelegate? Event;
+
+    /// <inheritdoc cref="EventDelegate"/>
     protected virtual void OnEvent(SDL_Event e)
     {
+        Event?.Invoke(e);
     }
 
     /// <summary>
-    /// Handles when a request to quit the game is made.
+    /// Handler for when a request to quit the game is made.
     /// </summary>
+    public delegate void QuittingDelegate();
+
+    /// <summary>
+    /// Raised when the game is about to quit.
+    /// </summary>
+    public event QuittingDelegate? Quitting;
+
+    /// <inheritdoc cref="QuittingDelegate"/>
+    protected virtual void OnQuitting()
+    {
+        Quitting?.Invoke();
+    }
+
+    /// <summary>
+    /// Handler for when the game has quit.
+    /// </summary>
+    public delegate void QuitDelegate();
+
+    /// <summary>
+    /// Raised when the game has quit.
+    /// </summary>
+    public event QuitDelegate? Quit;
+
+    /// <inheritdoc cref="QuitDelegate"/>
     protected virtual void OnQuit()
     {
-        _closeToken.Cancel();
+        Quit?.Invoke();
     }
 
     /// <summary>
-    /// Handles when a gamepad has been connected.
+    /// Handler for when a gamepad has been connected.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that was connected.
     /// </param>
+    public delegate void GamepadConnectedDelegate(IntPtr<SDL_Gamepad> gamepad);
+
+    /// <summary>
+    /// Raised when a gamepad has been connected.
+    /// </summary>
+    public event GamepadConnectedDelegate? GamepadConnected;
+
+    /// <inheritdoc cref="GamepadConnectedDelegate"/>
     protected virtual void OnGamepadConnected(IntPtr<SDL_Gamepad> gamepad)
     {
+        GamepadConnected?.Invoke(gamepad);
     }
 
     /// <summary>
-    /// Handles when a gamepad has been disconnected.
+    /// Handler for when a gamepad has been disconnected.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that was disconnected.
     /// </param>
+    public delegate void GamepadDisconnectedDelegate(IntPtr<SDL_Gamepad> gamepad);
+
+    /// <summary>
+    /// Raised when a gamepad has been disconnected.
+    /// </summary>
+    public event GamepadDisconnectedDelegate? GamepadDisconnected;
+
+    /// <inheritdoc cref="GamepadDisconnectedDelegate"/>
     protected virtual void OnGamepadDisconnected(IntPtr<SDL_Gamepad> gamepad)
     {
+        GamepadDisconnected?.Invoke(gamepad);
     }
 
     /// <summary>
-    /// Handles when a button on a gamepad has been pressed.
+    /// Handler for when a button on a gamepad has been pressed.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that the button was pressed on.
@@ -665,12 +811,21 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was pressed.
     /// </param>
+    public delegate void GamepadButtonDownDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button);
+
+    /// <summary>
+    /// Raised when a button on a gamepad has been pressed.
+    /// </summary>
+    public event GamepadButtonDownDelegate? GamepadButtonDown;
+
+    /// <inheritdoc cref="GamepadButtonDownDelegate"/>
     protected virtual void OnGamepadButtonDown(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button)
     {
+        GamepadButtonDown?.Invoke(gamepad, button);
     }
 
     /// <summary>
-    /// Handles when a button on a gamepad has been released.
+    /// Handler for when a button on a gamepad has been released.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that the button was released on.
@@ -678,12 +833,21 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was released.
     /// </param>
+    public delegate void GamepadButtonUpDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button);
+
+    /// <summary>
+    /// Raised when a button on a gamepad has been released.
+    /// </summary>
+    public event GamepadButtonUpDelegate? GamepadButtonUp;
+
+    /// <inheritdoc cref="GamepadButtonUpDelegate"/>
     protected virtual void OnGamepadButtonUp(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button)
     {
+        GamepadButtonUp?.Invoke(gamepad, button);
     }
 
     /// <summary>
-    /// Handles when a gamepad axis has changed.
+    /// Handler for when a gamepad axis has changed.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that the axis was changed on.
@@ -694,12 +858,21 @@ public abstract class Game : IDisposable
     /// <param name="value">
     /// The new value of the axis.
     /// </param>
+    public delegate void GamepadAxisChangedDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadAxis axis, float value);
+
+    /// <summary>
+    /// Raised when a gamepad axis has changed.
+    /// </summary>
+    public event GamepadAxisChangedDelegate? GamepadAxisChanged;
+
+    /// <inheritdoc cref="GamepadAxisChangedDelegate"/>
     protected virtual void OnGamepadAxisChanged(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadAxis axis, float value)
     {
+        GamepadAxisChanged?.Invoke(gamepad, axis, value);
     }
 
     /// <summary>
-    /// Handles when a gamepad touchpad has been pressed.
+    /// Handler for when a gamepad touchpad has been pressed.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that the touchpad was pressed on.
@@ -713,13 +886,23 @@ public abstract class Game : IDisposable
     /// <param name="pressure">
     /// Pressure of the touch.
     /// </param>
+    public delegate void GamepadTouchDownDelegate(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+        float pressure);
+
+    /// <summary>
+    /// Raised when a gamepad touchpad has been pressed.
+    /// </summary>
+    public event GamepadTouchDownDelegate? GamepadTouchDown;
+
+    /// <inheritdoc cref="GamepadTouchDownDelegate"/>
     protected virtual void OnGamepadTouchDown(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
         float pressure)
     {
+        GamepadTouchDown?.Invoke(gamepad, padIndex, fingerIndex, pressure);
     }
 
     /// <summary>
-    /// Handles when a gamepad touchpad has been moved.
+    /// Handler for when a gamepad touchpad has been moved.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that the touchpad was moved on.
@@ -733,13 +916,23 @@ public abstract class Game : IDisposable
     /// <param name="pressure">
     /// Pressure of the touch.
     /// </param>
+    public delegate void GamepadTouchMoveDelegate(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+        float pressure);
+
+    /// <summary>
+    /// Raised when a gamepad touchpad has been moved.
+    /// </summary>
+    public event GamepadTouchMoveDelegate? GamepadTouchMove;
+
+    /// <inheritdoc cref="GamepadTouchMoveDelegate"/>
     protected virtual void OnGamepadTouchMove(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
         float pressure)
     {
+        GamepadTouchMove?.Invoke(gamepad, padIndex, fingerIndex, pressure);
     }
 
     /// <summary>
-    /// Handles when a gamepad touchpad has been released.
+    /// Handler for when a gamepad touchpad has been released.
     /// </summary>
     /// <param name="gamepad">
     /// Gamepad device that the touchpad was released on.
@@ -753,32 +946,60 @@ public abstract class Game : IDisposable
     /// <param name="pressure">
     /// Pressure of the touch.
     /// </param>
+    public delegate void GamepadTouchUpDelegate(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+        float pressure);
+
+    /// <summary>
+    /// Raised when a gamepad touchpad has been released.
+    /// </summary>
+    public event GamepadTouchUpDelegate? GamepadTouchUp;
+
+    /// <inheritdoc cref="GamepadTouchUpDelegate"/>
     protected virtual void OnGamepadTouchUp(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex, float pressure)
     {
+        GamepadTouchUp?.Invoke(gamepad, padIndex, fingerIndex, pressure);
     }
 
     /// <summary>
-    /// Handles when a mouse has been connected.
+    /// Handler for when a mouse has been connected.
     /// </summary>
     /// <param name="mouse">
     /// ID of the mouse that was connected.
     /// </param>
+    public delegate void MouseConnectedDelegate(SDL_MouseID mouse);
+
+    /// <summary>
+    /// Raised when a mouse has been connected.
+    /// </summary>
+    public event MouseConnectedDelegate? MouseConnected;
+
+    /// <inheritdoc cref="MouseConnectedDelegate"/>
     protected virtual void OnMouseConnected(SDL_MouseID mouse)
     {
+        MouseConnected?.Invoke(mouse);
     }
 
     /// <summary>
-    /// Handles when a mouse has been disconnected.
+    /// Handler for when a mouse has been disconnected.
     /// </summary>
     /// <param name="mouse">
     /// ID of the mouse that was disconnected.
     /// </param>
+    public delegate void MouseDisconnectedDelegate(SDL_MouseID mouse);
+
+    /// <summary>
+    /// Raised when a mouse has been disconnected.
+    /// </summary>
+    public event MouseDisconnectedDelegate? MouseDisconnected;
+
+    /// <inheritdoc cref="MouseDisconnectedDelegate"/>
     protected virtual void OnMouseDisconnected(SDL_MouseID mouse)
     {
+        MouseDisconnected?.Invoke(mouse);
     }
 
     /// <summary>
-    /// Handles when a mouse button has been pressed.
+    /// Handler for when a mouse button has been pressed.
     /// </summary>
     /// <param name="mouse">
     /// ID of the mouse that the button was pressed on.
@@ -786,12 +1007,21 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was pressed.
     /// </param>
-    protected virtual void OnMouseDown(SDL_MouseID mouse, SDLButton button)
+    public delegate void MouseButtonDownDelegate(SDL_MouseID mouse, SDLButton button);
+
+    /// <summary>
+    /// Raised when a mouse button has been pressed.
+    /// </summary>
+    public event MouseButtonDownDelegate? MouseButtonDown;
+
+    /// <inheritdoc cref="MouseButtonDownDelegate"/>
+    protected virtual void OnMouseButtonDown(SDL_MouseID mouse, SDLButton button)
     {
+        MouseButtonDown?.Invoke(mouse, button);
     }
 
     /// <summary>
-    /// Handles when a mouse button has been released.
+    /// Handler for when a mouse button has been released.
     /// </summary>
     /// <param name="mouse">
     /// ID of the mouse that the button was released on.
@@ -799,12 +1029,21 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was released.
     /// </param>
-    protected virtual void OnMouseUp(SDL_MouseID mouse, SDLButton button)
+    public delegate void MouseButtonUpDelegate(SDL_MouseID mouse, SDLButton button);
+
+    /// <summary>
+    /// Raised when a mouse button has been released.
+    /// </summary>
+    public event MouseButtonUpDelegate? MouseButtonUp;
+
+    /// <inheritdoc cref="MouseButtonUpDelegate"/>
+    protected virtual void OnMouseButtonUp(SDL_MouseID mouse, SDLButton button)
     {
+        MouseButtonUp?.Invoke(mouse, button);
     }
 
     /// <summary>
-    /// Handles when a mouse has moved.
+    /// Handler for when a mouse has moved.
     /// </summary>
     /// <param name="mouse">
     /// ID of the mouse that moved.
@@ -815,12 +1054,21 @@ public abstract class Game : IDisposable
     /// <param name="y">
     /// New y-coordinate of the mouse.
     /// </param>
+    public delegate void MouseMoveDelegate(SDL_MouseID mouse, int x, int y);
+
+    /// <summary>
+    /// Raised when a mouse has moved.
+    /// </summary>
+    public event MouseMoveDelegate? MouseMove;
+
+    /// <inheritdoc cref="MouseMoveDelegate"/>
     protected virtual void OnMouseMove(SDL_MouseID mouse, int x, int y)
     {
+        MouseMove?.Invoke(mouse, x, y);
     }
 
     /// <summary>
-    /// Handles when a mouse wheel has moved.
+    /// Handler for when a mouse wheel has moved.
     /// </summary>
     /// <param name="mouse">
     /// ID of the mouse that the wheel was moved on.
@@ -834,12 +1082,21 @@ public abstract class Game : IDisposable
     /// <param name="direction">
     /// Direction of the scroll.
     /// </param>
+    public delegate void MouseWheelDelegate(SDL_MouseID mouse, float x, float y, SDL_MouseWheelDirection direction);
+
+    /// <summary>
+    /// Raised when a mouse wheel has moved.
+    /// </summary>
+    public event MouseWheelDelegate? MouseWheel;
+
+    /// <inheritdoc cref="MouseWheelDelegate"/>
     protected virtual void OnMouseWheel(SDL_MouseID mouse, float x, float y, SDL_MouseWheelDirection direction)
     {
+        MouseWheel?.Invoke(mouse, x, y, direction);
     }
 
     /// <summary>
-    /// Handles when a key has been pressed.
+    /// Handler for when a key has been pressed.
     /// </summary>
     /// <param name="keyboard">
     /// ID of the keyboard that the key was pressed on.
@@ -853,12 +1110,21 @@ public abstract class Game : IDisposable
     /// <param name="mod">
     /// Modifier keys.
     /// </param>
+    public delegate void KeyDownDelegate(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod);
+
+    /// <summary>
+    /// Raised when a keyboard key has been pressed.
+    /// </summary>
+    public event KeyDownDelegate? KeyDown;
+
+    /// <inheritdoc cref="KeyDownDelegate"/>
     protected virtual void OnKeyDown(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod)
     {
+        KeyDown?.Invoke(keyboard, code, scan, mod);
     }
 
     /// <summary>
-    /// Handles when a key has been released.
+    /// Handler for when a key has been released.
     /// </summary>
     /// <param name="keyboard">
     /// ID of the keyboard that the key was released on.
@@ -872,56 +1138,119 @@ public abstract class Game : IDisposable
     /// <param name="mod">
     /// Modifier keys.
     /// </param>
+    public delegate void KeyUpDelegate(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod);
+
+    /// <summary>
+    /// Raised when a keyboard key has been released.
+    /// </summary>
+    public event KeyUpDelegate? KeyUp;
+
+    /// <inheritdoc cref="KeyUpDelegate"/>
     protected virtual void OnKeyUp(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod)
     {
+        KeyUp?.Invoke(keyboard, code, scan, mod);
     }
 
     /// <summary>
-    /// Handles when a keyboard has been connected.
+    /// Handler for when a keyboard has been connected.
     /// </summary>
     /// <param name="keyboard">
     /// ID of the keyboard that was connected.
     /// </param>
+    public delegate void KeyboardConnectedDelegate(SDL_KeyboardID keyboard);
+
+    /// <summary>
+    /// Raised when a keyboard has been connected.
+    /// </summary>
+    public event KeyboardConnectedDelegate? KeyboardConnected;
+
+    /// <inheritdoc cref="KeyboardConnectedDelegate"/>
     protected virtual void OnKeyboardConnected(SDL_KeyboardID keyboard)
     {
+        KeyboardConnected?.Invoke(keyboard);
     }
 
     /// <summary>
-    /// Handles when a keyboard has been disconnected.
+    /// Handler for when a keyboard has been disconnected.
     /// </summary>
     /// <param name="keyboard">
     /// ID of the keyboard that was disconnected.
     /// </param>
+    public delegate void KeyboardDisconnectedDelegate(SDL_KeyboardID keyboard);
+
+    /// <summary>
+    /// Raised when a keyboard has been disconnected.
+    /// </summary>
+    public event KeyboardDisconnectedDelegate? KeyboardDisconnected;
+
+    /// <inheritdoc cref="KeyboardDisconnectedDelegate"/>
     protected virtual void OnKeyboardDisconnected(SDL_KeyboardID keyboard)
     {
+        KeyboardDisconnected?.Invoke(keyboard);
     }
 
     /// <summary>
-    /// Handles when the game window gains focus.
+    /// Handler for when the game window gains focus.
     /// </summary>
+    public delegate void FocusGainedDelegate();
+
+    /// <summary>
+    /// Raised when the game window gains focus.
+    /// </summary>
+    public event FocusGainedDelegate? FocusGained;
+
+    /// <inheritdoc cref="FocusGainedDelegate"/>
     protected virtual void OnFocusGained()
     {
+        FocusGained?.Invoke();
     }
 
     /// <summary>
-    /// Handles when the game window loses focus.
+    /// Handler for when the game window loses focus.
     /// </summary>
+    public delegate void FocusLostDelegate();
+
+    /// <summary>
+    /// Raised when the game window loses focus.
+    /// </summary>
+    public event FocusLostDelegate? FocusLost;
+
+    /// <inheritdoc cref="FocusLostDelegate"/>
     protected virtual void OnFocusLost()
     {
+        FocusLost?.Invoke();
     }
 
     /// <summary>
-    /// Handles when <see cref="Dispose"/> is called.
+    /// Handler for when <see cref="Dispose"/> is called.
     /// </summary>
+    public delegate void DisposedDelegate();
+
+    /// <summary>
+    /// Raised when <see cref="Dispose"/> is called.
+    /// </summary>
+    public event DisposedDelegate? Disposed;
+
+    /// <inheritdoc cref="DisposedDelegate"/>
     protected virtual void OnDispose()
     {
+        Disposed?.Invoke();
     }
 
     /// <summary>
-    /// Handles when the game scene is about to be presented to the window.
+    /// Handler for when the game scene is about to be presented to the window.
     /// </summary>
+    public delegate void PresentDelegate(TimeSpan delta);
+
+    /// <summary>
+    /// Raised when the game scene is about to be presented to the window.
+    /// </summary>
+    public event PresentDelegate? Present;
+
+    /// <inheritdoc cref="PresentDelegate"/>
     protected virtual void OnPresent(TimeSpan delta)
     {
+        Present?.Invoke(delta);
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
