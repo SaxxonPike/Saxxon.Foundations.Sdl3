@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 
-namespace Saxxon.Foundations.Sdl3.Models;
+// ReSharper disable once CheckNamespace
+namespace SDL;
 
 /// <summary>
 /// Represents a gamepad. This wraps <see cref="SDL_JoystickID"/> for the
@@ -8,6 +9,6 @@ namespace Saxxon.Foundations.Sdl3.Models;
 ///
 /// This is not an actual SDL type.
 /// </summary>
-// ReSharper disable InconsistentNaming
 [PublicAPI]
+// ReSharper disable InconsistentNaming
 public enum SDL_GamepadID : uint;

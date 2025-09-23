@@ -23,22 +23,8 @@ public static class Storage
         using var patternStr = new UnmanagedString(pattern);
 
         int count;
-        var names = SDL_GlobStorageDirectory(storage, pathStr, patternStr, flags, &count);
-
-        var result = new List<string>();
-
-        if (names == null)
-            return result;
-
-        for (var i = 0; i < count; i++)
-        {
-            if (((IntPtr)names[i]).GetString() is not { } name)
-                continue;
-
-            result.Add(name);
-        }
-
-        return result;
+        var names = (IntPtr<IntPtr<byte>>)SDL_GlobStorageDirectory(storage, pathStr, patternStr, flags, &count);
+        return names.GetStrings(count)!;
     }
 
     public static unsafe ulong GetSpaceRemaining(

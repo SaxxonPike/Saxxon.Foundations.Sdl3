@@ -14,15 +14,10 @@ internal static class Ptr
     {
         return ((IntPtr)ptr).GetString();
     }
-    
-    public static unsafe IntPtr<T> FromArray<T>(T* array) where T : unmanaged
-    {
-        return (IntPtr)array;
-    }
-    
+
     public static unsafe IntPtr<IntPtr<T>> FromArray<T>(T** array) where T : unmanaged
     {
-        return (IntPtr)array;
+        return (IntPtr<IntPtr<T>>)array;
     }
 
     public static unsafe ref T ToRef<T>(this IntPtr ptr)
@@ -30,5 +25,18 @@ internal static class Ptr
         if (ptr == IntPtr.Zero)
             return ref Unsafe.NullRef<T>();
         return ref Unsafe.AsRef<T>((void*)ptr);
+    }
+
+    public static unsafe Span<IntPtr<T>> AsNullTerminatedSpan<T>(this IntPtr<IntPtr<T>> ptr)
+        where T : unmanaged
+    {
+        if (ptr.IsNull)
+            return Span<IntPtr<T>>.Empty;
+
+        var count = 0;
+        while (!ptr[count].IsNull)
+            count++;
+
+        return new Span<IntPtr<T>>(ptr, count);
     }
 }

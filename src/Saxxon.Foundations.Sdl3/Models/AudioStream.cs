@@ -126,10 +126,10 @@ public static class AudioStream
     public static unsafe IMemoryOwner<int>? GetInputChannelMap(this IntPtr<SDL_AudioStream> ptr)
     {
         int count;
-        var result = (IntPtr)SDL_GetAudioStreamInputChannelMap(ptr, &count);
+        var result = (IntPtr<int>)SDL_GetAudioStreamInputChannelMap(ptr, &count);
         return result == IntPtr.Zero
             ? null
-            : SdlMemoryPool<int>.Shared.Own((void*)result, count);
+            : SdlMemoryManager.Owned(result, count);
     }
 
     /// <summary>
@@ -138,10 +138,10 @@ public static class AudioStream
     public static unsafe IMemoryOwner<int>? GetOutputChannelMap(this IntPtr<SDL_AudioStream> ptr)
     {
         int count;
-        var result = (IntPtr)SDL_GetAudioStreamOutputChannelMap(ptr, &count);
+        var result = (IntPtr<int>)SDL_GetAudioStreamOutputChannelMap(ptr, &count);
         return result == IntPtr.Zero
             ? null
-            : SdlMemoryPool<int>.Shared.Own((void*)result, count);
+            : SdlMemoryManager.Owned(result, count);
     }
 
     /// <summary>

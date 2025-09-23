@@ -83,7 +83,7 @@ public static class HidDevice
         // after the fact, and we can't use the buffer directly without sticking the report ID implementation detail
         // on the outside of our own API. Thus, the seemingly redundant buffer allocation.
 
-        using var temp = SdlMemoryPool<byte>.Shared.Rent(buffer.Length + 1);
+        using var temp = SdlMemoryManager.Rent<byte>(buffer.Length + 1);
 
         fixed (byte* tempPtr = buffer)
         {

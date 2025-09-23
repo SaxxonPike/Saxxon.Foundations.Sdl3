@@ -563,11 +563,17 @@ public static class Renderer
             .AssertSdlSuccess();
     }
 
+    public static void SetColor(this IntPtr<SDL_Renderer> renderer, SDL_Color color) =>
+        SetColor(renderer, color.r, color.g, color.b, color.a);
+
     public static unsafe void SetColorFloat(this IntPtr<SDL_Renderer> renderer, float r, float g, float b, float a)
     {
         SDL_SetRenderDrawColorFloat(renderer, r, g, b, a)
             .AssertSdlSuccess();
     }
+
+    public static void SetColorFloat(this IntPtr<SDL_Renderer> renderer, SDL_FColor color) =>
+        SetColorFloat(renderer, color.r, color.g, color.b, color.a);
 
     public static unsafe void SetScale(this IntPtr<SDL_Renderer> renderer, float x, float y)
     {
@@ -605,7 +611,7 @@ public static class Renderer
         SDL_Rect result;
         SDL_GetRenderClipRect(renderer, &result)
             .AssertSdlSuccess();
-        return result is { w: 0, h: 0 } ? null : *&result;
+        return result is { w: 0, h: 0 } ? null : result;
     }
 
     public static unsafe float GetColorScale(this IntPtr<SDL_Renderer> renderer)
@@ -866,7 +872,7 @@ public static class Renderer
             .AssertSdlSuccess();
     }
 
-    public static unsafe (float X, float Y) CoordinatesToWindow(
+    public static unsafe SDL_FPoint CoordinatesToWindow(
         this IntPtr<SDL_Renderer> renderer,
         float x,
         float y
@@ -875,10 +881,15 @@ public static class Renderer
         float windowX, windowY;
         SDL_RenderCoordinatesToWindow(renderer, x, y, &windowX, &windowY)
             .AssertSdlSuccess();
-        return (windowX, windowY);
+        return Models.Point.CreateFloat(windowX, windowY);
     }
 
-    public static unsafe (float X, float Y) CoordinatesFromWindow(
+    public static SDL_FPoint CoordinatesToWindow(
+        this IntPtr<SDL_Renderer> renderer,
+        SDL_FPoint point
+    ) => CoordinatesToWindow(renderer, point.x, point.y);
+
+    public static unsafe SDL_FPoint CoordinatesFromWindow(
         this IntPtr<SDL_Renderer> renderer,
         float windowX,
         float windowY
@@ -887,8 +898,13 @@ public static class Renderer
         float x, y;
         SDL_RenderCoordinatesToWindow(renderer, windowX, windowY, &x, &y)
             .AssertSdlSuccess();
-        return (x, y);
+        return Models.Point.CreateFloat(x, y);
     }
+
+    public static SDL_FPoint CoordinatesFromWindow(
+        this IntPtr<SDL_Renderer> renderer,
+        SDL_FPoint point
+    ) => CoordinatesFromWindow(renderer, point.x, point.y);
 
     public static unsafe SDL_FRect GetLogicalPresentationRect(
         this IntPtr<SDL_Renderer> renderer

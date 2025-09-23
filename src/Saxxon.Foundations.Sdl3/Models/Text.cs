@@ -226,8 +226,9 @@ public static class Text
     )
     {
         int count;
-        var result = (IntPtr<IntPtr<TTF_SubString>>)(void*)TTF_GetTextSubStringsForRange(text, offset, length, &count);
-        return SdlMemoryPool<IntPtr<TTF_SubString>>.Shared.Own(result, count);
+        var result = ((IntPtr<IntPtr<TTF_SubString>>)TTF_GetTextSubStringsForRange(text, offset, length, &count))
+            .AssertSdlNotNull();
+        return SdlMemoryManager.Owned(result, count);
     }
 
     public static unsafe TTF_SubString GetSubstringForPoint(this IntPtr<TTF_Text> text, int x, int y)

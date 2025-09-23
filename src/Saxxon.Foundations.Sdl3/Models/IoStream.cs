@@ -20,7 +20,7 @@ public static class IoStream
         SDL_IOStreamInterface @interface,
         IntPtr userData)
     {
-        return ((IntPtr)SDL_OpenIO(&@interface, userData))
+        return ((IntPtr<SDL_IOStream>)SDL_OpenIO(&@interface, userData))
             .AssertSdlNotNull();
     }
 }

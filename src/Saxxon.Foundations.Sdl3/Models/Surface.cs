@@ -66,7 +66,7 @@ public static class Surface
         SDL_PixelFormat format
     )
     {
-        return ((IntPtr)SDL_ConvertSurface(ptr, format))
+        return ((IntPtr<SDL_Surface>)SDL_ConvertSurface(ptr, format))
             .AssertSdlNotNull();
     }
 
@@ -78,7 +78,7 @@ public static class Surface
         SDL_PropertiesID props
     )
     {
-        return ((IntPtr)SDL_ConvertSurfaceAndColorspace(
+        return ((IntPtr<SDL_Surface>)SDL_ConvertSurfaceAndColorspace(
                 ptr,
                 format,
                 palette,
@@ -92,7 +92,7 @@ public static class Surface
         SDL_PixelFormat format
     )
     {
-        return ((IntPtr)SDL_CreateSurface(width, height, format))
+        return ((IntPtr<SDL_Surface>)SDL_CreateSurface(width, height, format))
             .AssertSdlNotNull();
     }
 
@@ -106,7 +106,7 @@ public static class Surface
     {
         fixed (byte* pixelsPtr = pixels)
         {
-            return ((IntPtr)SDL_CreateSurfaceFrom(width, height, format, (IntPtr)pixelsPtr, pitch))
+            return ((IntPtr<SDL_Surface>)SDL_CreateSurfaceFrom(width, height, format, (IntPtr)pixelsPtr, pitch))
                 .AssertSdlNotNull();
         }
     }
@@ -194,7 +194,7 @@ public static class Surface
     {
         using var nameStr = new UnmanagedString(name);
 
-        return ((IntPtr)SDL_LoadBMP(nameStr))
+        return ((IntPtr<SDL_Surface>)SDL_LoadBMP(nameStr))
             .AssertSdlNotNull();
     }
 
@@ -203,7 +203,7 @@ public static class Surface
         bool closeIo
     )
     {
-        return ((IntPtr)SDL_LoadBMP_IO(stream, closeIo))
+        return ((IntPtr<SDL_Surface>)SDL_LoadBMP_IO(stream, closeIo))
             .AssertSdlNotNull();
     }
 
@@ -519,7 +519,7 @@ public static class Surface
         SDL_ScaleMode scaleMode
     )
     {
-        return ((IntPtr)SDL_ScaleSurface(surface, width, height, scaleMode))
+        return ((IntPtr<SDL_Surface>)SDL_ScaleSurface(surface, width, height, scaleMode))
             .AssertSdlNotNull();
     }
 

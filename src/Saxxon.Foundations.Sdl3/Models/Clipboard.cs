@@ -23,36 +23,20 @@ public static class Clipboard
     {
         using var mimeTypeStr = new UnmanagedString(mimeType);
         UIntPtr size;
-        var data = SDL_GetClipboardData(mimeTypeStr.Ptr, &size)
+        var data = ((IntPtr<byte>)SDL_GetClipboardData(mimeTypeStr.Ptr, &size))
             .AssertSdlNotNull();
-        return SdlMemoryManager.Owned((byte*)data, (int)size);
+        return SdlMemoryManager.Owned(data, (int)size);
     }
 
-    public static unsafe List<string> GetMimeTypes()
+    public static unsafe List<string?> GetMimeTypes()
     {
         UIntPtr count;
         var mimeTypes = ((IntPtr<IntPtr<byte>>)SDL_GetClipboardMimeTypes(&count))
             .AssertSdlNotNull();
 
-        var countInt = (int)count;
-        var result = new List<string>();
-
-        try
-        {
-            for (var i = 0; i < countInt; i++)
-            {
-                var ptr = mimeTypes[i];
-                if (ptr.IsNull)
-                    continue;
-                result.Add(ptr.GetString()!);
-            }
-
-            return result;
-        }
-        finally
-        {
-            SDL_free((IntPtr)mimeTypes);
-        }
+        var result = mimeTypes.GetStrings((int)count);
+        SDL_free(mimeTypes.Ptr);
+        return result;
     }
 
     public static string? GetPrimarySelectionText() =>

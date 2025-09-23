@@ -19,6 +19,16 @@ internal static unsafe class SdlMemoryManager
         return new SdlMemoryManager<IntPtr<T>>(null, ptr, length);
     }
 
+    public static SdlMemoryManager<T> Owned<T>(IntPtr ptr, int length) where T : unmanaged
+    {
+        return new SdlMemoryManager<T>(SdlMemoryPool<T>.Shared, (T*)ptr, length);
+    }
+
+    public static SdlMemoryManager<T> Owned<T>(IntPtr<T> ptr, int length) where T : unmanaged
+    {
+        return new SdlMemoryManager<T>(SdlMemoryPool<T>.Shared, ptr, length);
+    }
+
     public static SdlMemoryManager<T> Owned<T>(T* ptr, int length) where T : unmanaged
     {
         return new SdlMemoryManager<T>(SdlMemoryPool<T>.Shared, ptr, length);
@@ -27,6 +37,11 @@ internal static unsafe class SdlMemoryManager
     public static SdlMemoryManager<IntPtr<T>> Owned<T>(T** ptr, int length) where T : unmanaged
     {
         return new SdlMemoryManager<IntPtr<T>>(SdlMemoryPool<IntPtr<T>>.Shared, ptr, length);
+    }
+    
+    public static SdlMemoryManager<T> Rent<T>(int length) where T : unmanaged
+    {
+        return (SdlMemoryManager<T>)SdlMemoryPool<T>.Shared.Rent(length);
     }
 }
 

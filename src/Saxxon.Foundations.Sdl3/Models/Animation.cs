@@ -116,7 +116,7 @@ public static class Animation
         this IntPtr<IMG_Animation> animation
     )
     {
-        return (IntPtr)animation.AsReadOnlyRef().frames;
+        return (IntPtr<IntPtr<SDL_Surface>>)animation.AsReadOnlyRef().frames;
     }
 
     /// <summary>

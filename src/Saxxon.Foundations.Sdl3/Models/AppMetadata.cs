@@ -10,62 +10,83 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class AppMetadata
 {
-    public static unsafe void Set(
+    /// <summary>
+    /// Specifies basic metadata about your app.
+    /// </summary>
+    /// <param name="appName">
+    /// The name of the application ("My Game 2: Bad Guy's Revenge!").
+    /// </param>
+    /// <param name="appVersion">
+    /// The version of the application ("1.0.0beta5" or a git hash, or
+    /// whatever makes sense).
+    /// </param>
+    /// <param name="appIdentifier">
+    /// A unique string in reverse-domain format that identifies this app
+    /// ("com.example.mygame2").
+    /// </param>
+    /// <remarks>
+    /// You can optionally provide metadata about your app to SDL. This is not
+    /// required, but strongly encouraged.
+    /// 
+    /// There are several locations where SDL can make use of metadata
+    /// (an "About" box in the macOS menu bar, the name of the app can be shown
+    /// on some audio mixers, etc). Any piece of metadata can be left as NULL,
+    /// if a specific detail doesn't make sense for the app.
+    /// 
+    /// This function should be called as early as possible, before SDL_Init.
+    /// 
+    /// Multiple calls to this function are allowed, but various state might
+    /// not change once it has been set up with a previous call to this
+    /// function.
+    /// 
+    /// Passing null removes any previous metadata.
+    /// 
+    /// This is a simplified interface for the most important information. You
+    /// can supply significantly more detailed metadata with
+    /// <see cref="SetProperty"/>.
+    /// </remarks>
+    public static void Set(
         ReadOnlySpan<char> appName,
         ReadOnlySpan<char> appVersion,
         ReadOnlySpan<char> appIdentifier
     )
     {
-        var appNameLen = appName.MeasureUtf8();
-        var appVersionLen = appVersion.MeasureUtf8();
-        var appIdentifierLen = appIdentifier.MeasureUtf8();
+        using var appNameStr = new UnmanagedString(appName);
+        using var appVersionStr = new UnmanagedString(appVersion);
+        using var appIdentifierStr = new UnmanagedString(appIdentifier);
 
-        Span<byte> appNameBytes = stackalloc byte[appNameLen];
-        Span<byte> appVersionBytes = stackalloc byte[appVersionLen];
-        Span<byte> appIdentifierBytes = stackalloc byte[appIdentifierLen];
-
-        appName.EncodeUtf8(appNameBytes);
-        appVersion.EncodeUtf8(appVersionBytes);
-        appIdentifier.EncodeUtf8(appIdentifierBytes);
-
-        fixed (byte* appNamePtr = appNameBytes)
-        fixed (byte* appVersionPtr = appVersionBytes)
-        fixed (byte* appIdentifierPtr = appIdentifierBytes)
-            SDL_SetAppMetadata(appNamePtr, appVersionPtr, appIdentifierPtr)
-                .AssertSdlSuccess();
+        SDL_SetAppMetadata(appNameStr, appVersionStr, appIdentifierStr)
+            .AssertSdlSuccess();
     }
 
-    public static unsafe void SetProperty(
+    /// <summary>
+    /// Specifies metadata about your app through a set of properties.
+    /// </summary>
+    /// <param name="key">
+    /// The name of the metadata property to set.
+    /// </param>
+    /// <param name="value">
+    /// The value of the property, or null to remove that property.
+    /// </param>
+    public static void SetProperty(
         ReadOnlySpan<char> key,
         ReadOnlySpan<char> value
     )
     {
-        var keyLen = key.MeasureUtf8();
-        var valueLen = value.MeasureUtf8();
+        using var keyStr = new UnmanagedString(key);
+        using var valueStr = new UnmanagedString(value);
 
-        Span<byte> keyBytes = stackalloc byte[keyLen];
-        Span<byte> valueBytes = stackalloc byte[valueLen];
-
-        key.EncodeUtf8(keyBytes);
-        value.EncodeUtf8(valueBytes);
-
-        fixed (byte* keyPtr = keyBytes)
-        fixed (byte* valuePtr = valueBytes)
-            SDL_SetAppMetadataProperty(keyPtr, valuePtr)
-                .AssertSdlSuccess();
+        SDL_SetAppMetadataProperty(keyStr, valueStr)
+            .AssertSdlSuccess();
     }
 
     public static unsafe string? GetProperty(
         ReadOnlySpan<char> key
     )
     {
-        var keyLen = key.MeasureUtf8();
+        using var keyStr = new UnmanagedString(key);
 
-        Span<byte> keyBytes = stackalloc byte[keyLen];
-
-        key.EncodeUtf8(keyBytes);
-
-        fixed (byte* keyPtr = keyBytes)
-            return Ptr.ToUtf8String(Unsafe_SDL_GetAppMetadataProperty(keyPtr));
+        return ((IntPtr<byte>)Unsafe_SDL_GetAppMetadataProperty(keyStr.Ptr))
+            .GetString();
     }
 }

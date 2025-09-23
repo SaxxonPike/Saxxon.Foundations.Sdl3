@@ -1,12 +1,12 @@
 using JetBrains.Annotations;
 
-namespace Saxxon.Foundations.Sdl3.Extensions;
+namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
 /// Extensions for <see cref="SDL_AudioSpec"/>.
 /// </summary>
 [PublicAPI]
-public static class AudioSpecExtensions
+public static class AudioSpec
 {
     /// <summary>
     /// Gets the block size of an audio format, which indicates the minimum

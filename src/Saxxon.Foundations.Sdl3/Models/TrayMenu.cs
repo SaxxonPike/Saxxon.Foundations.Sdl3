@@ -42,12 +42,25 @@ public static class TrayMenu
         return InsertEntry(menu, -1, label, flags);
     }
 
-    public static unsafe IMemoryOwner<IntPtr<SDL_TrayEntry>> GetEntries(
+    /// <summary>
+    /// Returns entries in the menu, in order.
+    /// </summary>
+    /// <param name="menu">
+    /// The menu to get entries from.
+    /// </param>
+    /// <returns>
+    /// A span of entries within the given menu.
+    /// </returns>
+    /// <remarks>
+    /// The data becomes invalid when any function that inserts or deletes
+    /// entries in the menu is called.
+    /// </remarks>
+    public static unsafe ReadOnlySpan<IntPtr<SDL_TrayEntry>> GetEntries(
         this IntPtr<SDL_TrayMenu> menu
     )
     {
         int count;
-        var entries = SDL_GetTrayEntries(menu, &count);
-        return SdlMemoryManager.Const(entries, count);
+        return ((IntPtr<IntPtr<SDL_TrayEntry>>)SDL_GetTrayEntries(menu, &count))
+            .AsNullTerminatedSpan();
     }
 }

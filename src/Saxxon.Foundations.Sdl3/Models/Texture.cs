@@ -44,7 +44,7 @@ public static class Texture
         int w,
         int h)
     {
-        return ((IntPtr)SDL_CreateTexture(renderer, format, access, w, h))
+        return ((IntPtr<SDL_Texture>)SDL_CreateTexture(renderer, format, access, w, h))
             .AssertSdlNotNull();
     }
 
@@ -56,7 +56,7 @@ public static class Texture
         IntPtr<SDL_Surface> surface
     )
     {
-        return ((IntPtr)SDL_CreateTextureFromSurface(renderer, surface))
+        return ((IntPtr<SDL_Texture>)SDL_CreateTextureFromSurface(renderer, surface))
             .AssertSdlNotNull();
     }
 
@@ -65,7 +65,7 @@ public static class Texture
         SDL_PropertiesID props
     )
     {
-        return ((IntPtr)SDL_CreateTextureWithProperties(renderer, props))
+        return ((IntPtr<SDL_Texture>)SDL_CreateTextureWithProperties(renderer, props))
             .AssertSdlNotNull();
     }
 
@@ -82,7 +82,7 @@ public static class Texture
     /// </summary>
     public static unsafe IntPtr<SDL_Renderer> GetRenderer(this IntPtr<SDL_Texture> ptr)
     {
-        return ((IntPtr)SDL_GetRendererFromTexture(ptr))
+        return ((IntPtr<SDL_Renderer>)SDL_GetRendererFromTexture(ptr))
             .AssertSdlNotNull();
     }
 

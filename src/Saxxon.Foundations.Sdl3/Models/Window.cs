@@ -22,24 +22,21 @@ public static class Window
     }
 
     public static unsafe IntPtr<SDL_Window> Create(
-        string title, int w, int h, SDL_WindowFlags flags
+        string title, SDL_Size size, SDL_WindowFlags flags
     )
     {
         using var titleStr = new UnmanagedString(title);
-        return ((IntPtr)SDL_CreateWindow(titleStr, w, h, flags))
+        return ((IntPtr<SDL_Window>)SDL_CreateWindow(titleStr, size.w, size.h, flags))
             .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Window> CreatePopup(
         this IntPtr<SDL_Window> ptr,
-        int offsetX,
-        int offsetY,
-        int width,
-        int height,
+        SDL_Rect rect,
         SDL_WindowFlags flags
     )
     {
-        return ((IntPtr)SDL_CreatePopupWindow(ptr, offsetX, offsetY, width, height, flags))
+        return ((IntPtr<SDL_Window>)SDL_CreatePopupWindow(ptr, rect.x, rect.y, rect.w, rect.h, flags))
             .AssertSdlNotNull();
     }
 
@@ -63,12 +60,12 @@ public static class Window
             &renderer
         ).AssertSdlSuccess();
 
-        return ((IntPtr)window, (IntPtr)renderer);
+        return ((IntPtr<SDL_Window>)window, (IntPtr<SDL_Renderer>)renderer);
     }
 
     public static unsafe IntPtr<SDL_Window> CreateWithProperties(SDL_PropertiesID props)
     {
-        return ((IntPtr)SDL_CreateWindowWithProperties(props))
+        return ((IntPtr<SDL_Window>)SDL_CreateWindowWithProperties(props))
             .AssertSdlNotNull();
     }
 
@@ -94,7 +91,9 @@ public static class Window
         SDL_FlashWindow(ptr, operation);
     }
 
-    public static unsafe IMemoryOwner<IntPtr<SDL_Window>> GetAll(this IntPtr<SDL_Window> ptr)
+    public static unsafe IMemoryOwner<IntPtr<SDL_Window>> GetAll(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         int count;
         var values = SDL_GetWindows(&count);
@@ -102,7 +101,9 @@ public static class Window
         return SdlMemoryManager.Owned(values, count);
     }
 
-    public static unsafe (float MinAspect, float MaxAspect) GetAspectRatio(this IntPtr<SDL_Window> ptr)
+    public static unsafe (float MinAspect, float MaxAspect) GetAspectRatio(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         float minAspect, maxAspect;
         SDL_GetWindowAspectRatio(ptr, &minAspect, &maxAspect)
@@ -110,7 +111,9 @@ public static class Window
         return (minAspect, maxAspect);
     }
 
-    public static unsafe (int Top, int Left, int Bottom, int Right) GetBorderSize(this IntPtr<SDL_Window> ptr)
+    public static unsafe (int Top, int Left, int Bottom, int Right) GetBorderSize(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         int top, left, bottom, right;
         SDL_GetWindowBordersSize(ptr, &top, &left, &bottom, &right)
@@ -118,46 +121,60 @@ public static class Window
         return (top, left, bottom, right);
     }
 
-    public static unsafe SDL_DisplayID GetDisplay(this IntPtr<SDL_Window> ptr)
+    public static unsafe SDL_DisplayID GetDisplay(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         return SDL_GetDisplayForWindow(ptr);
     }
 
-    public static unsafe float GetDisplayScale(this IntPtr<SDL_Window> ptr)
+    public static unsafe float GetDisplayScale(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         return SDL_GetWindowDisplayScale(ptr);
     }
 
-    public static unsafe SDL_WindowFlags GetFlags(this IntPtr<SDL_Window> ptr)
+    public static unsafe SDL_WindowFlags GetFlags(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         return SDL_GetWindowFlags(ptr);
     }
 
-    public static unsafe IntPtr<SDL_Window> GetFromId(SDL_WindowID id)
+    public static unsafe IntPtr<SDL_Window> GetFromId(
+        SDL_WindowID id
+    )
     {
-        return ((IntPtr)SDL_GetWindowFromID(id))
+        return ((IntPtr<SDL_Window>)SDL_GetWindowFromID(id))
             .AssertSdlNotNull();
     }
 
-    public static unsafe IntPtr<SDL_DisplayMode> GetFullscreenMode(this IntPtr<SDL_Window> ptr)
+    public static unsafe IntPtr<SDL_DisplayMode> GetFullscreenMode(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         return ((IntPtr<SDL_DisplayMode>)SDL_GetWindowFullscreenMode(ptr))
             .AssertSdlNotNull();
     }
 
-    public static unsafe IntPtr<SDL_Window> GetGrabbed(this IntPtr<SDL_Window> ptr)
+    public static unsafe IntPtr<SDL_Window> GetGrabbed(
+        this IntPtr<SDL_Window> ptr
+    )
     {
-        return (IntPtr)SDL_GetGrabbedWindow();
+        return SDL_GetGrabbedWindow();
     }
 
-    public static unsafe IMemoryOwner<byte> GetIccProfile(this IntPtr<SDL_Window> ptr)
+    public static unsafe IMemoryOwner<byte> GetIccProfile(
+        this IntPtr<SDL_Window> ptr
+    )
     {
         UIntPtr size;
 
-        var profile = SDL_GetWindowICCProfile(ptr, &size)
+        var profile = (IntPtr<byte>)SDL_GetWindowICCProfile(ptr, &size)
             .AssertSdlNotNull();
 
-        return SdlMemoryPool<byte>.Shared.Own((void*)profile, (int)size);
+        return SdlMemoryManager.Owned(profile, (int)size);
     }
 
     public static unsafe SDL_WindowID GetId(this IntPtr<SDL_Window> ptr)
@@ -204,7 +221,7 @@ public static class Window
 
     public static unsafe IntPtr<SDL_Window> GetParent(this IntPtr<SDL_Window> ptr)
     {
-        return (IntPtr)SDL_GetWindowParent(ptr);
+        return SDL_GetWindowParent(ptr);
     }
 
     public static unsafe float GetPixelDensity(this IntPtr<SDL_Window> ptr)
@@ -217,12 +234,12 @@ public static class Window
         return SDL_GetWindowPixelFormat(ptr);
     }
 
-    public static unsafe (int X, int Y) GetPosition(this IntPtr<SDL_Window> ptr)
+    public static unsafe SDL_Point GetPosition(this IntPtr<SDL_Window> ptr)
     {
         int x, y;
         SDL_GetWindowPosition(ptr, &x, &y)
             .AssertSdlSuccess();
-        return (x, y);
+        return Point.Create(x, y);
     }
 
     public static unsafe SDL_PropertiesID GetProperties(this IntPtr<SDL_Window> ptr)
@@ -248,25 +265,25 @@ public static class Window
         return *&result;
     }
 
-    public static unsafe (int W, int H) GetSize(this IntPtr<SDL_Window> ptr)
+    public static unsafe SDL_Size GetSize(this IntPtr<SDL_Window> ptr)
     {
         int w, h;
         SDL_GetWindowSize(ptr, &w, &h)
             .AssertSdlSuccess();
-        return (w, h);
+        return Size.Create(w, h);
     }
 
-    public static unsafe (int W, int H) GetSizeInPixels(this IntPtr<SDL_Window> ptr)
+    public static unsafe SDL_Size GetSizeInPixels(this IntPtr<SDL_Window> ptr)
     {
         int w, h;
         SDL_GetWindowSizeInPixels(ptr, &w, &h)
             .AssertSdlSuccess();
-        return (w, h);
+        return Size.Create(w, h);
     }
 
     public static unsafe IntPtr<SDL_Surface> GetSurface(this IntPtr<SDL_Window> ptr)
     {
-        return ((IntPtr)SDL_GetWindowSurface(ptr))
+        return ((IntPtr<SDL_Surface>)SDL_GetWindowSurface(ptr))
             .AssertSdlNotNull();
     }
 
@@ -293,6 +310,9 @@ public static class Window
     {
         return SDL_GetWindowTitle(ptr) ?? "";
     }
+    
+    public static IntPtr<SDL_Window> GetWindow(this SDL_WindowID id) =>
+        GetFromId(id);
 
     public static unsafe bool HasSurface(this IntPtr<SDL_Window> ptr)
     {
@@ -425,15 +445,15 @@ public static class Window
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetMaximumSize(this IntPtr<SDL_Window> ptr, int w, int h)
+    public static unsafe void SetMaximumSize(this IntPtr<SDL_Window> ptr, SDL_Size size)
     {
-        SDL_SetWindowMaximumSize(ptr, w, h)
+        SDL_SetWindowMaximumSize(ptr, size.w, size.h)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetMinimumSize(this IntPtr<SDL_Window> ptr, int w, int h)
+    public static unsafe void SetMinimumSize(this IntPtr<SDL_Window> ptr, SDL_Size size)
     {
-        SDL_SetWindowMinimumSize(ptr, w, h)
+        SDL_SetWindowMinimumSize(ptr, size.w, size.h)
             .AssertSdlSuccess();
     }
 
@@ -470,6 +490,12 @@ public static class Window
     public static unsafe void SetPosition(this IntPtr<SDL_Window> ptr, int x, int y)
     {
         SDL_SetWindowPosition(ptr, x, y)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SetPosition(this IntPtr<SDL_Window> ptr, SDL_Point position)
+    {
+        SDL_SetWindowPosition(ptr, position.x, position.y)
             .AssertSdlSuccess();
     }
 
@@ -512,6 +538,12 @@ public static class Window
             .AssertSdlSuccess();
     }
 
+    public static unsafe void SetSize(this IntPtr<SDL_Window> ptr, SDL_Size size)
+    {
+        SDL_SetWindowSize(ptr, size.w, size.h)
+            .AssertSdlSuccess();
+    }
+
     public static unsafe void SetSurfaceVSync(this IntPtr<SDL_Window> ptr, int vSync)
     {
         SDL_SetWindowSurfaceVSync(ptr, vSync)
@@ -544,6 +576,12 @@ public static class Window
     public static unsafe void ShowSystemMenu(this IntPtr<SDL_Window> ptr, int x, int y)
     {
         SDL_ShowWindowSystemMenu(ptr, x, y)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void ShowSystemMenu(this IntPtr<SDL_Window> ptr, SDL_Point point)
+    {
+        SDL_ShowWindowSystemMenu(ptr, point.x, point.y)
             .AssertSdlSuccess();
     }
 
@@ -600,5 +638,13 @@ public static class Window
     )
     {
         SDL_WarpMouseInWindow(window, x, y);
+    }
+
+    public static unsafe void WarpMouse(
+        this IntPtr<SDL_Window> window,
+        SDL_FPoint point
+    )
+    {
+        SDL_WarpMouseInWindow(window, point.x, point.y);
     }
 }

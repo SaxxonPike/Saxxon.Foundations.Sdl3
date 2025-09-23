@@ -55,9 +55,9 @@ public static class AudioDevice
     public static unsafe IMemoryOwner<int> GetChannelMap(this SDL_AudioDeviceID id)
     {
         int count;
-        var result = ((IntPtr)SDL_GetAudioDeviceChannelMap(id, &count))
+        var result = ((IntPtr<int>)SDL_GetAudioDeviceChannelMap(id, &count))
             .AssertSdlNotNull();
-        return SdlMemoryPool<int>.Shared.Own((void*)result, count);
+        return SdlMemoryManager.Owned(result, count);
     }
 
     /// <summary>
@@ -99,9 +99,9 @@ public static class AudioDevice
     public static unsafe IMemoryOwner<SDL_AudioDeviceID> GetPlayback()
     {
         int count;
-        var result = ((IntPtr)SDL_GetAudioPlaybackDevices(&count))
+        var result = ((IntPtr<SDL_AudioDeviceID>)SDL_GetAudioPlaybackDevices(&count))
             .AssertSdlNotNull();
-        return SdlMemoryPool<SDL_AudioDeviceID>.Shared.Own((void*)result, count);
+        return SdlMemoryManager.Owned(result, count);
     }
 
     /// <summary>
@@ -110,9 +110,9 @@ public static class AudioDevice
     public static unsafe IMemoryOwner<SDL_AudioDeviceID> GetRecording()
     {
         int count;
-        var result = ((IntPtr)SDL_GetAudioRecordingDevices(&count))
+        var result = ((IntPtr<SDL_AudioDeviceID>)SDL_GetAudioRecordingDevices(&count))
             .AssertSdlNotNull();
-        return SdlMemoryPool<SDL_AudioDeviceID>.Shared.Own((void*)result, count);
+        return SdlMemoryManager.Owned(result, count);
     }
 
     /// <summary>

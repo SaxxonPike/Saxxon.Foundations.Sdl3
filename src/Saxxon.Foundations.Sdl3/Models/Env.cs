@@ -1,3 +1,4 @@
+using System.Buffers;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
@@ -50,25 +51,33 @@ public static class Env
             return SDL_SetEnvironmentVariable(env, namePtr, valuePtr, overwrite);
     }
 
+    /// <summary>
+    /// Gets all variables in the environment.
+    /// </summary>
+    /// <param name="env">
+    /// The environment to query.
+    /// </param>
+    /// <returns>
+    /// List of environment variables in the form "variable=value".
+    /// </returns>
     public static unsafe List<string> GetVariables(
         this IntPtr<SDL_Environment> env
     )
     {
-        var vars = Ptr.FromArray(SDL_GetEnvironmentVariables(env));
-        if (vars.IsNull)
-            throw new SdlException();
+        var vars = ((IntPtr<IntPtr<byte>>)SDL_GetEnvironmentVariables(env))
+            .AssertSdlNotNull();
 
-        var count = 0;
         var result = new List<string>();
-
+        
+        var count = 0;
         while (vars[count] != IntPtr.Zero)
         {
-            if (vars[count].GetString() is { } value)
-                result.Add(value);
-
+            var str = vars[count].GetString();
+            if (str != null)
+                result.Add(str);
             count++;
         }
-
+        
         return result;
     }
 
@@ -77,12 +86,8 @@ public static class Env
         ReadOnlySpan<char> name
     )
     {
-        var nameLen = name.MeasureUtf8();
-        Span<byte> nameBytes = stackalloc byte[nameLen];
-        name.EncodeUtf8(nameBytes);
-
-        fixed (byte* namePtr = nameBytes)
-            return ((IntPtr)Unsafe_SDL_GetEnvironmentVariable(env, namePtr)).GetString();
+        using var nameStr = new UnmanagedString(name);
+        return SDL_GetEnvironmentVariable(env, nameStr);
     }
 
     public static unsafe IntPtr<SDL_Environment> Create(bool populated)

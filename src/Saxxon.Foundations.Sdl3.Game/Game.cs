@@ -609,6 +609,9 @@ public abstract class Game : IDisposable
     /// </summary>
     public delegate void LogMessageDelegate(int category, SDL_LogPriority priority, ReadOnlySpan<char> message);
 
+    /// <summary>
+    /// Raised when SDL is logging a message.
+    /// </summary>
     public event LogMessageDelegate? LogMessage;
 
     /// <inheritdoc cref="LogMessageDelegate"/>

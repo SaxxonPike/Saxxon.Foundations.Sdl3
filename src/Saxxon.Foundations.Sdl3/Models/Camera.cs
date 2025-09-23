@@ -17,11 +17,11 @@ public static class Camera
     )
     {
         var duration = 0UL;
-        var result = SDL_AcquireCameraFrame(camera, &duration);
-        if (result == null)
+        var result = (IntPtr<SDL_Surface>)SDL_AcquireCameraFrame(camera, &duration);
+        if (result.IsNull)
             return null;
 
-        return ((IntPtr<SDL_Surface>)result, Time.GetFromNanoseconds(duration));
+        return (result, Time.GetFromNanoseconds(duration));
     }
 
     public static unsafe void Close(

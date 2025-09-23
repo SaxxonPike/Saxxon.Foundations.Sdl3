@@ -49,8 +49,9 @@ public static class Display
     public static unsafe IMemoryOwner<IntPtr<SDL_DisplayMode>> GetFullScreenModes(this SDL_DisplayID display)
     {
         int count;
-        var modes = SDL_GetFullscreenDisplayModes(display, &count);
-        return SdlMemoryPool<IntPtr<SDL_DisplayMode>>.Shared.Own(modes, count);
+        var modes = ((IntPtr<IntPtr<SDL_DisplayMode>>)SDL_GetFullscreenDisplayModes(display, &count))
+            .AssertSdlNotNull();
+        return SdlMemoryManager.Owned(modes, count);
     }
 
     public static float GetContentScale(this SDL_DisplayID display)
@@ -102,7 +103,8 @@ public static class Display
     public static unsafe IMemoryOwner<SDL_DisplayID> GetAll()
     {
         int count;
-        var displays = SDL_GetDisplays(&count);
-        return SdlMemoryPool<SDL_DisplayID>.Shared.Own(displays, count);
+        var displays = ((IntPtr<SDL_DisplayID>)SDL_GetDisplays(&count))
+            .AssertSdlNotNull();
+        return SdlMemoryManager.Owned(displays, count);
     }
 }

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -59,4 +60,20 @@ internal static class SpanExtensions
     /// </summary>
     public static string GetString(this Span<byte> span) =>
         GetString((ReadOnlySpan<byte>)span);
+
+    /// <summary>
+    /// Returns true if a span equals null.
+    /// </summary>
+    internal static unsafe bool IsNull<T>(this Span<T> span) where T : unmanaged
+    {
+        return Unsafe.AsPointer(ref span) == null;
+    }
+
+    /// <summary>
+    /// Returns true if a span equals null.
+    /// </summary>
+    internal static unsafe bool IsNull<T>(this ReadOnlySpan<T> span) where T : unmanaged
+    {
+        return Unsafe.AsPointer(ref span) == null;
+    }
 }

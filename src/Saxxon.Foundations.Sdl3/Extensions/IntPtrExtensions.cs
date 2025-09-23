@@ -46,7 +46,7 @@ public static class IntPtrExtensions
     }
 
     /// <summary>
-    /// Interprets data reference by a byte pointer as a null-terminated UTF8 encoded string.
+    /// Interprets data referenced by a byte pointer as a null-terminated UTF8 encoded string.
     /// </summary>
     internal static string? GetString(this IntPtr value)
     {
@@ -54,7 +54,7 @@ public static class IntPtrExtensions
     }
 
     /// <summary>
-    /// Interprets data reference by a byte pointer as a null-terminated UTF8 encoded string.
+    /// Interprets data referenced by a byte pointer as a null-terminated UTF8 encoded string.
     /// </summary>
     internal static string GetString(this IntPtr value, int byteCount)
     {
@@ -62,7 +62,7 @@ public static class IntPtrExtensions
     }
 
     /// <summary>
-    /// Interprets data reference by a byte pointer as a null-terminated UTF8 encoded string.
+    /// Interprets data referenced by a byte pointer as a null-terminated UTF8 encoded string.
     /// </summary>
     public static string? GetString(this IntPtr<byte> value)
     {
@@ -70,11 +70,46 @@ public static class IntPtrExtensions
     }
 
     /// <summary>
-    /// Interprets data reference by a byte pointer as a null-terminated UTF8 encoded string.
+    /// Interprets data referenced by a byte pointer as a null-terminated array
+    /// of null-terminated UTF8 encoded strings.
     /// </summary>
     public static string GetString(this IntPtr<byte> value, int byteCount)
     {
         return Marshal.PtrToStringUTF8(value, byteCount);
+    }
+
+    /// <summary>
+    /// Interprets data referenced by a byte pointer as a null-terminated array
+    /// of null-terminated UTF8 encoded strings.
+    /// </summary>
+    public static List<string> GetStrings(this IntPtr<IntPtr<byte>> value)
+    {
+        var result = new List<string>();
+        var idx = 0;
+
+        while (true)
+        {
+            var ptr = value[idx++];
+            if (ptr == IntPtr.Zero)
+                break;
+            result.Add(Marshal.PtrToStringUTF8(ptr)!);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Interprets data referenced by a byte pointer as a fixed-length array
+    /// of null-terminated UTF8 encoded strings.
+    /// </summary>
+    public static List<string?> GetStrings(this IntPtr<IntPtr<byte>> value, int count)
+    {
+        var result = new List<string?>();
+
+        for (var i = 0; i < count; i++)
+            result.Add(Marshal.PtrToStringUTF8(value[i]));
+
+        return result;
     }
 
     /// <summary>

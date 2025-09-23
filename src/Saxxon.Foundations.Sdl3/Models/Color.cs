@@ -70,4 +70,56 @@ public static class Color
     {
         return new Vector4(color.r, color.g, color.b, color.a) / byte.MaxValue;
     }
+
+    /// <summary>
+    /// Creates a new <see cref="SDL_FColor"/> from the given RGBA float values.
+    /// </summary>
+    /// <param name="r">
+    /// Red component.
+    /// </param>
+    /// <param name="g">
+    /// Green component.
+    /// </param>
+    /// <param name="b">
+    /// Blue component.
+    /// </param>
+    /// <param name="a">
+    /// Alpha component.
+    /// </param>
+    public static SDL_FColor CreateFloat(float r, float g, float b, float a = 1)
+    {
+        return new SDL_FColor
+        {
+            r = r,
+            g = g,
+            b = b,
+            a = a
+        };
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="SDL_Color"/> from the given RGBA byte values.
+    /// </summary>
+    /// <param name="r">
+    /// Red component.
+    /// </param>
+    /// <param name="g">
+    /// Green component.
+    /// </param>
+    /// <param name="b">
+    /// Blue component.
+    /// </param>
+    /// <param name="a">
+    /// Alpha component.
+    /// </param>
+    public static SDL_Color Create(byte r, byte g, byte b, byte a = byte.MaxValue)
+    {
+        return new SDL_Color
+        {
+            r = r,
+            g = g,
+            b = b,
+            a = a
+        };
+    }
 }

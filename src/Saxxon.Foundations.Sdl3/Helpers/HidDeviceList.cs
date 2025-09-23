@@ -26,14 +26,14 @@ internal sealed class HidDeviceList : IMemoryOwner<IntPtr<SDL_hid_device_info>>
             temp = temp->next;
         }
 
-        _memory = SdlMemoryPool<IntPtr<SDL_hid_device_info>>.Shared.Rent(_count);
+        _memory = SdlMemoryManager.Rent<IntPtr<SDL_hid_device_info>>(_count);
         var span = _memory.Memory.Span;
         var index = 0;
         temp = list;
 
         while (temp != null)
         {
-            span[index++] = (IntPtr)temp;
+            span[index++] = temp;
             temp = temp->next;
         }
     }

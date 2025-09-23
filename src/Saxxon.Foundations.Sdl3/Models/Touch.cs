@@ -10,6 +10,15 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class Touch
 {
+    /// <summary>
+    /// Get a list of active fingers for a given touch device.
+    /// </summary>
+    /// <param name="touch">
+    /// The ID of a touch device.
+    /// </param>
+    /// <returns>
+    /// An array of SDL_Finger pointers.
+    /// </returns>
     public static unsafe IMemoryOwner<IntPtr<SDL_Finger>> GetFingers(this SDL_TouchID touch)
     {
         int count;
@@ -27,6 +36,7 @@ public static class Touch
         return Ptr.ToUtf8String(Unsafe_SDL_GetTouchDeviceName(touch));
     }
 
+    [MustDisposeResource]
     public static unsafe IMemoryOwner<SDL_TouchID> GetDevices()
     {
         int count;

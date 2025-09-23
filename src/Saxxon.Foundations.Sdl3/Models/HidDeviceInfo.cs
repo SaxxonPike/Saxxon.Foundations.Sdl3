@@ -14,7 +14,7 @@ public static class HidDeviceInfo
     /// Gets the platform-specific device path for an HID device.
     /// </summary>
     public static unsafe string? GetPath(this IntPtr<SDL_hid_device_info> info) => 
-        ((IntPtr)info.AsReadOnlyRef().path).GetString();
+        ((IntPtr<byte>)info.AsReadOnlyRef().path).GetString();
 
     /// <summary>
     /// Gets the device vendor ID for an HID device.

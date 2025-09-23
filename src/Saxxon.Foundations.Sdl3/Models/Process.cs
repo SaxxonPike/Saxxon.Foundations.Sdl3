@@ -55,6 +55,13 @@ public static class Process
             .AssertSdlNotNull();
     }
 
+    /// <summary>
+    /// Reads all the output from a process.
+    /// </summary>
+    /// <param name="process">
+    /// The process to read.
+    /// </param>
+    /// <returns></returns>
     public static unsafe (IMemoryOwner<byte> Output, int ExitCode) Read(
         this IntPtr<SDL_Process> process
     )

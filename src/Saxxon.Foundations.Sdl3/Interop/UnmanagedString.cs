@@ -21,7 +21,7 @@ internal readonly ref struct UnmanagedString : IDisposable
     }
 
     /// <summary>
-    /// Retrieves the UnmanagedString as a read only span of bytes.
+    /// Retrieves the UnmanagedString as a read-only span of bytes.
     /// </summary>
     public static unsafe implicit operator ReadOnlySpan<byte>(UnmanagedString value)
     {
@@ -106,7 +106,9 @@ internal readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     public UnmanagedString(string? value)
     {
-        Address = Alloc(value);
+        Address = value == null
+            ? IntPtr.Zero
+            : Alloc(value);
     }
 
     /// <summary>
@@ -114,7 +116,9 @@ internal readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     public UnmanagedString(ReadOnlySpan<char> value)
     {
-        Address = Alloc(value);
+        Address = value.IsNull()
+            ? IntPtr.Zero
+            : Alloc(value);
     }
 
     /// <summary>
@@ -133,7 +137,9 @@ internal readonly ref struct UnmanagedString : IDisposable
     /// </summary>
     public UnmanagedString(ReadOnlySpan<byte> value)
     {
-        Address = Alloc(value);
+        Address = value.IsNull()
+            ? IntPtr.Zero
+            : Alloc(value);
     }
 
     /// <summary>
