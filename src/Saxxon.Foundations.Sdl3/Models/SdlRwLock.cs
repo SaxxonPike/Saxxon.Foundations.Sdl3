@@ -8,7 +8,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// Prefer using <see cref="ReaderWriterLockSlim"/> where possible.
 /// </summary>
 [PublicAPI]
-public static class RwLock
+public static class SdlRwLock
 {
     public static unsafe void Destroy(
         this IntPtr<SDL_RWLock> @lock

@@ -9,7 +9,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// Prefer using C#'s built-in <see cref="Interlocked"/> API where possible.
 /// </summary>
 [PublicAPI]
-public static class Atomic
+public static class SdlAtomic
 {
     /// <summary>
     /// Adds to an atomic variable.

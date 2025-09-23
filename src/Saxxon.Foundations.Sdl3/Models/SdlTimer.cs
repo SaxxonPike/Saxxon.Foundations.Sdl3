@@ -9,7 +9,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// Provides an object-oriented interface for <see cref="SDL_TimerID"/>.
 /// </summary>
 [PublicAPI]
-public static class Timer
+public static class SdlTimer
 {
     public delegate uint TimerMsCallback(SDL_TimerID timer, uint elapsed);
 

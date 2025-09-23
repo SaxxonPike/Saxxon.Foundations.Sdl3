@@ -8,7 +8,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// Prefer using <see cref="System.Threading.SpinLock"/> where possible.
 /// </summary>
 [PublicAPI]
-public static class SpinLock
+public static class SdlSpinLock
 {
     /// <summary>
     /// Allocates a spin lock.

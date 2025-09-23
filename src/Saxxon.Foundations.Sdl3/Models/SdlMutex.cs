@@ -8,7 +8,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// using <see cref="System.Threading.Mutex"/> where possible.
 /// </summary>
 [PublicAPI]
-public static class Mutex
+public static class SdlMutex
 {
     public static unsafe void Destroy(
         this IntPtr<SDL_Mutex> mutex

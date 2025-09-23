@@ -9,7 +9,7 @@ namespace Saxxon.Foundations.Sdl3.Models;
 /// Prefer using <see cref="System.Threading.SemaphoreSlim"/> where possible.
 /// </summary>
 [PublicAPI]
-public static class Semaphore
+public static class SdlSemaphore
 {
     /// <summary>
     /// Gets the current value of a semaphore.

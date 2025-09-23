@@ -7,7 +7,6 @@ using Saxxon.Foundations.Sdl3.Models;
 using SDL;
 using static SDL.SDL3;
 using Mutex = System.Threading.Mutex;
-using Timer = Saxxon.Foundations.Sdl3.Models.Timer;
 
 namespace Saxxon.Foundations.Sdl3.Game;
 
@@ -97,7 +96,7 @@ public abstract class Game : IDisposable
     private string _title = "";
     private bool _quitting;
     private bool _crashing;
-    private Timer.TimerCallback? _updateCallback;
+    private SdlTimer.TimerCallback? _updateCallback;
     private Mutex _updateMutex = new();
     private TimeSpan _updateInterval = TimeSpan.FromSeconds(1) / 200;
 
@@ -275,7 +274,7 @@ public abstract class Game : IDisposable
             return game._updateInterval;
         };
 
-        Timer.Create(game._updateCallback, game._updateInterval);
+        SdlTimer.Create(game._updateCallback, game._updateInterval);
 
         return (SDL_AppResult.SDL_APP_CONTINUE, game);
     }
