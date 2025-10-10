@@ -99,4 +99,16 @@ public static class Event
             return count < 0 ? throw new SdlException() : events[..count];
         }
     }
+
+    /// <summary>
+    /// Allocates a set of user-defined events.
+    /// </summary>
+    /// <param name="numEvents">
+    /// The number of events to be allocated.
+    /// </param>
+    /// <returns>
+    /// The beginning event number, or 0 if numEvents is invalid or if there are not enough user-defined events left.
+    /// </returns>
+    public static SDL_EventType Register(int numEvents) =>
+        unchecked((SDL_EventType)SDL_RegisterEvents(numEvents));
 }
