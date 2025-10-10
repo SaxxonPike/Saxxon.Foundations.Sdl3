@@ -11,15 +11,41 @@ namespace Saxxon.Foundations.Sdl3.Models;
 [PublicAPI]
 public static class Condition
 {
+    /// <summary>
+    /// Waits until a condition variable is signaled or a certain time has
+    /// passed.
+    /// </summary>
+    /// <param name="cond">
+    /// The condition variable to wait on.
+    /// </param>
+    /// <param name="mutex">
+    /// The mutex used to coordinate thread access.
+    /// </param>
+    /// <param name="timeout">
+    /// The maximum time to wait, or null to wait indefinitely.
+    /// </param>
+    /// <returns>
+    /// True if the condition variable is signaled, false if the condition is
+    /// not signaled in the allotted time.
+    /// </returns>
     public static unsafe bool WaitTimeout(
         this IntPtr<SDL_Condition> cond,
         IntPtr<SDL_Mutex> mutex,
-        TimeSpan timeout
+        TimeSpan? timeout
     )
     {
-        return SDL_WaitConditionTimeout(cond, mutex, timeout.ToMilliseconds());
+        return SDL_WaitConditionTimeout(cond, mutex, timeout?.ToMilliseconds() ?? -1);
     }
 
+    /// <summary>
+    /// Waits until a condition variable is signaled.
+    /// </summary>
+    /// <param name="cond">
+    /// The condition variable to wait on.
+    /// </param>
+    /// <param name="mutex">
+    /// The mutex used to coordinate thread access.
+    /// </param>
     public static unsafe void Wait(
         this IntPtr<SDL_Condition> cond,
         IntPtr<SDL_Mutex> mutex

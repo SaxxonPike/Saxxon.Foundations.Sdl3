@@ -1,9 +1,12 @@
+using JetBrains.Annotations;
+
 namespace Saxxon.Foundations.Sdl3.Models;
 
 /// <summary>
 /// Provides object-oriented interfaces for <see cref="SDL_Size"/> and
 /// <see cref="SDL_FSize"/>.
 /// </summary>
+[PublicAPI]
 public static class Size
 {
     /// <summary>

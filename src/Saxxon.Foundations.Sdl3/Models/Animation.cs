@@ -120,6 +120,19 @@ public static class Animation
     }
 
     /// <summary>
+    /// Gets the frame surfaces.
+    /// </summary>
+    public static unsafe ReadOnlySpan<IntPtr<SDL_Surface>> GetFramesSpan(
+        this IntPtr<IMG_Animation> animation
+    )
+    {
+        return new ReadOnlySpan<IntPtr<SDL_Surface>>(
+            animation.AsReadOnlyRef().frames,
+            animation.AsReadOnlyRef().count
+        );
+    }
+
+    /// <summary>
     /// Gets the delay time for the frames.
     /// </summary>
     public static unsafe IntPtr<int> GetDelays(
@@ -127,6 +140,19 @@ public static class Animation
     )
     {
         return animation.AsReadOnlyRef().delays;
+    }
+
+    /// <summary>
+    /// Gets the delay time for the frames.
+    /// </summary>
+    public static unsafe ReadOnlySpan<int> GetDelaysSpan(
+        this IntPtr<IMG_Animation> animation
+    )
+    {
+        return new ReadOnlySpan<int>(
+            animation.AsReadOnlyRef().delays,
+            animation.AsReadOnlyRef().count
+        );
     }
 
     /// <summary>
@@ -149,6 +175,19 @@ public static class Animation
     )
     {
         return animation.AsReadOnlyRef().h;
+    }
+
+    /// <summary>
+    /// Gets the two-dimensional size of the frames.
+    /// </summary>
+    public static SDL_Size GetSize(
+        this IntPtr<IMG_Animation> animation
+    )
+    {
+        return Size.Create(
+            animation.AsReadOnlyRef().w,
+            animation.AsReadOnlyRef().h
+        );
     }
 
     /// <summary>

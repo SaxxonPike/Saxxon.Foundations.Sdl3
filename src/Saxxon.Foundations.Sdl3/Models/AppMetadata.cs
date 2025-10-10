@@ -80,6 +80,16 @@ public static class AppMetadata
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Gets metadata about your app.
+    /// </summary>
+    /// <param name="key">
+    /// The name of the metadata property to get.
+    /// </param>
+    /// <returns>
+    /// The current value of the metadata property, or the default if it is not
+    /// set, or null for properties with no default.
+    /// </returns>
     public static unsafe string? GetProperty(
         ReadOnlySpan<char> key
     )
