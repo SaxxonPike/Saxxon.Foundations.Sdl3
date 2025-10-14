@@ -466,4 +466,22 @@ public static class Events
     /// </remarks>
     public static void SetEnabled(SDL_EventType type, bool enabled) =>
         SDL_SetEventEnabled(type, enabled);
+
+    /// <summary>
+    /// Run a specific filter function on the current event queue, removing any events for which the filter
+    /// returns false.
+    /// </summary>
+    /// <param name="func">
+    /// The filter function to call when an event happens.
+    /// </param>
+    /// <remarks>
+    /// Unlike <see cref="SetFilter"/>, this function does not change the filter permanently, it only uses the supplied
+    /// filter until this function returns.
+    ///
+    /// It is safe to call this function from any thread.
+    /// </remarks>
+    public static unsafe void Filter(EventFilterFunction func)
+    {
+        SDL_FilterEvents(EventFilterFunction.Callback, func.UserData);
+    }
 }
