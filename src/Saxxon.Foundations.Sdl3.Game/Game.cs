@@ -375,7 +375,13 @@ public abstract class Game : IDisposable
             }
             case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
             {
-                game.OnMouseMove(e.motion.which, (int)Math.Truncate(e.motion.x), (int)Math.Truncate(e.motion.y));
+                game.OnMouseMove(
+                    e.motion.which,
+                    (int)Math.Truncate(e.motion.x),
+                    (int)Math.Truncate(e.motion.y),
+                    e.motion.xrel,
+                    e.motion.yrel
+                );
                 break;
             }
             case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
@@ -1049,7 +1055,7 @@ public abstract class Game : IDisposable
     /// <param name="y">
     /// New y-coordinate of the mouse.
     /// </param>
-    public delegate void MouseMoveDelegate(SDL_MouseID mouse, int x, int y);
+    public delegate void MouseMoveDelegate(SDL_MouseID mouse, int x, int y, float dx, float dy);
 
     /// <summary>
     /// Raised when a mouse has moved.
@@ -1057,9 +1063,9 @@ public abstract class Game : IDisposable
     public event MouseMoveDelegate? MouseMove;
 
     /// <inheritdoc cref="MouseMoveDelegate"/>
-    protected virtual void OnMouseMove(SDL_MouseID mouse, int x, int y)
+    protected virtual void OnMouseMove(SDL_MouseID mouse, int x, int y, float dx, float dy)
     {
-        MouseMove?.Invoke(mouse, x, y);
+        MouseMove?.Invoke(mouse, x, y, dx, dy);
     }
 
     /// <summary>
