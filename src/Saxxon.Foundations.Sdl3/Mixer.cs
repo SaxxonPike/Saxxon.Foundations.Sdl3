@@ -22,10 +22,10 @@ public static class Mixer
 
     public static unsafe IntPtr<MIX_Mixer> CreateDevice(
         SDL_AudioDeviceID device,
-        SDL_AudioSpec spec
+        SDL_AudioSpec? spec
     )
     {
-        return ((IntPtr<MIX_Mixer>)MIX_CreateMixerDevice(device, &spec))
+        return ((IntPtr<MIX_Mixer>)MIX_CreateMixerDevice(device, spec is {} s ? &s : null))
             .AssertSdlNotNull();
     }
 
