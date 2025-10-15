@@ -3,7 +3,6 @@ using System.Diagnostics;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Delegates;
 using Saxxon.Foundations.Sdl3.Interop;
-using Saxxon.Foundations.Sdl3.Models;
 using SDL;
 using static SDL.SDL3;
 using Mutex = System.Threading.Mutex;
@@ -208,7 +207,7 @@ public abstract class Game : IDisposable
         // Create the game window and renderer.
         //
 
-        (game.Window, game.Renderer) = Saxxon.Foundations.Sdl3.Models.Window
+        (game.Window, game.Renderer) = Sdl3.Window
             .CreateWithRenderer(game.Title, 1280, 720, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
 
         game.SetLetterboxOn();
@@ -239,7 +238,7 @@ public abstract class Game : IDisposable
         // Initialize the audio mixer.
         //
 
-        game.Mixer = Saxxon.Foundations.Sdl3.Models.Mixer
+        game.Mixer = Sdl3.Mixer
             .CreateDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, new SDL_AudioSpec
             {
                 format = SDL_AUDIO_S16,

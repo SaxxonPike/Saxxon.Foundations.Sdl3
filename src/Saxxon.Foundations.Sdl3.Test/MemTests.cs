@@ -1,4 +1,3 @@
-using Saxxon.Foundations.Sdl3.Models;
 using Shouldly;
 
 namespace Saxxon.Foundations.Sdl3.Test;

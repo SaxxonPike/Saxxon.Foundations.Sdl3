@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
-using Saxxon.Foundations.Sdl3.Models;
 
 namespace Saxxon.Foundations.Sdl3.Helpers;
 
