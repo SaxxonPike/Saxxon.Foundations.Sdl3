@@ -177,21 +177,21 @@ public static class Mixer
 
     public static unsafe void StopAllTracks(
         this IntPtr<MIX_Mixer> mixer,
-        TimeSpan fadeOut
+        TimeSpan? fadeOut = null
     )
     {
-        MIX_StopAllTracks(mixer, (long)fadeOut.TotalMilliseconds)
+        MIX_StopAllTracks(mixer, fadeOut is { } time ? (long)time.TotalMilliseconds : 0)
             .AssertSdlSuccess();
     }
 
     public static unsafe void StopTag(
         this IntPtr<MIX_Mixer> mixer,
         ReadOnlySpan<char> tag,
-        TimeSpan fadeOut
+        TimeSpan? fadeOut = null
     )
     {
         using var tagStr = new UnmanagedString(tag);
-        MIX_StopTag(mixer, tagStr.Ptr, (long)fadeOut.TotalMilliseconds)
+        MIX_StopTag(mixer, tagStr.Ptr, fadeOut is { } time ? (long)time.TotalMilliseconds : 0)
             .AssertSdlSuccess();
     }
 }

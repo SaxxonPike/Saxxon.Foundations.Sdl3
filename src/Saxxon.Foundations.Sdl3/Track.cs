@@ -257,12 +257,12 @@ public static class Track
 
     public static unsafe void Stop(
         this IntPtr<MIX_Track> track,
-        TimeSpan fadeOut
+        TimeSpan? fadeOut
     )
     {
         MIX_StopTrack(
             track,
-            MsToFrames(track, (long)fadeOut.TotalMilliseconds)
+            MsToFrames(track, fadeOut is { } time ? MsToFrames(track, (long)time.TotalMilliseconds) : 0)
         ).AssertSdlSuccess();
     }
 
