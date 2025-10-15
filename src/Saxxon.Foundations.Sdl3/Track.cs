@@ -255,6 +255,17 @@ public static class Track
         ).AssertSdlSuccess();
     }
 
+    public static unsafe void Stop(
+        this IntPtr<MIX_Track> track,
+        TimeSpan fadeOut
+    )
+    {
+        MIX_StopTrack(
+            track,
+            MsToFrames(track, (long)fadeOut.TotalMilliseconds)
+        ).AssertSdlSuccess();
+    }
+
     public static unsafe void Tag(
         this IntPtr<MIX_Track> track,
         ReadOnlySpan<char> tag
