@@ -16,7 +16,7 @@ public static class Track
     {
         MIX_DestroyTrack(track);
     }
-    
+
     public static unsafe long FramesToMs(
         this IntPtr<MIX_Track> track,
         long frames
