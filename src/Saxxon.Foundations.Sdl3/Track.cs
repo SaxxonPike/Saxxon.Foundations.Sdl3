@@ -183,6 +183,26 @@ public static class Track
             .AssertSdlSuccess();
     }
 
+    public static unsafe void SetCookedCallback(
+        this IntPtr<MIX_Track> track,
+        TrackMixCallback? callback
+    )
+    {
+        if (callback == null)
+        {
+            MIX_SetTrackCookedCallback(track, null, 0)
+                .AssertSdlSuccess();
+        }
+        else
+        {
+            MIX_SetTrackCookedCallback(
+                track,
+                TrackMixCallback.Callback,
+                callback.UserData
+            ).AssertSdlSuccess();
+        }
+    }
+
     public static unsafe void SetFrequencyRatio(
         this IntPtr<MIX_Track> track,
         float ratio
@@ -241,6 +261,26 @@ public static class Track
             .AssertSdlSuccess();
     }
 
+    public static unsafe void SetRawCallback(
+        this IntPtr<MIX_Track> track,
+        TrackMixCallback? callback
+    )
+    {
+        if (callback == null)
+        {
+            MIX_SetTrackRawCallback(track, null, 0)
+                .AssertSdlSuccess();
+        }
+        else
+        {
+            MIX_SetTrackRawCallback(
+                track,
+                TrackMixCallback.Callback,
+                callback.UserData
+            ).AssertSdlSuccess();
+        }
+    }
+
     public static unsafe void SetRawIoStream(
         this IntPtr<MIX_Track> track,
         IntPtr<SDL_IOStream> stream,
@@ -265,14 +305,22 @@ public static class Track
 
     public static unsafe void SetStoppedCallback(
         this IntPtr<MIX_Track> track,
-        TrackStoppedCallback callback
+        TrackStoppedCallback? callback
     )
     {
-        MIX_SetTrackStoppedCallback(
-            track,
-            TrackStoppedCallback.Callback,
-            callback.UserData
-        ).AssertSdlSuccess();
+        if (callback == null)
+        {
+            MIX_SetTrackStoppedCallback(track, null, 0)
+                .AssertSdlSuccess();
+        }
+        else
+        {
+            MIX_SetTrackStoppedCallback(
+                track,
+                TrackStoppedCallback.Callback,
+                callback.UserData
+            ).AssertSdlSuccess();
+        }
     }
 
     public static unsafe void Stop(
