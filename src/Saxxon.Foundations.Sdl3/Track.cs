@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Delegates;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
@@ -259,6 +260,18 @@ public static class Track
         MIX_SetTrackStereo(
             track,
             gains is { } g ? &g : null
+        ).AssertSdlSuccess();
+    }
+
+    public static unsafe void SetStoppedCallback(
+        this IntPtr<MIX_Track> track,
+        TrackStoppedCallback callback
+    )
+    {
+        MIX_SetTrackStoppedCallback(
+            track,
+            TrackStoppedCallback.Callback,
+            callback.UserData
         ).AssertSdlSuccess();
     }
 
