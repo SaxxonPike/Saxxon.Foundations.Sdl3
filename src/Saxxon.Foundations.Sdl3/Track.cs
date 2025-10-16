@@ -10,6 +10,13 @@ namespace Saxxon.Foundations.Sdl3;
 [PublicAPI]
 public static class Track
 {
+    public static unsafe void Destroy(
+        this IntPtr<MIX_Track> track
+    )
+    {
+        MIX_DestroyTrack(track);
+    }
+    
     public static unsafe long FramesToMs(
         this IntPtr<MIX_Track> track,
         long frames
