@@ -148,7 +148,7 @@ public static class Track
     }
 
     public static unsafe void Resume(
-        IntPtr<MIX_Track> track
+        this IntPtr<MIX_Track> track
     )
     {
         MIX_ResumeTrack(track)
