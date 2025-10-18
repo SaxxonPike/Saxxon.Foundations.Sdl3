@@ -12,8 +12,15 @@ namespace Saxxon.Foundations.Sdl3.Delegates;
 /// Target that will be invoked when the callback fires.
 /// </param>
 [PublicAPI]
-public sealed unsafe class TrackStoppedCallback(Action<IntPtr<MIX_Track>> func) : IDisposable
+public sealed unsafe class TrackStoppedCallback(TrackStoppedCallback.Del func) : IDisposable
 {
+    /// <summary>
+    /// Delegate for the callback target.
+    /// </summary>
+    public delegate void Del(
+        IntPtr<MIX_Track> track
+    );
+
     /// <summary>
     /// SDL user data ID.
     /// </summary>
@@ -33,7 +40,7 @@ public sealed unsafe class TrackStoppedCallback(Action<IntPtr<MIX_Track>> func) 
         MIX_Track* track
     )
     {
-        if (UserDataStore.TryGet<Action<IntPtr<MIX_Track>>>(userdata, out var handler))
+        if (UserDataStore.TryGet<Del>(userdata, out var handler))
             handler!(track);
     }
 

@@ -8,7 +8,7 @@ namespace Saxxon.Foundations.Sdl3;
 /// Provides an object-oriented interface for <see cref="IMG_AnimationEncoder"/>.
 /// </summary>
 [PublicAPI]
-public static class AnimationEncoder
+public static class AnimationEncoderExtensions
 {
     /// <summary>
     /// Creates an encoder to save a series of images to a file.
@@ -69,42 +69,36 @@ public static class AnimationEncoder
     /// </remarks>
     public static unsafe IntPtr<IMG_AnimationEncoder> CreateWithProperties(
         SDL_PropertiesID props
-    )
-    {
-        return ((IntPtr<IMG_AnimationEncoder>)IMG_CreateAnimationEncoderWithProperties(props))
-            .AssertSdlNotNull();
-    }
+    ) => ((IntPtr<IMG_AnimationEncoder>)IMG_CreateAnimationEncoderWithProperties(props))
+        .AssertSdlNotNull();
 
     /// <summary>
-    /// Adds a frame to an animation encoder.
+    /// Extensions for <see cref="IMG_AnimationEncoder"/>.
     /// </summary>
-    /// <param name="encoder">
-    /// The encoder receiving images.
-    /// </param>
-    /// <param name="surface">
-    /// The surface to add as the next frame in the animation.
-    /// </param>
-    /// <param name="duration">
-    /// The duration of the frame, usually in milliseconds but can be other
-    /// units if the IMG_PROP_ANIMATION_ENCODER_CREATE_TIMEBASE_DENOMINATOR_NUMBER
-    /// property is set when creating the encoder.
-    /// </param>
-    public static unsafe void AddFrame(this IntPtr<IMG_AnimationEncoder> encoder, IntPtr<SDL_Surface> surface,
-        ulong duration)
+    extension(IntPtr<IMG_AnimationEncoder> encoder)
     {
-        IMG_AddAnimationEncoderFrame(encoder, surface, duration)
+        /// <summary>
+        /// Adds a frame to an animation encoder.
+        /// </summary>
+        /// <param name="surface">
+        /// The surface to add as the next frame in the animation.
+        /// </param>
+        /// <param name="duration">
+        /// The duration of the frame, usually in milliseconds but can be other
+        /// units if the IMG_PROP_ANIMATION_ENCODER_CREATE_TIMEBASE_DENOMINATOR_NUMBER
+        /// property is set when creating the encoder.
+        /// </param>
+        public unsafe void AddFrame(
+            IntPtr<SDL_Surface> surface,
+            ulong duration
+        ) => IMG_AddAnimationEncoderFrame(encoder, surface, duration)
             .AssertSdlSuccess();
-    }
 
-    /// <summary>
-    /// Closes an animation encoder, finishing any encoding.
-    /// </summary>
-    /// <param name="encoder">
-    /// The encoder to close.
-    /// </param>
-    public static unsafe void Close(this IntPtr<IMG_AnimationEncoder> encoder)
-    {
-        IMG_CloseAnimationEncoder(encoder)
-            .AssertSdlSuccess();
+        /// <summary>
+        /// Closes an animation encoder, finishing any encoding.
+        /// </summary>
+        public unsafe void Close() =>
+            IMG_CloseAnimationEncoder(encoder)
+                .AssertSdlSuccess();
     }
 }
