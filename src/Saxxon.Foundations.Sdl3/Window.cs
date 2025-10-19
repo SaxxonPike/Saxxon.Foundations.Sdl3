@@ -22,11 +22,11 @@ public static class Window
     }
 
     public static unsafe IntPtr<SDL_Window> Create(
-        string title, SDL_Size size, SDL_WindowFlags flags
+        string title, int width, int height, SDL_WindowFlags flags
     )
     {
         using var titleStr = new UnmanagedString(title);
-        return ((IntPtr<SDL_Window>)SDL_CreateWindow(titleStr, size.w, size.h, flags))
+        return ((IntPtr<SDL_Window>)SDL_CreateWindow(titleStr, width, height, flags))
             .AssertSdlNotNull();
     }
 
@@ -265,20 +265,20 @@ public static class Window
         return *&result;
     }
 
-    public static unsafe SDL_Size GetSize(this IntPtr<SDL_Window> ptr)
+    public static unsafe (int Width, int Height) GetSize(this IntPtr<SDL_Window> ptr)
     {
         int w, h;
         SDL_GetWindowSize(ptr, &w, &h)
             .AssertSdlSuccess();
-        return Size.Create(w, h);
+        return (w, h);
     }
 
-    public static unsafe SDL_Size GetSizeInPixels(this IntPtr<SDL_Window> ptr)
+    public static unsafe (int Width, int Height) GetSizeInPixels(this IntPtr<SDL_Window> ptr)
     {
         int w, h;
         SDL_GetWindowSizeInPixels(ptr, &w, &h)
             .AssertSdlSuccess();
-        return Size.Create(w, h);
+        return (w, h);
     }
 
     public static unsafe IntPtr<SDL_Surface> GetSurface(this IntPtr<SDL_Window> ptr)
@@ -445,15 +445,15 @@ public static class Window
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetMaximumSize(this IntPtr<SDL_Window> ptr, SDL_Size size)
+    public static unsafe void SetMaximumSize(this IntPtr<SDL_Window> ptr, int width, int height)
     {
-        SDL_SetWindowMaximumSize(ptr, size.w, size.h)
+        SDL_SetWindowMaximumSize(ptr, width, height)
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetMinimumSize(this IntPtr<SDL_Window> ptr, SDL_Size size)
+    public static unsafe void SetMinimumSize(this IntPtr<SDL_Window> ptr, int width, int height)
     {
-        SDL_SetWindowMinimumSize(ptr, size.w, size.h)
+        SDL_SetWindowMinimumSize(ptr, width, height)
             .AssertSdlSuccess();
     }
 
@@ -535,12 +535,6 @@ public static class Window
     public static unsafe void SetSize(this IntPtr<SDL_Window> ptr, int w, int h)
     {
         SDL_SetWindowSize(ptr, w, h)
-            .AssertSdlSuccess();
-    }
-
-    public static unsafe void SetSize(this IntPtr<SDL_Window> ptr, SDL_Size size)
-    {
-        SDL_SetWindowSize(ptr, size.w, size.h)
             .AssertSdlSuccess();
     }
 

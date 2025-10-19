@@ -110,93 +110,44 @@ public static class Animation
     }
 
     /// <summary>
-    /// Gets the frame surfaces.
+    /// Extensions for <see cref="IMG_Animation"/> references.
     /// </summary>
-    public static unsafe IntPtr<IntPtr<SDL_Surface>> GetFrames(
-        this IntPtr<IMG_Animation> animation
-    )
+    extension(IntPtr<IMG_Animation> animation)
     {
-        return (IntPtr<IntPtr<SDL_Surface>>)animation.AsReadOnlyRef().frames;
-    }
+        /// <summary>
+        /// Gets the number of animation frames.
+        /// </summary>
+        public int Count =>
+            animation.AsReadOnlyRef().count;
 
-    /// <summary>
-    /// Gets the frame surfaces.
-    /// </summary>
-    public static unsafe ReadOnlySpan<IntPtr<SDL_Surface>> GetFramesSpan(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return new ReadOnlySpan<IntPtr<SDL_Surface>>(
-            animation.AsReadOnlyRef().frames,
-            animation.AsReadOnlyRef().count
-        );
-    }
+        /// <summary>
+        /// Gets the frame surfaces.
+        /// </summary>
+        public unsafe ReadOnlySpan<IntPtr<SDL_Surface>> Frames =>
+            new(
+                animation.AsReadOnlyRef().frames,
+                animation.AsReadOnlyRef().count
+            );
 
-    /// <summary>
-    /// Gets the delay time for the frames.
-    /// </summary>
-    public static unsafe IntPtr<int> GetDelays(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return animation.AsReadOnlyRef().delays;
-    }
+        /// <summary>
+        /// Gets the delay time for the frames.
+        /// </summary>
+        public unsafe ReadOnlySpan<int> Delays =>
+            new(
+                animation.AsReadOnlyRef().delays,
+                animation.AsReadOnlyRef().count
+            );
 
-    /// <summary>
-    /// Gets the delay time for the frames.
-    /// </summary>
-    public static unsafe ReadOnlySpan<int> GetDelaysSpan(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return new ReadOnlySpan<int>(
-            animation.AsReadOnlyRef().delays,
-            animation.AsReadOnlyRef().count
-        );
-    }
+        /// <summary>
+        /// Gets the width of the frames.
+        /// </summary>
+        public int Width => 
+            animation.AsReadOnlyRef().w;
 
-    /// <summary>
-    /// Gets the width of the frames.
-    /// </summary>
-    /// <param name="animation"></param>
-    /// <returns></returns>
-    public static int GetWidth(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return animation.AsReadOnlyRef().w;
-    }
-
-    /// <summary>
-    /// Gets the height of the frames.
-    /// </summary>
-    public static int GetHeight(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return animation.AsReadOnlyRef().h;
-    }
-
-    /// <summary>
-    /// Gets the two-dimensional size of the frames.
-    /// </summary>
-    public static SDL_Size GetSize(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return Size.Create(
-            animation.AsReadOnlyRef().w,
-            animation.AsReadOnlyRef().h
-        );
-    }
-
-    /// <summary>
-    /// Gets the number of animation frames.
-    /// </summary>
-    public static int GetCount(
-        this IntPtr<IMG_Animation> animation
-    )
-    {
-        return animation.AsReadOnlyRef().count;
+        /// <summary>
+        /// Gets the height of the frames.
+        /// </summary>
+        public int Height => 
+            animation.AsReadOnlyRef().h;
     }
 }

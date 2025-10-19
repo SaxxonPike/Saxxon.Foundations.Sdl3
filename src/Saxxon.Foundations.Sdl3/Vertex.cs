@@ -10,38 +10,35 @@ namespace Saxxon.Foundations.Sdl3;
 public static class Vertex
 {
     /// <summary>
-    /// Retrieves the color field of an SDL_Vertex.
+    /// Extensions for <see cref="SDL_Vertex"/> references.
     /// </summary>
-    public static SDL_FColor GetColor(this IntPtr<SDL_Vertex> vertex) =>
-        vertex.AsReadOnlyRef().color;
+    extension(IntPtr<SDL_Vertex> vertex)
+    {
+        /// <summary>
+        /// Gets or sets the color field of an SDL_Vertex reference.
+        /// </summary>
+        public SDL_FColor Color
+        {
+            get => vertex.AsReadOnlyRef().color;
+            set => vertex.AsRef().color = value;
+        }
 
-    /// <summary>
-    /// Retrieves the position of an SDL_Vertex.
-    /// </summary>
-    public static SDL_FPoint GetPosition(this IntPtr<SDL_Vertex> vertex) =>
-        vertex.AsReadOnlyRef().position;
+        /// <summary>
+        /// Gets or sets the position field of an SDL_Vertex reference.
+        /// </summary>
+        public SDL_FPoint Position
+        {
+            get => vertex.AsReadOnlyRef().position;
+            set => vertex.AsRef().position = value;
+        }
 
-    /// <summary>
-    /// Retrieves the texture coordinate of an SDL_Vertex.
-    /// </summary>
-    public static SDL_FPoint GetTexCoord(this IntPtr<SDL_Vertex> vertex) =>
-        vertex.AsReadOnlyRef().tex_coord;
-
-    /// <summary>
-    /// Sets the color of an SDL_Vertex.
-    /// </summary>
-    public static void SetColor(this IntPtr<SDL_Vertex> vertex, SDL_FColor color) =>
-        vertex.AsRef().color = color;
-
-    /// <summary>
-    /// Sets the position of an SDL_Vertex.
-    /// </summary>
-    public static void SetPosition(this IntPtr<SDL_Vertex> vertex, SDL_FPoint position) =>
-        vertex.AsRef().position = position;
-
-    /// <summary>
-    /// Sets the texture coordinate of an SDL_Vertex.
-    /// </summary>
-    public static void SetTexCoord(this IntPtr<SDL_Vertex> vertex, SDL_FPoint texCoord) =>
-        vertex.AsRef().tex_coord = texCoord;
+        /// <summary>
+        /// Gets or sets the texture coordinate field of an SDL_Vertex reference.
+        /// </summary>
+        public SDL_FPoint TexCoord
+        {
+            get => vertex.AsReadOnlyRef().tex_coord;
+            set => vertex.AsRef().tex_coord = value;
+        }
+    }
 }
