@@ -126,27 +126,13 @@ public static class Gamepad
         return SDL_GetGamepadMappingForGUID(*(SDL_GUID*)&guid) ?? throw new SdlException();
     }
 
-    public static unsafe List<string> GetMappings()
+    public static unsafe IMemoryOwner<Utf8StringPtr> GetMappings()
     {
-        var result = new List<string>();
-        IntPtr<IntPtr<byte>> mappings = default;
+        int count;
+        var mappings = ((IntPtr<Utf8StringPtr>)SDL_GetGamepadMappings(&count))
+            .AssertSdlNotNull();
 
-        try
-        {
-            int count;
-            mappings = ((IntPtr<IntPtr<byte>>)SDL_GetGamepadMappings(&count))
-                .AssertSdlNotNull();
-
-            foreach (var mapping in mappings.AsSpan(count))
-                result.Add(mapping.GetString()!);
-
-            return result;
-        }
-        finally
-        {
-            if (!mappings.IsNull)
-                SDL_free(mappings.Ptr);
-        }
+        return SdlMemoryManager.Owned(mappings, count);
     }
 
     public static unsafe string? GetName(this IntPtr<SDL_Gamepad> ptr)
@@ -277,7 +263,8 @@ public static class Gamepad
         SDL_ReloadGamepadMappings();
     }
 
-    public static unsafe void Rumble(this IntPtr<SDL_Gamepad> ptr, float lowIntensity, float highIntensity, TimeSpan time)
+    public static unsafe void Rumble(this IntPtr<SDL_Gamepad> ptr, float lowIntensity, float highIntensity,
+        TimeSpan time)
     {
         var lowValue = (ushort)(lowIntensity * 65535f);
         var highValue = (ushort)(highIntensity * 65535f);

@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
@@ -12,7 +13,7 @@ namespace Saxxon.Foundations.Sdl3;
 [PublicAPI]
 public static class Storage
 {
-    public static unsafe List<string> GlobDirectory(
+    public static unsafe IMemoryOwner<Utf8StringPtr> GlobDirectory(
         this IntPtr<SDL_Storage> storage,
         ReadOnlySpan<char> path,
         ReadOnlySpan<char> pattern,
@@ -23,8 +24,8 @@ public static class Storage
         using var patternStr = new UnmanagedString(pattern);
 
         int count;
-        var names = (IntPtr<IntPtr<byte>>)SDL_GlobStorageDirectory(storage, pathStr, patternStr, flags, &count);
-        return names.GetStrings(count)!;
+        var names = (IntPtr<Utf8StringPtr>)SDL_GlobStorageDirectory(storage, pathStr, patternStr, flags, &count);
+        return SdlMemoryManager.Owned(names, count);
     }
 
     public static unsafe ulong GetSpaceRemaining(

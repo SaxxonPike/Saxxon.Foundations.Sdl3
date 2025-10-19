@@ -28,15 +28,13 @@ public static class Clipboard
         return SdlMemoryManager.Owned(data, (int)size);
     }
 
-    public static unsafe List<string?> GetMimeTypes()
+    public static unsafe IMemoryOwner<Utf8StringPtr> GetMimeTypes()
     {
         UIntPtr count;
-        var mimeTypes = ((IntPtr<IntPtr<byte>>)SDL_GetClipboardMimeTypes(&count))
+        var mimeTypes = ((IntPtr<Utf8StringPtr>)SDL_GetClipboardMimeTypes(&count))
             .AssertSdlNotNull();
 
-        var result = mimeTypes.GetStrings((int)count);
-        SDL_free(mimeTypes.Ptr);
-        return result;
+        return SdlMemoryManager.Owned(mimeTypes, (int)count);
     }
 
     public static string? GetPrimarySelectionText() =>
