@@ -158,7 +158,7 @@ public abstract class Game : IDisposable
         }
         finally
         {
-            SdlLib.Quit();
+            Sdl.Quit();
         }
     }
 
@@ -183,7 +183,7 @@ public abstract class Game : IDisposable
         // Initialize required subsystems.
         //
 
-        SdlLib.Init(SDL_InitFlags.SDL_INIT_VIDEO |
+        Sdl.Init(SDL_InitFlags.SDL_INIT_VIDEO |
                     SDL_InitFlags.SDL_INIT_EVENTS);
 
         //
@@ -193,15 +193,15 @@ public abstract class Game : IDisposable
         try
         {
             if (game.ShouldInitGamepads)
-                SdlLib.Init(SDL_InitFlags.SDL_INIT_GAMEPAD);
+                Sdl.Init(SDL_InitFlags.SDL_INIT_GAMEPAD);
         }
         catch
         {
             Log.Error("");
         }
 
-        TtfLib.Init();
-        MixerLib.Init();
+        Sdl.InitTtf();
+        Sdl.InitMix();
 
         //
         // Create the game window and renderer.
@@ -285,9 +285,9 @@ public abstract class Game : IDisposable
     {
         // Shut down subsystems.
 
-        TtfLib.Quit();
-        MixerLib.Quit();
-        SdlLib.Quit();
+        Sdl.QuitTtf();
+        Sdl.QuitMix();
+        Sdl.Quit();
     }
 
     /// <summary>

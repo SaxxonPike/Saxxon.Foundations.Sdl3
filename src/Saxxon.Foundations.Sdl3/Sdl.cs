@@ -8,7 +8,7 @@ namespace Saxxon.Foundations.Sdl3;
 /// Provides an interface for uncategorized SDL functions.
 /// </summary>
 [PublicAPI]
-public static class SdlLib
+public static partial class Sdl
 {
     /// <summary>
     /// Initializes the SDL library.

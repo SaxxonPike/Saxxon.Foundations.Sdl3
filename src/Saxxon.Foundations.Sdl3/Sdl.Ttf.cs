@@ -1,26 +1,21 @@
 using System.Text;
-using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3;
 
-/// <summary>
-/// Provides an interface for uncategorized SDL_ttf functions.
-/// </summary>
-[PublicAPI]
-public static class TtfLib
+public static partial class Sdl
 {
     /// <summary>
     /// Gets the major component of the SDL_ttf version.
     /// </summary>
-    public static int MajorVersion =>
+    public static int TtfMajorVersion =>
         SDL_TTF_MAJOR_VERSION;
 
     /// <summary>
     /// Gets the full value of the SDL_ttf version.
     /// </summary>
-    public static int Version =>
+    public static int TtfVersion =>
         SDL_TTF_VERSION;
 
     /// <summary>
@@ -38,7 +33,7 @@ public static class TtfLib
     /// <returns>
     /// True if the SDL_ttf version is at least as high as the specified value, false otherwise.
     /// </returns>
-    public static bool VersionAtLeast(int major, int minor, int patch) =>
+    public static bool TtfVersionAtLeast(int major, int minor, int patch) =>
         SDL_IMAGE_VERSION_ATLEAST(major, minor, patch);
 
     /// <summary>
@@ -64,7 +59,7 @@ public static class TtfLib
     /// <summary>
     /// Initializes the SDL_ttf library.
     /// </summary>
-    public static void Init()
+    public static void InitTtf()
     {
         TTF_Init().AssertSdlSuccess();
     }
@@ -104,7 +99,7 @@ public static class TtfLib
     /// <summary>
     /// Deinitializes SDL_ttf.
     /// </summary>
-    public static void Quit()
+    public static void QuitTtf()
     {
         TTF_Quit();
     }
@@ -118,7 +113,7 @@ public static class TtfLib
     /// <remarks>
     /// This is the number of times <see cref="Quit"/> needs to be called to fully unload SDL_ttf.
     /// </remarks>
-    public static int WasInit()
+    public static int TtfWasInit()
     {
         return TTF_WasInit();
     }

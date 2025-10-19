@@ -138,6 +138,21 @@ public static class Mem
         SDL_free(ptr.Ptr);
     }
 
+    /// <summary>
+    /// Sets SDL's memory allocation functions.
+    /// </summary>
+    /// <param name="malloc">
+    /// Function to use in place of <see cref="SDL_malloc"/>.
+    /// </param>
+    /// <param name="calloc">
+    /// Function to use in place of <see cref="SDL_calloc"/>.
+    /// </param>
+    /// <param name="realloc">
+    /// Function to use in place of <see cref="SDL_realloc"/>.
+    /// </param>
+    /// <param name="free">
+    /// Function to use in place of <see cref="SDL_free(IntPtr)"/>.
+    /// </param>
     public static unsafe void SetFunctions(
         Func<UIntPtr, IntPtr> malloc,
         Func<UIntPtr, UIntPtr, IntPtr> calloc,
@@ -161,6 +176,9 @@ public static class Mem
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Restores SDL's built-in memory allocation functions.
+    /// </summary>
     public static unsafe void SetOriginalFunctions()
     {
         delegate* unmanaged[Cdecl]<UIntPtr, IntPtr> malloc;
@@ -183,10 +201,33 @@ public static class Mem
         );
     }
 
+    /// <summary>
+    /// Tracks allocations made using the .NET functions.
+    /// </summary>
     private static ConcurrentDictionary<IntPtr, (GCHandle Handle, int[] Array)> _allocations = [];
 
+    /// <summary>
+    /// Amount of memory allocated, measured in native ints.
+    /// </summary>
     private static nuint _allocatedWords;
 
+    /// <summary>
+    /// Size of a native int, in bytes. This will differ between architectures and is used for size alignment.
+    /// </summary>
+    private static unsafe nuint _sizeOfNint = (nuint)sizeof(nint);
+
+    /// <summary>
+    /// Allocates memory using .NET.
+    /// </summary>
+    /// <param name="size">
+    /// Number of bytes to allocate.
+    /// </param>
+    /// <param name="initialize">
+    /// If true, the allocated memory is zeroed.
+    /// </param>
+    /// <returns>
+    /// A pointer to the allocated memory.
+    /// </returns>
     internal static unsafe IntPtr AllocInternal(nuint size, bool initialize)
     {
         if (size == 0)
@@ -194,7 +235,7 @@ public static class Mem
 
         // Determine how much memory we will need.
 
-        var count = (int)((size + 3) / 4);
+        var count = (int)((size + _sizeOfNint - 1) / _sizeOfNint);
         var mem = ArrayPool<int>.Shared.Rent(count);
         var handle = GCHandle.Alloc(mem, GCHandleType.Pinned);
 
@@ -210,6 +251,9 @@ public static class Mem
         }
     }
 
+    /// <summary>
+    /// .NET implementation of <see cref="SDL_free(IntPtr)"/>.
+    /// </summary>
     internal static void FreeInternal(IntPtr mem)
     {
         if (!_allocations.Remove(mem, out var alloc))
@@ -219,12 +263,21 @@ public static class Mem
         _allocatedWords -= (UIntPtr)alloc.Array.Length;
     }
 
+    /// <summary>
+    /// .NET implementation of <see cref="SDL_malloc"/>.
+    /// </summary>
     internal static IntPtr MallocInternal(nuint size) =>
         AllocInternal(size, false);
 
+    /// <summary>
+    /// .NET implementation of <see cref="SDL_calloc"/>.
+    /// </summary>
     internal static IntPtr CallocInternal(nuint count, nuint elementSize) =>
         AllocInternal(count * elementSize, true);
 
+    /// <summary>
+    /// .NET implementation of <see cref="SDL_realloc"/>.
+    /// </summary>
     internal static unsafe IntPtr ReallocInternal(IntPtr mem, UIntPtr newSize)
     {
         // Shortcut: if it isn't memory we allocated, act like Malloc.
@@ -262,6 +315,10 @@ public static class Mem
         return newMem;
     }
 
+    /// <summary>
+    /// Configures memory allocation functions within SDL so that the memory is allocated within .NET and
+    /// managed by the .NET garbage collector.
+    /// </summary>
     public static unsafe void SetDotNetFunctions()
     {
         SDL_SetMemoryFunctions(&SdlMalloc, &SdlCalloc, &SdlRealloc, &SdlFree)
@@ -286,6 +343,9 @@ public static class Mem
             FreeInternal(mem);
     }
 
+    /// <summary>
+    /// Returns the amount of memory allocated while using .NET memory allocation functions.
+    /// </summary>
     public static long GetTotalAllocated()
     {
         return unchecked((long)(_allocatedWords * 4));
