@@ -16,49 +16,36 @@ namespace Saxxon.Foundations.Sdl3;
 [PublicAPI]
 public static class Surface
 {
-    public static int GetWidth(
-        this IntPtr<SDL_Surface> ptr
-    )
+    /// <summary>
+    /// Extensions for <see cref="SDL_Surface"/> references.
+    /// </summary>
+    extension(IntPtr<SDL_Surface> ptr)
     {
-        return ptr.AsReadOnlyRef().w;
-    }
+        public int Width =>
+            ptr.AsReadOnlyRef().w;
 
-    public static int GetHeight(
-        this IntPtr<SDL_Surface> ptr
-    )
-    {
-        return ptr.AsReadOnlyRef().h;
-    }
+        public int Height =>
+            ptr.AsReadOnlyRef().h;
 
-    public static SDL_PixelFormat GetFormat(
-        this IntPtr<SDL_Surface> ptr
-    )
-    {
-        return ptr.AsReadOnlyRef().format;
-    }
+        public SDL_PixelFormat Format =>
+            ptr.AsReadOnlyRef().format;
 
-    public static int GetPitch(
-        this IntPtr<SDL_Surface> ptr
-    )
-    {
-        return ptr.AsReadOnlyRef().pitch;
-    }
+        public int Pitch =>
+            ptr.AsReadOnlyRef().pitch;
 
-    public static unsafe Span<byte> GetPixels(
-        this IntPtr<SDL_Surface> ptr
-    )
-    {
-        var ptrRef = ptr.AsReadOnlyRef();
-        return ptrRef.pixels == IntPtr.Zero
-            ? Span<byte>.Empty
-            : new Span<byte>((void*)ptrRef.pixels, ptrRef.pitch * ptrRef.h);
-    }
+        public unsafe Span<byte> Pixels
+        {
+            get
+            {
+                var ptrRef = ptr.AsReadOnlyRef();
+                return ptrRef.pixels == IntPtr.Zero
+                    ? Span<byte>.Empty
+                    : new Span<byte>((void*)ptrRef.pixels, ptrRef.pitch * ptrRef.h);
+            }
+        }
 
-    public static SDL_SurfaceFlags GetFlags(
-        this IntPtr<SDL_Surface> ptr
-    )
-    {
-        return ptr.AsReadOnlyRef().flags;
+        public SDL_SurfaceFlags Flags =>
+            ptr.AsReadOnlyRef().flags;
     }
 
     public static unsafe IntPtr<SDL_Surface> Convert(
@@ -642,7 +629,4 @@ public static class Surface
         SDL_SetSurfaceColorspace(surface, colorSpace)
             .AssertSdlSuccess();
     }
-
-    
-    
 }
