@@ -136,6 +136,27 @@ public readonly record struct IntPtr<T>(IntPtr Ptr)
         set => ((T*)Ptr)[index] = value;
     }
 
+    /// <summary>
+    /// Create a span over a range.
+    /// </summary>
+    /// <param name="range">
+    /// Range to create the span over.
+    /// </param>
+    /// <exception cref="InvalidOperationException">
+    /// If either the start or end indices are end-relative, this exception is thrown because
+    /// the total length cannot be inferred.
+    /// </exception>
+    public unsafe Span<byte> this[Range range]
+    {
+        get
+        {
+            if (range.Start.IsFromEnd || range.End.IsFromEnd)
+                throw new InvalidOperationException("Can't use 'from end' range with IntPtr<T>.");
+            var (offset, length) = range.GetOffsetAndLength(int.MaxValue);
+            return new Span<byte>(&((T*)Ptr)[offset], length);
+        }
+    }
+
     /// <inheritdoc />
     public bool Equals(IntPtr other) =>
         Ptr == other;

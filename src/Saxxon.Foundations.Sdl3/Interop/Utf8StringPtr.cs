@@ -14,6 +14,12 @@ public readonly record struct Utf8StringPtr(IntPtr<byte> Bytes)
 
     public static implicit operator ReadOnlySpan<byte>(Utf8StringPtr value) =>
         value.Bytes.GetUtf8Span();
+    
+    public byte this[int index] =>
+        Bytes[index];
+
+    public ReadOnlySpan<byte> this[Range range] =>
+        Bytes.GetUtf8Span()[range];
 
     /// <summary>
     /// Converts the bytes to a .NET string.
