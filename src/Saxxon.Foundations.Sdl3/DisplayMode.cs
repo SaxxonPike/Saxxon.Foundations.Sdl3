@@ -9,38 +9,30 @@ namespace Saxxon.Foundations.Sdl3;
 [PublicAPI]
 public static class DisplayMode
 {
-    public static SDL_DisplayID GetDisplayId(this IntPtr<SDL_DisplayMode> ptr)
+    /// <summary>
+    /// Extensions for <see cref="SDL_DisplayMode"/> references.
+    /// </summary>
+    extension(IntPtr<SDL_DisplayMode> ptr)
     {
-        return ptr.AsReadOnlyRef().displayID;
-    }
+        public SDL_DisplayID DisplayId =>
+            ptr.AsReadOnlyRef().displayID;
 
-    public static SDL_PixelFormat GetPixelFormat(this IntPtr<SDL_DisplayMode> ptr)
-    {
-        return ptr.AsReadOnlyRef().format;
-    }
+        public SDL_PixelFormat PixelFormat =>
+            ptr.AsReadOnlyRef().format;
 
-    public static int GetWidth(this IntPtr<SDL_DisplayMode> ptr)
-    {
-        return ptr.AsReadOnlyRef().w;
-    }
+        public int Width =>
+            ptr.AsReadOnlyRef().w;
 
-    public static int GetHeight(this IntPtr<SDL_DisplayMode> ptr)
-    {
-        return ptr.AsReadOnlyRef().h;
-    }
+        public int Height =>
+            ptr.AsReadOnlyRef().h;
 
-    public static float GetRefreshRate(this IntPtr<SDL_DisplayMode> ptr)
-    {
-        return ptr.AsReadOnlyRef().refresh_rate;
-    }
+        public float RefreshRate =>
+            ptr.AsReadOnlyRef().refresh_rate;
 
-    public static int GetRefreshRateNumerator(this IntPtr<SDL_DisplayMode> ptr)
-    {
-        return ptr.AsReadOnlyRef().refresh_rate_numerator;
-    }
+        public int RefreshRateNumerator =>
+            ptr.AsReadOnlyRef().refresh_rate_numerator;
 
-    public static int GetRefreshRateDenominator(this IntPtr<SDL_DisplayMode> ptr)
-    {
-        return ptr.AsReadOnlyRef().refresh_rate_denominator;
+        public int RefreshRateDenominator =>
+            ptr.AsReadOnlyRef().refresh_rate_denominator;
     }
 }
