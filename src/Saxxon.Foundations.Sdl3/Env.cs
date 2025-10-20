@@ -1,3 +1,4 @@
+using System.Buffers;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
@@ -59,25 +60,18 @@ public static class Env
     /// <returns>
     /// List of environment variables in the form "variable=value".
     /// </returns>
-    public static unsafe List<string> GetVariables(
+    public static unsafe IMemoryOwner<Utf8StringPtr> GetVariables(
         this IntPtr<SDL_Environment> env
     )
     {
-        var vars = ((IntPtr<IntPtr<byte>>)SDL_GetEnvironmentVariables(env))
+        var vars = ((IntPtr<Utf8StringPtr>)SDL_GetEnvironmentVariables(env))
             .AssertSdlNotNull();
 
-        var result = new List<string>();
-        
         var count = 0;
-        while (vars[count] != IntPtr.Zero)
-        {
-            var str = vars[count].GetString();
-            if (str != null)
-                result.Add(str);
+        while (!vars[count].IsNull)
             count++;
-        }
-        
-        return result;
+
+        return SdlMemoryManager.Owned(vars, count);
     }
 
     public static unsafe string? GetVariable(
