@@ -12,13 +12,6 @@ namespace Saxxon.Foundations.Sdl3;
 public static class Image
 {
     /// <summary>
-    /// This function gets the version of the dynamically linked SDL_image library.
-    /// </summary>
-    /// <returns></returns>
-    public static int GetVersion() =>
-        IMG_Version();
-
-    /// <summary>
     /// Loads an image from an SDL data source into a software surface.
     /// </summary>
     public static unsafe IntPtr<SDL_Surface> LoadTypedIo(
