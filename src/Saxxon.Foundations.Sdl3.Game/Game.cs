@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Channels;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Delegates;
 using Saxxon.Foundations.Sdl3.Interop;
@@ -15,6 +16,12 @@ namespace Saxxon.Foundations.Sdl3.Game;
 [PublicAPI]
 public abstract class Game : IDisposable
 {
+    /// <summary>
+    /// Queue used for pending game events.
+    /// </summary>
+    private readonly Channel<(Guid Id, object Content)> _pendingMessages =
+        Channel.CreateUnbounded<(Guid, object)>();
+
     /// <summary>
     /// Queue used for pending game states.
     /// </summary>
@@ -98,6 +105,7 @@ public abstract class Game : IDisposable
     private SdlTimer.TimerCallback? _updateCallback;
     private Mutex _updateMutex = new();
     private TimeSpan _updateInterval = TimeSpan.FromSeconds(1) / 200;
+    private SDL_EventType _messageEventType;
 
     /// <summary>
     /// Gets or sets the title of the game window.
@@ -274,6 +282,7 @@ public abstract class Game : IDisposable
         };
 
         SdlTimer.Create(game._updateCallback, game._updateInterval);
+        game._messageEventType = Events.Register(1);
 
         return (SDL_AppResult.SDL_APP_CONTINUE, game);
     }
@@ -319,6 +328,23 @@ public abstract class Game : IDisposable
 
         switch (e.Type)
         {
+            //
+            // User events
+            //
+
+            case >= SDL_EventType.SDL_EVENT_USER and <= SDL_EventType.SDL_EVENT_LAST:
+            {
+                //
+                // Game messages
+                //
+
+                if (e.Type == game._messageEventType &&
+                    game._pendingMessages.Reader.TryRead(out var message))
+                    game.OnMessageReceived(Time.GetFromNanoseconds(e.user.timestamp), message.Id, message.Content);
+
+                break;
+            }
+
             //
             // Keyboard events
             //
@@ -1251,6 +1277,65 @@ public abstract class Game : IDisposable
     protected virtual void OnPresent(TimeSpan delta)
     {
         Present?.Invoke(delta);
+    }
+
+    /// <summary>
+    /// Handler for when a game message will be processed.
+    /// </summary>
+    public delegate void MessageReceivedDelegate(TimeSpan delta, Guid id, object data);
+
+    /// <summary>
+    /// Raised when a game message will be processed.
+    /// </summary>
+    public event MessageReceivedDelegate? MessageReceived;
+
+    /// <inheritdoc cref="MessageReceivedDelegate"/>
+    protected virtual void OnMessageReceived(TimeSpan delta, Guid id, object data)
+    {
+        MessageReceived?.Invoke(delta, id, data);
+    }
+
+    /// <summary>
+    /// Enqueues a game message. A unique <see cref="Guid"/> is generated
+    /// and will be provided when the game message is later processed.
+    /// </summary>
+    /// <param name="content">
+    /// Content of the game message.
+    /// </param>
+    /// <returns>
+    /// The ID generated for the game message.
+    /// </returns>
+    public Guid SendMessage(object content)
+    {
+        //
+        // There are two components to a message:
+        // - the message content
+        // - the SDL user event
+        //
+        // When a new message is created, the object is added to the message channel
+        // and a new SDL user event is added to the SDL event queue. For each
+        // SDL user event of this type that is later dequeued, the message content
+        // is read from the message channel. This ensures that the messages are
+        // processed in the order that they were enqueued, and that messages are
+        // only processed as part of the SDL lifecycle.
+        //
+
+        var id = Guid.NewGuid();
+        _pendingMessages.Writer.TryWrite((Id: id, Content: content));
+
+        var ev = new SDL_Event
+        {
+            user =
+            {
+                type = (uint)_messageEventType,
+                timestamp = Time.GetNowNanoseconds(),
+                windowID = Window.GetId()
+            }
+        };
+
+        ev.Push();
+
+        return id;
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
