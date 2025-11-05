@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Delegates;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
@@ -162,6 +163,26 @@ public static class Mixer
     {
         MIX_SetMasterGain(mixer, gain)
             .AssertSdlSuccess();
+    }
+    
+    public static unsafe void SetPostMixCallback(
+        this IntPtr<MIX_Mixer> mixer,
+         MixerMixCallback? callback
+    )
+    {
+        if (callback == null)
+        {
+            MIX_SetPostMixCallback(mixer, null, 0)
+                .AssertSdlSuccess();
+        }
+        else
+        {
+            MIX_SetPostMixCallback(
+                mixer,
+                MixerMixCallback.Callback,
+                callback.UserData
+            ).AssertSdlSuccess();
+        }
     }
 
     public static unsafe void SetTagGain(

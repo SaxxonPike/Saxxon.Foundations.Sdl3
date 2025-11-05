@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Saxxon.Foundations.Sdl3.Delegates;
 using Saxxon.Foundations.Sdl3.Extensions;
 using Saxxon.Foundations.Sdl3.Interop;
 
@@ -31,5 +32,25 @@ public static class Group
     {
         var result = MIX_GetGroupProperties(group);
         return result == 0 ? throw new SdlException() : result;
+    }
+
+    public static unsafe void SetPostMixCallback(
+        this IntPtr<MIX_Group> group,
+        GroupMixCallback? callback
+    )
+    {
+        if (callback == null)
+        {
+            MIX_SetGroupPostMixCallback(group, null, 0)
+                .AssertSdlSuccess();
+        }
+        else
+        {
+            MIX_SetGroupPostMixCallback(
+                group,
+                GroupMixCallback.Callback,
+                callback.UserData
+            ).AssertSdlSuccess();
+        }
     }
 }
