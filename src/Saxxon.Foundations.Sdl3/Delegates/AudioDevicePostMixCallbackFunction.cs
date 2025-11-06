@@ -27,12 +27,14 @@ public sealed unsafe class AudioDevicePostMixCallbackFunction(
     /// <summary>
     /// SDL user data ID.
     /// </summary>
-    public IntPtr UserData { get; } = UserDataStore.Add(func);
-    
+    public IntPtr UserData { get; } = 
+        UserDataStore.Add(func);
+
     /// <summary>
     /// Pointer to the static function that receives calls from SDL.
     /// </summary>
-    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioSpec*, float*, int, void> Callback => &Ingress;
+    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioSpec*, float*, int, void> Callback =>
+        &Ingress;
 
     /// <summary>
     /// Ingress function from SDL.
@@ -53,8 +55,6 @@ public sealed unsafe class AudioDevicePostMixCallbackFunction(
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose()
-    {
+    public void Dispose() => 
         UserDataStore.Remove(UserData);
-    }
 }

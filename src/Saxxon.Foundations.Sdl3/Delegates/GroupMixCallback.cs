@@ -12,17 +12,21 @@ namespace Saxxon.Foundations.Sdl3.Delegates;
 /// Target that will be invoked when the callback fires.
 /// </param>
 [PublicAPI]
-public sealed unsafe class GroupMixCallback(Action<IntPtr<MIX_Group>, SDL_AudioSpec, Span<float>> func) : IDisposable
+public sealed unsafe class GroupMixCallback(
+    Action<IntPtr<MIX_Group>, SDL_AudioSpec, Span<float>> func
+) : IDisposable
 {
     /// <summary>
     /// SDL user data ID.
     /// </summary>
-    public IntPtr UserData { get; } = UserDataStore.Add(func);
+    public IntPtr UserData { get; } = 
+        UserDataStore.Add(func);
 
     /// <summary>
     /// Pointer to the static function that receives calls from SDL.
     /// </summary>
-    internal static delegate* unmanaged[Cdecl]<IntPtr, MIX_Group*, SDL_AudioSpec*, float*, int, void> Callback => &Ingress;
+    internal static delegate* unmanaged[Cdecl]<IntPtr, MIX_Group*, SDL_AudioSpec*, float*, int, void> Callback =>
+        &Ingress;
 
     /// <summary>
     /// Ingress function from SDL.
