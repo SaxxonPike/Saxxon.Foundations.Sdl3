@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
+using Saxxon.Foundations.Sdl3.Helpers;
 using Saxxon.Foundations.Sdl3.Interop;
 
 namespace Saxxon.Foundations.Sdl3;
@@ -138,6 +139,27 @@ public static class Mem
         SDL_free(ptr.Ptr);
     }
 
+    /// <summary>
+    /// Replace SDL's memory allocation functions with a custom set.
+    /// </summary>
+    /// <param name="malloc">
+    /// Custom <see cref="SDL_malloc"/> function.
+    /// </param>
+    /// <param name="calloc">
+    /// Custom <see cref="SDL_calloc"/> function.
+    /// </param>
+    /// <param name="realloc">
+    /// Custom <see cref="SDL_realloc"/> function.
+    /// </param>
+    /// <param name="free">
+    /// Custom <see cref="SDL_free(IntPtr)"/> function.
+    /// </param>
+    /// <remarks>
+    /// It is not safe to call this function once any allocations have been made, as future
+    /// calls to <see cref="SDL_free(IntPtr)"/> will use the new allocator, even if they came from
+    /// an <see cref="SDL_malloc"/> made with the old one! If used, usually this needs to be the first call made
+    /// into the SDL library, if not the very first thing done at program startup time.
+    /// </remarks>
     public static unsafe void SetFunctions(
         Func<UIntPtr, IntPtr> malloc,
         Func<UIntPtr, UIntPtr, IntPtr> calloc,
@@ -161,6 +183,9 @@ public static class Mem
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Restore SDL's memory allocation functions to the built-in set.
+    /// </summary>
     public static unsafe void SetOriginalFunctions()
     {
         delegate* unmanaged[Cdecl]<UIntPtr, IntPtr> malloc;
@@ -183,85 +208,10 @@ public static class Mem
         );
     }
 
-    private static ConcurrentDictionary<IntPtr, (GCHandle Handle, int[] Array)> _allocations = [];
-
-    private static nuint _allocatedWords;
-
-    internal static unsafe IntPtr AllocInternal(nuint size, bool initialize)
-    {
-        if (size == 0)
-            return 0;
-
-        // Determine how much memory we will need.
-
-        var count = (int)((size + 3) / 4);
-        var mem = ArrayPool<int>.Shared.Rent(count);
-        var handle = GCHandle.Alloc(mem, GCHandleType.Pinned);
-
-        if (initialize)
-            mem.AsSpan().Clear();
-
-        _allocatedWords += (UIntPtr)mem.Length;
-
-        fixed (int* memPtr = mem)
-        {
-            _allocations.TryAdd((IntPtr)memPtr, (handle, mem));
-            return (IntPtr)memPtr;
-        }
-    }
-
-    internal static void FreeInternal(IntPtr mem)
-    {
-        if (!_allocations.Remove(mem, out var alloc))
-            return;
-
-        alloc.Handle.Free();
-        _allocatedWords -= (UIntPtr)alloc.Array.Length;
-    }
-
-    internal static IntPtr MallocInternal(nuint size) =>
-        AllocInternal(size, false);
-
-    internal static IntPtr CallocInternal(nuint count, nuint elementSize) =>
-        AllocInternal(count * elementSize, true);
-
-    internal static unsafe IntPtr ReallocInternal(IntPtr mem, UIntPtr newSize)
-    {
-        // Shortcut: if it isn't memory we allocated, act like Malloc.
-
-        if (!_allocations.Remove(mem, out var alloc))
-            return AllocInternal(newSize, false);
-
-        alloc.Handle.Free();
-        _allocatedWords -= (UIntPtr)alloc.Array.Length;
-
-        // Shortcut: if the new size is zero, don't allocate anything new
-        // (but freeing the old pointer is fine.)
-
-        if (newSize == 0)
-            return 0;
-
-        // Shortcut: if the new size matches the existing size, there
-        // is no need to allocate anything.
-
-        var newCount = (int)((newSize + 3) / 4);
-        if (alloc.Array.Length == newCount)
-        {
-            var handle = GCHandle.Alloc(alloc.Array, GCHandleType.Pinned);
-            _allocations.TryAdd(mem, (handle, alloc.Array));
-            _allocatedWords += (UIntPtr)alloc.Array.Length;
-            return mem;
-        }
-
-        var newMem = AllocInternal(newSize, false);
-
-        var copyCount = Math.Min(newCount, alloc.Array.Length);
-        new Span<int>((void*)mem, copyCount)
-            .CopyTo(new Span<int>((void*)newMem, copyCount));
-
-        return newMem;
-    }
-
+    /// <summary>
+    /// Replace SDL's memory allocation functions with ones that use the
+    /// .NET allocator.
+    /// </summary>
     public static unsafe void SetDotNetFunctions()
     {
         SDL_SetMemoryFunctions(&SdlMalloc, &SdlCalloc, &SdlRealloc, &SdlFree)
@@ -271,23 +221,31 @@ public static class Mem
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static IntPtr SdlMalloc(nuint size) =>
-            MallocInternal(size);
+            Allocator.Malloc(size);
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static IntPtr SdlCalloc(nuint count, nuint elementSize) =>
-            CallocInternal(count, elementSize);
+            Allocator.Calloc(count, elementSize);
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static IntPtr SdlRealloc(IntPtr mem, UIntPtr newSize) =>
-            ReallocInternal(mem, newSize);
+            Allocator.Realloc(mem, newSize);
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static void SdlFree(IntPtr mem) =>
-            FreeInternal(mem);
+            Allocator.Free(mem);
     }
 
-    public static long GetTotalAllocated()
-    {
-        return unchecked((long)(_allocatedWords * 4));
-    }
+    /// <summary>
+    /// Determines the total amount of memory allocated.
+    /// </summary>
+    /// <returns>
+    /// The number of bytes.
+    /// </returns>
+    /// <remarks>
+    /// This only tracks memory allocated during the time which SDL is using
+    /// the .NET allocator.
+    /// </remarks>
+    public static long GetTotalAllocated() =>
+        Allocator.Total;
 }

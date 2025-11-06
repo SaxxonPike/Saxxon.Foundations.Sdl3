@@ -1,6 +1,7 @@
 using System.Text;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
+using Saxxon.Foundations.Sdl3.Helpers;
 using Saxxon.Foundations.Sdl3.Utils;
 
 namespace Saxxon.Foundations.Sdl3.Interop;
@@ -53,7 +54,7 @@ internal readonly ref struct UnmanagedString : IDisposable
     {
         var cLen = chars.Length;
         var bMaxLen = Encoding.UTF8.GetMaxByteCount(cLen) + (chars.EndsWith('\0') ? 0 : 1);
-        var arr = Mem.AllocInternal((UIntPtr)bMaxLen, false);
+        var arr = Mem.Alloc(bMaxLen);
         var bytes = new Span<byte>((void*)arr, bMaxLen);
         var byteCount = Encoding.UTF8.GetBytes(chars, bytes);
         bytes[byteCount] = 0;
@@ -67,7 +68,7 @@ internal readonly ref struct UnmanagedString : IDisposable
     private static unsafe IntPtr Alloc(ReadOnlySpan<byte> bytes)
     {
         var byteCount = bytes.Length + (bytes.EndsWith((byte)0) ? 0 : 1);
-        var arr = Mem.AllocInternal((UIntPtr)byteCount, false);
+        var arr = Mem.Alloc(byteCount);
         var buffer = new Span<byte>((void*)arr, byteCount);
         buffer.Clear();
         bytes.CopyTo(buffer);
@@ -154,7 +155,7 @@ internal readonly ref struct UnmanagedString : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        Mem.FreeInternal(Address);
+        Allocator.Free(Address);
     }
 
     /// <summary>

@@ -99,7 +99,6 @@ public abstract class Game : IDisposable
     private HashSet<SDL_MouseID> _mice = [];
     private IntPtr<SDL_Texture> _scaleTexture;
     private LogOutputFunction? _logOutputFunction;
-    private string _title = "";
     private bool _quitting;
     private bool _crashing;
     private SdlTimer.TimerCallback? _updateCallback;
@@ -112,14 +111,14 @@ public abstract class Game : IDisposable
     /// </summary>
     public string Title
     {
-        get => _title;
+        get;
         set
         {
-            _title = value;
+            field = value;
             if (Window != IntPtr.Zero)
-                Window.SetTitle(_title);
+                Window.SetTitle(field);
         }
-    }
+    } = "";
 
     /// <summary>
     /// Runs the game.
@@ -179,13 +178,6 @@ public abstract class Game : IDisposable
             return (SDL_AppResult.SDL_APP_FAILURE, null!);
 
         game._logOutputFunction = new LogOutputFunction(game.OnLogMessage);
-
-        //
-        // Configure SDL to use .NET memory management. This allows SDL to
-        // take advantage of the .NET garbage collector.
-        //
-
-        Mem.SetDotNetFunctions();
 
         //
         // Initialize required subsystems.
