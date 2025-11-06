@@ -13,7 +13,7 @@ namespace Saxxon.Foundations.Sdl3;
 public static class Events
 {
     /// <summary>
-    /// Generate a human-readable description of an event.
+    /// Generates a human-readable description of an event.
     /// </summary>
     /// <param name="ev">
     /// An event to describe.
@@ -31,7 +31,7 @@ public static class Events
         GetDescription((IntPtr<SDL_Event>)Unsafe.AsPointer(ref ev));
 
     /// <summary>
-    /// Generate a human-readable description of an event.
+    /// Generates a human-readable description of an event.
     /// </summary>
     /// <param name="ev">
     /// An event to describe.
@@ -47,11 +47,23 @@ public static class Events
     /// </remarks>
     public static unsafe string GetDescription(this IntPtr<SDL_Event> ev)
     {
+        // The typical event description will be less than 512 bytes. We put this directly
+        // on the stack to avoid allocations.
+
         Span<byte> str = stackalloc byte[512];
         fixed (byte* ptr = str)
         {
-            _ = SDL_GetEventDescription(ev, ptr, str.Length);
-            return Ptr.ToUtf8String(ptr)!;
+            var required = SDL_GetEventDescription(ev, ptr, str.Length);
+            if (required < str.Length)
+                return Ptr.ToUtf8String(ptr)!;
+
+            // We can't know the full length of the string until we call this function.
+            // Therefore, in the event where our buffer is not long enough, we have to allocate
+            // a new one to hold the full string.
+
+            using var fullStr = SdlMemoryManager.Rent<byte>(required + 1);
+            _ = SDL_GetEventDescription(ev, (byte*)fullStr.Ptr, required);
+            return Ptr.ToUtf8String((byte*)fullStr.Ptr)!;
         }
     }
 
@@ -88,7 +100,7 @@ public static class Events
         SDL_GetWindowFromEvent(ev);
 
     /// <summary>
-    /// Query the current event filter.
+    /// Determines the current event filter.
     /// </summary>
     /// <returns>
     /// The current event filter callback function.
@@ -147,7 +159,7 @@ public static class Events
     }
 
     /// <summary>
-    /// Wait until the specified timeout (in milliseconds) for the next available event.
+    /// Waits until the specified timeout (in milliseconds) for the next available event.
     /// </summary>
     /// <param name="timeout">
     /// The maximum number of milliseconds to wait for the next available event.
@@ -170,7 +182,7 @@ public static class Events
     }
 
     /// <summary>
-    /// Wait until the specified timeout (in milliseconds) for the next available event.
+    /// Waits until the specified timeout (in milliseconds) for the next available event.
     /// </summary>
     /// <param name="timeout">
     /// The maximum number of milliseconds to wait for the next available event.
@@ -190,7 +202,7 @@ public static class Events
         SDL_WaitEventTimeout(null, timeout.ToMilliseconds());
 
     /// <summary>
-    /// Wait indefinitely for the next available event.
+    /// Waits indefinitely for the next available event.
     /// </summary>
     /// <remarks>
     /// This function should only be called on the main thread.
@@ -204,7 +216,7 @@ public static class Events
     }
 
     /// <summary>
-    /// Wait indefinitely for the next available event.
+    /// Waits indefinitely for the next available event.
     /// </summary>
     /// <remarks>
     /// This version of <see cref="Wait"/> leaves the event at the front of the queue.
@@ -215,7 +227,7 @@ public static class Events
         SDL_WaitEvent(null).AssertSdlSuccess();
 
     /// <summary>
-    /// Poll for currently pending events.
+    /// Polls for currently pending events.
     /// </summary>
     /// <returns>
     /// The next event from the queue, or null if there are none available.
@@ -232,13 +244,13 @@ public static class Events
     }
 
     /// <summary>
-    /// Pump the event loop, gathering events from the input devices.
+    /// Pumps the event loop, gathering events from the input devices.
     /// </summary>
     /// <remarks>
     /// This function updates the event queue and internal input device state. This function gathers all the pending
     /// input information from devices and places it in the event queue. Without calls to this function, no events
     /// would ever be placed on the queue. Often the need for calls to this function is hidden from the user since
-    /// <see cref="Poll"/> and <see cref="Wait(ref SDL_Event)"/> implicitly call this function. However, if you are not
+    /// <see cref="Poll"/> and <see cref="Wait"/> implicitly call this function. However, if you are not
     /// polling or waiting for events (e.g. you are filtering them), then you must call this function to force an event
     /// queue update.
     ///
@@ -248,7 +260,7 @@ public static class Events
         SDL_PumpEvents();
 
     /// <summary>
-    /// Check the event queue for messages and returns them.
+    /// Checks the event queue for messages and returns them.
     /// </summary>
     /// <param name="events">
     /// Buffer that will store the returned events.
@@ -453,6 +465,21 @@ public static class Events
         SDL_SetEventFilter(EventFilterFunction.Callback, func.UserData);
 
     /// <summary>
+    /// Gets the state of processing events by type.
+    /// </summary>
+    /// <param name="type">
+    /// The type of event to query.
+    /// </param>
+    /// <returns>
+    /// True if the event is being processed, false otherwise.
+    /// </returns>
+    /// <remarks>
+    /// It is safe to call this function from any thread.
+    /// </remarks>
+    public static bool IsEnabled(SDL_EventType type) =>
+        SDL_EventEnabled(type);
+
+    /// <summary>
     /// Sets the state of processing events by type.
     /// </summary>
     /// <param name="type">
@@ -468,7 +495,7 @@ public static class Events
         SDL_SetEventEnabled(type, enabled);
 
     /// <summary>
-    /// Run a specific filter function on the current event queue, removing any events for which the filter
+    /// Runs a specific filter function on the current event queue, removing any events for which the filter
     /// returns false.
     /// </summary>
     /// <param name="func">
