@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Numerics;
 using System.Threading.Channels;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Delegates;
@@ -177,7 +178,7 @@ public abstract class Game : IDisposable
         if (!PendingGames.TryDequeue(out var game))
             return (SDL_AppResult.SDL_APP_FAILURE, null!);
 
-        game._logOutputFunction = new LogOutputFunction(game.OnLogMessage);
+        game._logOutputFunction = new LogOutputFunction(game.OnLogging);
 
         //
         // Initialize required subsystems.
@@ -251,7 +252,7 @@ public abstract class Game : IDisposable
         //
 
         game._lastDraw = game._lastPresent = Time.GetNowNanoseconds();
-        game.OnInit();
+        game.OnStarting();
 
         //
         // Initialize update timer.
@@ -267,7 +268,7 @@ public abstract class Game : IDisposable
             // assumed that the letterbox mode is on when entering the mutex.
 
             game._updateMutex.WaitOne();
-            game.OnUpdate(elapsed);
+            game.OnUpdating(elapsed);
             game._updateMutex.ReleaseMutex();
 
             return game._updateInterval;
@@ -355,12 +356,12 @@ public abstract class Game : IDisposable
             }
             case SDL_EventType.SDL_EVENT_KEY_DOWN:
             {
-                game.OnKeyDown(e.key.which, e.key.key, e.key.scancode, e.key.mod);
+                game.OnKeyPressed(e.key.which, e.key.key, e.key.scancode, e.key.mod);
                 break;
             }
             case SDL_EventType.SDL_EVENT_KEY_UP:
             {
-                game.OnKeyUp(e.key.which, e.key.key, e.key.scancode, e.key.mod);
+                game.OnKeyReleased(e.key.which, e.key.key, e.key.scancode, e.key.mod);
                 break;
             }
 
@@ -382,28 +383,26 @@ public abstract class Game : IDisposable
             }
             case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                game.OnMouseButtonDown(e.button.which, (SDLButton)e.button.button);
+                game.OnMouseButtonPressed(e.button.which, (SDLButton)e.button.button);
                 break;
             }
             case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                game.OnMouseButtonUp(e.button.which, (SDLButton)e.button.button);
+                game.OnMouseButtonReleased(e.button.which, (SDLButton)e.button.button);
                 break;
             }
             case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
             {
-                game.OnMouseMove(
+                game.OnMouseMoved(
                     e.motion.which,
-                    (int)Math.Truncate(e.motion.x),
-                    (int)Math.Truncate(e.motion.y),
-                    e.motion.xrel,
-                    e.motion.yrel
+                    new Vector2(e.motion.x, e.motion.y),
+                    new Vector2(e.motion.xrel, e.motion.yrel)
                 );
                 break;
             }
             case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
             {
-                game.OnMouseWheel(e.wheel.which, e.wheel.x, e.wheel.y, e.wheel.direction);
+                game.OnMouseWheelMoved(e.wheel.which, new Vector2(e.wheel.x, e.wheel.y), e.wheel.direction);
                 break;
             }
 
@@ -431,42 +430,109 @@ public abstract class Game : IDisposable
             }
             case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
             {
-                game.OnGamepadButtonDown(e.gaxis.which.GetGamepad(), e.gbutton.Button);
+                game.OnGamepadButtonPressed(e.gaxis.which.GetGamepad(), e.gbutton.Button);
                 break;
             }
             case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
             {
-                game.OnGamepadButtonUp(e.gaxis.which.GetGamepad(), e.gbutton.Button);
+                game.OnGamepadButtonReleased(e.gaxis.which.GetGamepad(), e.gbutton.Button);
                 break;
             }
             case SDL_EventType.SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION:
             {
-                game.OnGamepadTouchMove(
+                game.OnTouchpadMoved(
                     e.gtouchpad.which.GetGamepad(),
                     e.gtouchpad.touchpad,
                     e.gtouchpad.finger,
+                    new Vector2(e.gtouchpad.x, e.gtouchpad.y),
                     e.gtouchpad.pressure
                 );
                 break;
             }
             case SDL_EventType.SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN:
             {
-                game.OnGamepadTouchDown(
+                game.OnTouchpadPressed(
                     e.gtouchpad.which.GetGamepad(),
                     e.gtouchpad.touchpad,
                     e.gtouchpad.finger,
+                    new Vector2(e.gtouchpad.x, e.gtouchpad.y),
                     e.gtouchpad.pressure
                 );
                 break;
             }
             case SDL_EventType.SDL_EVENT_GAMEPAD_TOUCHPAD_UP:
             {
-                game.OnGamepadTouchUp(
+                game.OnTouchpadReleased(
                     e.gtouchpad.which.GetGamepad(),
                     e.gtouchpad.touchpad,
                     e.gtouchpad.finger,
+                    new Vector2(e.gtouchpad.x, e.gtouchpad.y),
                     e.gtouchpad.pressure
                 );
+                break;
+            }
+
+            //
+            // Touch events
+            //
+
+            case SDL_EventType.SDL_EVENT_FINGER_DOWN:
+            {
+                game.OnFingerPressed(
+                    e.tfinger.touchID,
+                    e.tfinger.fingerID,
+                    new Vector2(e.tfinger.x, e.tfinger.y),
+                    new Vector2(e.tfinger.dx, e.tfinger.dy),
+                    e.tfinger.pressure
+                );
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_FINGER_UP:
+            {
+                game.OnFingerReleased(
+                    e.tfinger.touchID,
+                    e.tfinger.fingerID,
+                    new Vector2(e.tfinger.x, e.tfinger.y),
+                    new Vector2(e.tfinger.dx, e.tfinger.dy),
+                    e.tfinger.pressure
+                );
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_FINGER_MOTION:
+            {
+                game.OnFingerMoved(
+                    e.tfinger.touchID,
+                    e.tfinger.fingerID,
+                    new Vector2(e.tfinger.x, e.tfinger.y),
+                    new Vector2(e.tfinger.dx, e.tfinger.dy),
+                    e.tfinger.pressure
+                );
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_FINGER_CANCELED:
+            {
+                game.OnFingerCanceled(
+                    e.tfinger.touchID,
+                    e.tfinger.fingerID,
+                    new Vector2(e.tfinger.x, e.tfinger.y),
+                    new Vector2(e.tfinger.dx, e.tfinger.dy),
+                    e.tfinger.pressure
+                );
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_PINCH_BEGIN:
+            {
+                game.OnPinchStarted(e.pinch.scale);
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_PINCH_UPDATE:
+            {
+                game.OnPinchUpdated(e.pinch.scale);
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_PINCH_END:
+            {
+                game.OnPinchEnded(e.pinch.scale);
                 break;
             }
 
@@ -532,7 +598,7 @@ public abstract class Game : IDisposable
         renderer.Clear();
 
         var thisDraw = Time.GetNowNanoseconds();
-        game.OnDraw(Time.GetFromNanoseconds(thisDraw - game._lastDraw));
+        game.OnDrawing(Time.GetFromNanoseconds(thisDraw - game._lastDraw));
         game._lastDraw = thisDraw;
 
         //
@@ -565,7 +631,7 @@ public abstract class Game : IDisposable
 
         game.SetLetterboxOff();
         var thisPresent = Time.GetNowNanoseconds();
-        game.OnPresent(Time.GetFromNanoseconds(thisPresent - game._lastPresent));
+        game.OnPresenting(Time.GetFromNanoseconds(thisPresent - game._lastPresent));
         game._lastPresent = thisPresent;
         game.SetLetterboxOn();
 
@@ -630,33 +696,33 @@ public abstract class Game : IDisposable
     /// <summary>
     /// Handler for when SDL is logging a message.
     /// </summary>
-    public delegate void LogMessageDelegate(int category, SDL_LogPriority priority, ReadOnlySpan<char> message);
+    public delegate void LoggingDelegate(int category, SDL_LogPriority priority, ReadOnlySpan<char> message);
 
     /// <summary>
     /// Raised when SDL is logging a message.
     /// </summary>
-    public event LogMessageDelegate? LogMessage;
+    public event LoggingDelegate? Logging;
 
-    /// <inheritdoc cref="LogMessageDelegate"/>
-    protected virtual void OnLogMessage(int category, SDL_LogPriority priority, ReadOnlySpan<char> message)
+    /// <inheritdoc cref="LoggingDelegate"/>
+    protected virtual void OnLogging(int category, SDL_LogPriority priority, ReadOnlySpan<char> message)
     {
-        LogMessage?.Invoke(category, priority, message);
+        Logging?.Invoke(category, priority, message);
     }
 
     /// <summary>
     /// Handler for when the game has first started.
     /// </summary>
-    public delegate void InitDelegate();
+    public delegate void StartingDelegate();
 
     /// <summary>
     /// Raised when the game first starts.
     /// </summary>
-    public event Action? Init;
+    public event Action? Starting;
 
-    /// <inheritdoc cref="InitDelegate"/>
-    protected virtual void OnInit()
+    /// <inheritdoc cref="StartingDelegate"/>
+    protected virtual void OnStarting()
     {
-        Init?.Invoke();
+        Starting?.Invoke();
     }
 
     /// <summary>
@@ -666,17 +732,17 @@ public abstract class Game : IDisposable
     /// Amount of time that has passed since the last time game state was
     /// updated.
     /// </param>
-    public delegate void UpdateDelegate(TimeSpan delta);
+    public delegate void UpdatingDelegate(TimeSpan delta);
 
     /// <summary>
     /// Raised when the game logic should update.
     /// </summary>
-    public event UpdateDelegate? Update;
+    public event UpdatingDelegate? Updating;
 
-    /// <inheritdoc cref="UpdateDelegate"/>
-    protected virtual void OnUpdate(TimeSpan delta)
+    /// <inheritdoc cref="UpdatingDelegate"/>
+    protected virtual void OnUpdating(TimeSpan delta)
     {
-        Update?.Invoke(delta);
+        Updating?.Invoke(delta);
     }
 
     /// <summary>
@@ -686,17 +752,17 @@ public abstract class Game : IDisposable
     /// Amount of time that has passed since the last time game objects were
     /// rendered.
     /// </param>
-    public delegate void DrawDelegate(TimeSpan delta);
+    public delegate void DrawingDelegate(TimeSpan delta);
 
     /// <summary>
     /// Raised when game objects should be rendered.
     /// </summary>
-    public event DrawDelegate? Draw;
+    public event DrawingDelegate? Drawing;
 
-    /// <inheritdoc cref="DrawDelegate"/>
-    protected virtual void OnDraw(TimeSpan delta)
+    /// <inheritdoc cref="DrawingDelegate"/>
+    protected virtual void OnDrawing(TimeSpan delta)
     {
-        Draw?.Invoke(delta);
+        Drawing?.Invoke(delta);
     }
 
     /// <summary>
@@ -829,17 +895,17 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was pressed.
     /// </param>
-    public delegate void GamepadButtonDownDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button);
+    public delegate void GamepadButtonPressedDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button);
 
     /// <summary>
     /// Raised when a button on a gamepad has been pressed.
     /// </summary>
-    public event GamepadButtonDownDelegate? GamepadButtonDown;
+    public event GamepadButtonPressedDelegate? GamepadButtonPressed;
 
-    /// <inheritdoc cref="GamepadButtonDownDelegate"/>
-    protected virtual void OnGamepadButtonDown(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button)
+    /// <inheritdoc cref="GamepadButtonPressedDelegate"/>
+    protected virtual void OnGamepadButtonPressed(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button)
     {
-        GamepadButtonDown?.Invoke(gamepad, button);
+        GamepadButtonPressed?.Invoke(gamepad, button);
     }
 
     /// <summary>
@@ -851,17 +917,17 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was released.
     /// </param>
-    public delegate void GamepadButtonUpDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button);
+    public delegate void GamepadButtonReleasedDelegate(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button);
 
     /// <summary>
     /// Raised when a button on a gamepad has been released.
     /// </summary>
-    public event GamepadButtonUpDelegate? GamepadButtonUp;
+    public event GamepadButtonReleasedDelegate? GamepadButtonReleased;
 
-    /// <inheritdoc cref="GamepadButtonUpDelegate"/>
-    protected virtual void OnGamepadButtonUp(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button)
+    /// <inheritdoc cref="GamepadButtonReleasedDelegate"/>
+    protected virtual void OnGamepadButtonReleased(IntPtr<SDL_Gamepad> gamepad, SDL_GamepadButton button)
     {
-        GamepadButtonUp?.Invoke(gamepad, button);
+        GamepadButtonReleased?.Invoke(gamepad, button);
     }
 
     /// <summary>
@@ -901,22 +967,33 @@ public abstract class Game : IDisposable
     /// <param name="fingerIndex">
     /// Finger that was pressed.
     /// </param>
+    /// <param name="position">
+    /// Position of the touch.
+    /// </param>
     /// <param name="pressure">
     /// Pressure of the touch.
     /// </param>
-    public delegate void GamepadTouchDownDelegate(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+    public delegate void TouchpadPressedDelegate(
+        IntPtr<SDL_Gamepad> gamepad,
+        int padIndex,
+        int fingerIndex,
+        Vector2 position,
         float pressure);
 
     /// <summary>
     /// Raised when a gamepad touchpad has been pressed.
     /// </summary>
-    public event GamepadTouchDownDelegate? GamepadTouchDown;
+    public event TouchpadPressedDelegate? TouchpadPressed;
 
-    /// <inheritdoc cref="GamepadTouchDownDelegate"/>
-    protected virtual void OnGamepadTouchDown(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+    /// <inheritdoc cref="TouchpadPressedDelegate"/>
+    protected virtual void OnTouchpadPressed(
+        IntPtr<SDL_Gamepad> gamepad,
+        int padIndex,
+        int fingerIndex,
+        Vector2 position,
         float pressure)
     {
-        GamepadTouchDown?.Invoke(gamepad, padIndex, fingerIndex, pressure);
+        TouchpadPressed?.Invoke(gamepad, padIndex, fingerIndex, position, pressure);
     }
 
     /// <summary>
@@ -931,22 +1008,33 @@ public abstract class Game : IDisposable
     /// <param name="fingerIndex">
     /// Finger that was moved.
     /// </param>
+    /// <param name="position">
+    /// Position of the touch.
+    /// </param>
     /// <param name="pressure">
     /// Pressure of the touch.
     /// </param>
-    public delegate void GamepadTouchMoveDelegate(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+    public delegate void TouchpadMovedDelegate(
+        IntPtr<SDL_Gamepad> gamepad,
+        int padIndex,
+        int fingerIndex,
+        Vector2 position,
         float pressure);
 
     /// <summary>
     /// Raised when a gamepad touchpad has been moved.
     /// </summary>
-    public event GamepadTouchMoveDelegate? GamepadTouchMove;
+    public event TouchpadMovedDelegate? TouchpadMoved;
 
-    /// <inheritdoc cref="GamepadTouchMoveDelegate"/>
-    protected virtual void OnGamepadTouchMove(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+    /// <inheritdoc cref="TouchpadMovedDelegate"/>
+    protected virtual void OnTouchpadMoved(
+        IntPtr<SDL_Gamepad> gamepad,
+        int padIndex,
+        int fingerIndex,
+        Vector2 position,
         float pressure)
     {
-        GamepadTouchMove?.Invoke(gamepad, padIndex, fingerIndex, pressure);
+        TouchpadMoved?.Invoke(gamepad, padIndex, fingerIndex, position, pressure);
     }
 
     /// <summary>
@@ -961,21 +1049,33 @@ public abstract class Game : IDisposable
     /// <param name="fingerIndex">
     /// Finger that was released.
     /// </param>
+    /// <param name="position">
+    /// Position of the touch.
+    /// </param>
     /// <param name="pressure">
     /// Pressure of the touch.
     /// </param>
-    public delegate void GamepadTouchUpDelegate(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex,
+    public delegate void TouchpadReleasedDelegate(
+        IntPtr<SDL_Gamepad> gamepad,
+        int padIndex,
+        int fingerIndex,
+        Vector2 position,
         float pressure);
 
     /// <summary>
     /// Raised when a gamepad touchpad has been released.
     /// </summary>
-    public event GamepadTouchUpDelegate? GamepadTouchUp;
+    public event TouchpadReleasedDelegate? TouchpadReleased;
 
-    /// <inheritdoc cref="GamepadTouchUpDelegate"/>
-    protected virtual void OnGamepadTouchUp(IntPtr<SDL_Gamepad> gamepad, int padIndex, int fingerIndex, float pressure)
+    /// <inheritdoc cref="TouchpadReleasedDelegate"/>
+    protected virtual void OnTouchpadReleased(
+        IntPtr<SDL_Gamepad> gamepad,
+        int padIndex,
+        int fingerIndex,
+        Vector2 position,
+        float pressure)
     {
-        GamepadTouchUp?.Invoke(gamepad, padIndex, fingerIndex, pressure);
+        TouchpadReleased?.Invoke(gamepad, padIndex, fingerIndex, position, pressure);
     }
 
     /// <summary>
@@ -1025,17 +1125,17 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was pressed.
     /// </param>
-    public delegate void MouseButtonDownDelegate(SDL_MouseID mouse, SDLButton button);
+    public delegate void MouseButtonPressedDelegate(SDL_MouseID mouse, SDLButton button);
 
     /// <summary>
     /// Raised when a mouse button has been pressed.
     /// </summary>
-    public event MouseButtonDownDelegate? MouseButtonDown;
+    public event MouseButtonPressedDelegate? MouseButtonPressed;
 
-    /// <inheritdoc cref="MouseButtonDownDelegate"/>
-    protected virtual void OnMouseButtonDown(SDL_MouseID mouse, SDLButton button)
+    /// <inheritdoc cref="MouseButtonPressedDelegate"/>
+    protected virtual void OnMouseButtonPressed(SDL_MouseID mouse, SDLButton button)
     {
-        MouseButtonDown?.Invoke(mouse, button);
+        MouseButtonPressed?.Invoke(mouse, button);
     }
 
     /// <summary>
@@ -1047,17 +1147,17 @@ public abstract class Game : IDisposable
     /// <param name="button">
     /// ID of the button that was released.
     /// </param>
-    public delegate void MouseButtonUpDelegate(SDL_MouseID mouse, SDLButton button);
+    public delegate void MouseButtonReleasedDelegate(SDL_MouseID mouse, SDLButton button);
 
     /// <summary>
     /// Raised when a mouse button has been released.
     /// </summary>
-    public event MouseButtonUpDelegate? MouseButtonUp;
+    public event MouseButtonReleasedDelegate? MouseButtonReleased;
 
-    /// <inheritdoc cref="MouseButtonUpDelegate"/>
-    protected virtual void OnMouseButtonUp(SDL_MouseID mouse, SDLButton button)
+    /// <inheritdoc cref="MouseButtonReleasedDelegate"/>
+    protected virtual void OnMouseButtonReleased(SDL_MouseID mouse, SDLButton button)
     {
-        MouseButtonUp?.Invoke(mouse, button);
+        MouseButtonReleased?.Invoke(mouse, button);
     }
 
     /// <summary>
@@ -1066,23 +1166,23 @@ public abstract class Game : IDisposable
     /// <param name="mouse">
     /// ID of the mouse that moved.
     /// </param>
-    /// <param name="x">
-    /// New x-coordinate of the mouse.
+    /// <param name="position">
+    /// New coordinates of the mouse.
     /// </param>
-    /// <param name="y">
-    /// New y-coordinate of the mouse.
+    /// <param name="delta">
+    /// Delta coordinates of the movement.
     /// </param>
-    public delegate void MouseMoveDelegate(SDL_MouseID mouse, int x, int y, float dx, float dy);
+    public delegate void MouseMovedDelegate(SDL_MouseID mouse, Vector2 position, Vector2 delta);
 
     /// <summary>
     /// Raised when a mouse has moved.
     /// </summary>
-    public event MouseMoveDelegate? MouseMove;
+    public event MouseMovedDelegate? MouseMoved;
 
-    /// <inheritdoc cref="MouseMoveDelegate"/>
-    protected virtual void OnMouseMove(SDL_MouseID mouse, int x, int y, float dx, float dy)
+    /// <inheritdoc cref="MouseMovedDelegate"/>
+    protected virtual void OnMouseMoved(SDL_MouseID mouse, Vector2 position, Vector2 delta)
     {
-        MouseMove?.Invoke(mouse, x, y, dx, dy);
+        MouseMoved?.Invoke(mouse, position, delta);
     }
 
     /// <summary>
@@ -1091,26 +1191,23 @@ public abstract class Game : IDisposable
     /// <param name="mouse">
     /// ID of the mouse that the wheel was moved on.
     /// </param>
-    /// <param name="x">
-    /// Horizontal scroll amount.
-    /// </param>
-    /// <param name="y">
-    /// Vertical scroll amount.
+    /// <param name="amount">
+    /// Scroll amount.
     /// </param>
     /// <param name="direction">
     /// Direction of the scroll.
     /// </param>
-    public delegate void MouseWheelDelegate(SDL_MouseID mouse, float x, float y, SDL_MouseWheelDirection direction);
+    public delegate void MouseWheelMovedDelegate(SDL_MouseID mouse, Vector2 amount, SDL_MouseWheelDirection direction);
 
     /// <summary>
     /// Raised when a mouse wheel has moved.
     /// </summary>
-    public event MouseWheelDelegate? MouseWheel;
+    public event MouseWheelMovedDelegate? MouseWheelMoved;
 
-    /// <inheritdoc cref="MouseWheelDelegate"/>
-    protected virtual void OnMouseWheel(SDL_MouseID mouse, float x, float y, SDL_MouseWheelDirection direction)
+    /// <inheritdoc cref="MouseWheelMovedDelegate"/>
+    protected virtual void OnMouseWheelMoved(SDL_MouseID mouse, Vector2 amount, SDL_MouseWheelDirection direction)
     {
-        MouseWheel?.Invoke(mouse, x, y, direction);
+        MouseWheelMoved?.Invoke(mouse, amount, direction);
     }
 
     /// <summary>
@@ -1128,17 +1225,17 @@ public abstract class Game : IDisposable
     /// <param name="mod">
     /// Modifier keys.
     /// </param>
-    public delegate void KeyDownDelegate(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod);
+    public delegate void KeyPressedDelegate(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod);
 
     /// <summary>
     /// Raised when a keyboard key has been pressed.
     /// </summary>
-    public event KeyDownDelegate? KeyDown;
+    public event KeyPressedDelegate? KeyPressed;
 
-    /// <inheritdoc cref="KeyDownDelegate"/>
-    protected virtual void OnKeyDown(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod)
+    /// <inheritdoc cref="KeyPressedDelegate"/>
+    protected virtual void OnKeyPressed(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod)
     {
-        KeyDown?.Invoke(keyboard, code, scan, mod);
+        KeyPressed?.Invoke(keyboard, code, scan, mod);
     }
 
     /// <summary>
@@ -1156,17 +1253,17 @@ public abstract class Game : IDisposable
     /// <param name="mod">
     /// Modifier keys.
     /// </param>
-    public delegate void KeyUpDelegate(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod);
+    public delegate void KeyReleasedDelegate(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod);
 
     /// <summary>
     /// Raised when a keyboard key has been released.
     /// </summary>
-    public event KeyUpDelegate? KeyUp;
+    public event KeyReleasedDelegate? KeyReleased;
 
-    /// <inheritdoc cref="KeyUpDelegate"/>
-    protected virtual void OnKeyUp(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod)
+    /// <inheritdoc cref="KeyReleasedDelegate"/>
+    protected virtual void OnKeyReleased(SDL_KeyboardID keyboard, SDL_Keycode code, SDL_Scancode scan, SDL_Keymod mod)
     {
-        KeyUp?.Invoke(keyboard, code, scan, mod);
+        KeyReleased?.Invoke(keyboard, code, scan, mod);
     }
 
     /// <summary>
@@ -1258,17 +1355,17 @@ public abstract class Game : IDisposable
     /// <summary>
     /// Handler for when the game scene is about to be presented to the window.
     /// </summary>
-    public delegate void PresentDelegate(TimeSpan delta);
+    public delegate void PresentingDelegate(TimeSpan delta);
 
     /// <summary>
     /// Raised when the game scene is about to be presented to the window.
     /// </summary>
-    public event PresentDelegate? Present;
+    public event PresentingDelegate? Presenting;
 
-    /// <inheritdoc cref="PresentDelegate"/>
-    protected virtual void OnPresent(TimeSpan delta)
+    /// <inheritdoc cref="PresentingDelegate"/>
+    protected virtual void OnPresenting(TimeSpan delta)
     {
-        Present?.Invoke(delta);
+        Presenting?.Invoke(delta);
     }
 
     /// <summary>
@@ -1285,6 +1382,166 @@ public abstract class Game : IDisposable
     protected virtual void OnMessageReceived(TimeSpan delta, Guid id, object data)
     {
         MessageReceived?.Invoke(delta, id, data);
+    }
+
+    /// <summary>
+    /// Handler for when a finger is pressed down.
+    /// </summary>
+    public delegate void FingerPressedDelegate(
+        SDL_TouchID touchId,
+        SDL_FingerID fingerId,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    );
+
+    /// <summary>
+    /// Raised when a finger is pressed down.
+    /// </summary>
+    public event FingerPressedDelegate? FingerPressed;
+
+    /// <inheritdoc cref="FingerPressedDelegate"/>
+    protected virtual void OnFingerPressed(
+        SDL_TouchID touchId,
+        SDL_FingerID fingerId,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    )
+    {
+        FingerPressed?.Invoke(touchId, fingerId, location, delta, pressure);
+    }
+
+    /// <summary>
+    /// Handler for when a finger is released.
+    /// </summary>
+    public delegate void FingerReleasedDelegate(
+        SDL_TouchID touchId,
+        SDL_FingerID fingerId,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    );
+
+    /// <summary>
+    /// Raised when a finger is released.
+    /// </summary>
+    public event FingerReleasedDelegate? FingerReleased;
+
+    /// <inheritdoc cref="FingerReleasedDelegate"/>
+    protected virtual void OnFingerReleased(
+        SDL_TouchID touch,
+        SDL_FingerID finger,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    )
+    {
+        FingerReleased?.Invoke(touch, finger, location, delta, pressure);
+    }
+
+    /// <summary>
+    /// Handler for when a finger is moved.
+    /// </summary>
+    public delegate void FingerMovedDelegate(
+        SDL_TouchID touch,
+        SDL_FingerID finger,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    );
+
+    /// <summary>
+    /// Raised when a finger is moved.
+    /// </summary>
+    public event FingerMovedDelegate? FingerMoved;
+
+    /// <inheritdoc cref="FingerMovedDelegate"/>
+    protected virtual void OnFingerMoved(
+        SDL_TouchID touch,
+        SDL_FingerID finger,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    )
+    {
+        FingerMoved?.Invoke(touch, finger, location, delta, pressure);
+    }
+
+    /// <summary>
+    /// Handler for when a finger motion is canceled.
+    /// </summary>
+    public delegate void FingerCanceledDelegate(
+        SDL_TouchID touch,
+        SDL_FingerID finger,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    );
+
+    /// <summary>
+    /// Raised when a finger motion is canceled.
+    /// </summary>
+    public event FingerCanceledDelegate? FingerCanceled;
+
+    /// <inheritdoc cref="FingerCanceledDelegate"/>
+    protected virtual void OnFingerCanceled(
+        SDL_TouchID touch,
+        SDL_FingerID finger,
+        Vector2 location,
+        Vector2 delta,
+        float pressure
+    )
+    {
+        FingerCanceled?.Invoke(touch, finger, location, delta, pressure);
+    }
+
+    /// <summary>
+    /// Handler for when a finger pinch motion begins.
+    /// </summary>
+    public delegate void PinchStartedDelegate(float scale);
+
+    /// <summary>
+    /// Raised when a finger pinch motion has begun.
+    /// </summary>
+    public event PinchStartedDelegate? PinchStarted;
+
+    /// <inheritdoc cref="PinchStartedDelegate"/>
+    protected virtual void OnPinchStarted(float scale)
+    {
+        PinchStarted?.Invoke(scale);
+    }
+
+    /// <summary>
+    /// Handler for when a finger pinch motion updates.
+    /// </summary>
+    public delegate void PinchUpdatedDelegate(float scale);
+
+    /// <summary>
+    /// Raised when a finger pinch motion has been updated.
+    /// </summary>
+    public event PinchUpdatedDelegate? PinchUpdated;
+
+    /// <inheritdoc cref="PinchUpdatedDelegate"/>
+    protected virtual void OnPinchUpdated(float scale)
+    {
+        PinchUpdated?.Invoke(scale);
+    }
+
+    /// <summary>
+    /// Handler for when a finger pinch motion ends.
+    /// </summary>
+    public delegate void PinchEndedDelegate(float scale);
+
+    /// <summary>
+    /// Raised when a finger pinch motion has ended.
+    /// </summary>
+    public event PinchEndedDelegate? PinchEnded;
+
+    /// <inheritdoc cref="PinchEndedDelegate"/>
+    protected virtual void OnPinchEnded(float scale)
+    {
+        PinchEnded?.Invoke(scale);
     }
 
     /// <summary>
