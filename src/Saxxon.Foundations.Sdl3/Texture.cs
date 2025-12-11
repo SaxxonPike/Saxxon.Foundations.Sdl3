@@ -601,4 +601,36 @@ public static class Texture
             ).AssertSdlSuccess();
         }
     }
+
+    /// <summary>
+    /// Gets the palette used by a texture.
+    /// </summary>
+    /// <param name="texture">
+    /// Texture to get the palette from.
+    /// </param>
+    /// <returns>Palette used by the texture, or null if no palette is present.</returns>
+    public static unsafe IntPtr<SDL_Palette> GetPalette(
+        this IntPtr<SDL_Texture> texture
+    )
+    {
+        return SDL_GetTexturePalette(texture);
+    }
+
+    /// <summary>
+    /// Sets the palette used by a texture.
+    /// </summary>
+    /// <param name="texture">
+    /// Texture that will be assigned the palette.
+    /// </param>
+    /// <param name="palette">
+    /// Palette to assign.
+    /// </param>
+    public static unsafe void SetPalette(
+        this IntPtr<SDL_Texture> texture,
+        IntPtr<SDL_Palette> palette
+    )
+    {
+        SDL_SetTexturePalette(texture, palette)
+            .AssertSdlSuccess();
+    }
 }

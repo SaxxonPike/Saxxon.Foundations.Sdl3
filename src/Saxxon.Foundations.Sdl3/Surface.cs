@@ -371,7 +371,7 @@ public static class Surface
     /// <remarks>
     /// The new surface should be freed with <see cref="Destroy"/>. Not doing so will result in a memory leak.
     /// </remarks>
-    public static unsafe IntPtr<SDL_Surface> Load(
+    public static unsafe IntPtr<SDL_Surface> LoadBmp(
         string name
     )
     {
@@ -396,12 +396,104 @@ public static class Surface
     /// <remarks>
     /// The new surface should be freed with <see cref="Destroy"/>. Not doing so will result in a memory leak.
     /// </remarks>
-    public static unsafe IntPtr<SDL_Surface> LoadIo(
+    public static unsafe IntPtr<SDL_Surface> LoadBmpIo(
         IntPtr<SDL_IOStream> stream,
         bool closeIo
     )
     {
         return ((IntPtr<SDL_Surface>)SDL_LoadBMP_IO(stream, closeIo))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a PNG image from a file.
+    /// </summary>
+    /// <param name="name">
+    /// The PNG file to load.
+    /// </param>
+    /// <returns>
+    /// The created surface.
+    /// </returns>
+    /// <remarks>
+    /// The new surface should be freed with <see cref="Destroy"/>. Not doing so will result in a memory leak.
+    /// </remarks>
+    public static unsafe IntPtr<SDL_Surface> LoadPng(
+        string name
+    )
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        return ((IntPtr<SDL_Surface>)SDL_LoadPNG(nameStr))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads a PNG image from a seekable SDL data stream.
+    /// </summary>
+    /// <param name="stream">
+    /// The data stream for the surface.
+    /// </param>
+    /// <param name="closeIo">
+    /// If true, closes the stream before returning, even in the case of an error.
+    /// </param>
+    /// <returns>
+    /// The created surface.
+    /// </returns>
+    /// <remarks>
+    /// The new surface should be freed with <see cref="Destroy"/>. Not doing so will result in a memory leak.
+    /// </remarks>
+    public static unsafe IntPtr<SDL_Surface> LoadPngIo(
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo
+    )
+    {
+        return ((IntPtr<SDL_Surface>)SDL_LoadPNG_IO(stream, closeIo))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an image from a file.
+    /// </summary>
+    /// <param name="name">
+    /// The image file to load.
+    /// </param>
+    /// <returns>
+    /// The created surface.
+    /// </returns>
+    /// <remarks>
+    /// The new surface should be freed with <see cref="Destroy"/>. Not doing so will result in a memory leak.
+    /// </remarks>
+    public static unsafe IntPtr<SDL_Surface> Load(
+        string name
+    )
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        return ((IntPtr<SDL_Surface>)SDL_LoadSurface(nameStr))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
+    /// Loads an image from a seekable SDL data stream.
+    /// </summary>
+    /// <param name="stream">
+    /// The data stream for the surface.
+    /// </param>
+    /// <param name="closeIo">
+    /// If true, closes the stream before returning, even in the case of an error.
+    /// </param>
+    /// <returns>
+    /// The created surface.
+    /// </returns>
+    /// <remarks>
+    /// The new surface should be freed with <see cref="Destroy"/>. Not doing so will result in a memory leak.
+    /// </remarks>
+    public static unsafe IntPtr<SDL_Surface> LoadIo(
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo
+    )
+    {
+        return ((IntPtr<SDL_Surface>)SDL_LoadSurface_IO(stream, closeIo))
             .AssertSdlNotNull();
     }
 
