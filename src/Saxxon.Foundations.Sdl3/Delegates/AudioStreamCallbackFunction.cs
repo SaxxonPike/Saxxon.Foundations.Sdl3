@@ -28,12 +28,14 @@ public sealed unsafe class AudioStreamCallbackFunction(
     /// <summary>
     /// SDL user data ID.
     /// </summary>
-    public IntPtr UserData { get; } = UserDataStore.Add(func);
-    
+    public IntPtr UserData { get; } = 
+        UserDataStore.Add(func);
+
     /// <summary>
     /// Pointer to the static function that receives calls from SDL.
     /// </summary>
-    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioStream*, int, int, void> Callback => &Ingress;
+    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioStream*, int, int, void> Callback =>
+        &Ingress;
 
     /// <summary>
     /// Ingress function from SDL.
@@ -54,8 +56,6 @@ public sealed unsafe class AudioStreamCallbackFunction(
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose()
-    {
+    public void Dispose() => 
         UserDataStore.Remove(UserData);
-    }
 }

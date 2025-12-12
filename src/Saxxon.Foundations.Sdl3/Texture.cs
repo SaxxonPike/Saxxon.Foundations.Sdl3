@@ -11,27 +11,27 @@ namespace Saxxon.Foundations.Sdl3;
 public static class Texture
 {
     /// <summary>
-    /// Gets the width of a texture, in pixels.
+    /// Extensions for <see cref="SDL_Texture"/> references.
     /// </summary>
-    public static int GetWidth(this IntPtr<SDL_Texture> ptr)
+    extension(IntPtr<SDL_Texture> ptr)
     {
-        return ptr.IsNull ? 0 : ptr.AsReadOnlyRef().w;
-    }
+        /// <summary>
+        /// The width of the texture, in pixels.
+        /// </summary>
+        public ref readonly int Width =>
+            ref ptr.AsReadOnlyRef().w;
 
-    /// <summary>
-    /// Gets the height of a texture, in pixels.
-    /// </summary>
-    public static int GetHeight(this IntPtr<SDL_Texture> ptr)
-    {
-        return ptr.IsNull ? 0 : ptr.AsReadOnlyRef().h;
-    }
+        /// <summary>
+        /// The height of the texture, in pixels.
+        /// </summary>
+        public ref readonly int Height =>
+            ref ptr.AsReadOnlyRef().h;
 
-    /// <summary>
-    /// Gets the pixel format of a texture.
-    /// </summary>
-    public static SDL_PixelFormat GetFormat(this IntPtr<SDL_Texture> ptr)
-    {
-        return ptr.IsNull ? 0 : ptr.AsReadOnlyRef().format;
+        /// <summary>
+        /// The format of the texture pixel data.
+        /// </summary>
+        public ref readonly SDL_PixelFormat Format =>
+            ref ptr.AsReadOnlyRef().format;
     }
 
     /// <summary>
@@ -60,6 +60,18 @@ public static class Texture
             .AssertSdlNotNull();
     }
 
+    /// <summary>
+    /// Creates a texture for a rendering context with the specified properties.
+    /// </summary>
+    /// <param name="renderer">
+    /// The rendering context.
+    /// </param>
+    /// <param name="props">
+    /// The properties to use.
+    /// </param>
+    /// <returns>
+    /// The created texture.
+    /// </returns>
     public static unsafe IntPtr<SDL_Texture> CreateWithProperties(
         IntPtr<SDL_Renderer> renderer,
         SDL_PropertiesID props
@@ -252,6 +264,31 @@ public static class Texture
             .AssertSdlSuccess();
     }
 
+    /// <summary>
+    /// Lock a portion of the texture for write-only pixel access, and expose it as a SDL surface.
+    /// </summary>
+    /// <param name="texture">
+    /// The texture to lock for access, which must be created with
+    /// <see cref="SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING"/>.
+    /// </param>
+    /// <param name="rect">
+    /// The rectangle to lock for access. If null, the entire texture will be locked.
+    /// </param>
+    /// <returns>
+    /// A new surface the same size as the rectangle. Don't assume any specific pixel content.
+    /// </returns>
+    /// <remarks>
+    /// Besides providing an <see cref="SDL_Surface"/> instead of raw pixel data, this function operates like
+    /// <see cref="Lock"/>.
+    /// As an optimization, the pixels made available for editing don't necessarily contain the old texture data.
+    /// This is a write-only operation, and if you need to keep a copy of the texture data you should do that at
+    /// the application level.
+    /// 
+    /// You must use <see cref="Unlock"/> to unlock the pixels and apply any changes.
+    /// 
+    /// The returned surface is freed internally after calling <see cref="Unlock"/> or <see cref="Destroy"/>. The
+    /// caller should not free it.
+    /// </remarks>
     public static unsafe IntPtr<SDL_Surface> LockToSurface(
         this IntPtr<SDL_Texture> texture,
         SDL_Rect? rect
@@ -263,6 +300,27 @@ public static class Texture
         return surface;
     }
 
+    /// <summary>
+    /// Lock a portion of the texture for write-only pixel access.
+    /// </summary>
+    /// <param name="texture">
+    /// The texture to lock for access, which must be created with
+    /// <see cref="SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING"/>.
+    /// </param>
+    /// <param name="rect">
+    /// The rectangle to lock for access. If null, the entire texture will be locked.
+    /// </param>
+    /// <returns>
+    /// Pixels: the locked pixels, appropriately offset by the locked area.
+    /// Pitch: the length of one row in bytes.
+    /// </returns>
+    /// <remarks>
+    /// As an optimization, the pixels made available for editing don't necessarily contain the old texture data.
+    /// This is a write-only operation, and if you need to keep a copy of the texture data you should do that at
+    /// the application level.
+    /// 
+    /// You must use <see cref="Unlock"/> to unlock the pixels and apply any changes.
+    /// </remarks>
     public static unsafe (IntPtr<byte> Pixels, int Pitch) Lock(
         this IntPtr<SDL_Texture> texture,
         SDL_Rect? rect
@@ -275,6 +333,18 @@ public static class Texture
         return (pixels, pitch);
     }
 
+    /// <summary>
+    /// Unlocks a texture, uploading the changes to video memory, if needed.
+    /// </summary>
+    /// <param name="texture">
+    /// </param>
+    /// <remarks>
+    /// Note that <see cref="Lock"/> is intended to be write-only; it will not guarantee the previous contents
+    /// of the texture will be provided. You must fully initialize any area of a texture that you lock before
+    /// unlocking it, as the pixels might otherwise be uninitialized memory.
+    /// Consequently, locking and immediately unlocking a texture can result in corrupted textures,
+    /// depending on the renderer in use.
+    /// </remarks>
     public static unsafe void Unlock(
         this IntPtr<SDL_Texture> texture
     )
@@ -282,22 +352,99 @@ public static class Texture
         SDL_UnlockTexture(texture);
     }
 
-    public static unsafe SDL_Colorspace GetColorSpace(
+    /// <summary>
+    /// Gets a texture's <see cref="SDL_Colorspace"/>.
+    /// </summary>
+    public static unsafe SDL_Colorspace? GetColorSpace(
         this IntPtr<SDL_Texture> texture
     )
     {
-        return (SDL_Colorspace)SDL_GetTextureProperties(texture)
-            .GetNumber(SDL_PROP_TEXTURE_COLORSPACE_NUMBER);
+        return SDL_GetTextureProperties(texture)
+            .TryGetNumber(SDL_PROP_TEXTURE_COLORSPACE_NUMBER, out var val)
+            ? (SDL_Colorspace)val
+            : null;
     }
 
-    public static unsafe SDL_TextureAccess GetAccess(
+    /// <summary>
+    /// Gets the <see cref="SDL_TextureAccess"/> used during a texture's creation.
+    /// </summary>
+    public static unsafe SDL_TextureAccess? GetAccess(
         this IntPtr<SDL_Texture> texture
     )
     {
-        return (SDL_TextureAccess)SDL_GetTextureProperties(texture)
-            .GetNumber(SDL_PROP_TEXTURE_ACCESS_NUMBER);
+        return SDL_GetTextureProperties(texture)
+            .TryGetNumber(SDL_PROP_TEXTURE_ACCESS_NUMBER, out var val)
+            ? (SDL_TextureAccess)val
+            : null;
     }
 
+    /// <summary>
+    /// For HDR10 and floating point textures, this defines the value of 100% diffuse white,
+    /// with higher values being displayed in the High Dynamic Range headroom. This defaults
+    /// to 100 for HDR10 textures and 1.0 for other textures.
+    /// </summary>
+    public static unsafe float? GetSdrWhitePoint(
+        this IntPtr<SDL_Texture> texture
+    )
+    {
+        return SDL_GetTextureProperties(texture)
+            .TryGetFloat(SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT, out var val)
+            ? val
+            : null;
+    }
+
+    /// <summary>
+    /// For HDR10 and floating point textures, this defines the maximum dynamic range used by
+    /// the content, in terms of the SDR white point. If this is defined, any values outside
+    /// the range supported by the display will be scaled into the available HDR headroom,
+    /// otherwise they are clipped. This defaults to 1.0 for SDR textures, 4.0 for HDR10 textures,
+    /// and no default for floating point textures.
+    /// </summary>
+    public static unsafe float? GetHdrHeadroom(
+        this IntPtr<SDL_Texture> texture
+    )
+    {
+        return SDL_GetTextureProperties(texture)
+            .TryGetFloat(SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT, out var val)
+            ? val
+            : null;
+    }
+
+    /// <summary>
+    /// For textures within the SDL GPU context, gets the associated <see cref="SDL_GPUTexture"/> reference.
+    /// </summary>
+    public static unsafe IntPtr<SDL_GPUTexture> GetGpuTexture(
+        this IntPtr<SDL_Texture> texture
+    )
+    {
+        return SDL_GetTextureProperties(texture)
+            .TryGetPointer(SDL_PROP_TEXTURE_GPU_TEXTURE_POINTER, out var val)
+            ? val
+            : null;
+    }
+
+    /// <summary>
+    /// Updates the given texture rectangle with new pixel data.
+    /// </summary>
+    /// <param name="texture">
+    /// The texture to update.
+    /// </param>
+    /// <param name="rect">
+    /// A rectangle representing the area to update, or null to update the entire texture.
+    /// </param>
+    /// <param name="pixels">
+    /// The raw pixel data in the format of the texture.
+    /// </param>
+    /// <typeparam name="TPixel">
+    /// Concrete type of pixel data.
+    /// </typeparam>
+    /// <remarks>
+    /// The pixel data must be in the pixel format of the texture, which can be queried using the
+    /// Format property. This is a fairly slow function, intended for use with static textures that do not change
+    /// often. If the texture is intended to be updated often, it is preferred to create the texture as streaming
+    /// and you should use other locking functions. While this function will work with streaming textures,
+    /// for optimization reasons you may not get the pixels back if you lock the texture afterward.
+    /// </remarks>
     public static unsafe void UpdateTexture<TPixel>(
         this IntPtr<SDL_Texture> texture,
         SDL_Rect? rect,
@@ -316,6 +463,28 @@ public static class Texture
         }
     }
 
+    /// <summary>
+    /// Updates the given texture rectangle with new pixel data.
+    /// </summary>
+    /// <param name="texture">
+    /// The texture to update.
+    /// </param>
+    /// <param name="rect">
+    /// A rectangle representing the area to update, or null to update the entire texture.
+    /// </param>
+    /// <param name="pixels">
+    /// The raw pixel data in the format of the texture.
+    /// </param>
+    /// <param name="pitch">
+    /// The number of bytes between the start of two pixel rows.
+    /// </param>
+    /// <remarks>
+    /// The pixel data must be in the pixel format of the texture, which can be queried using the
+    /// Format property. This is a fairly slow function, intended for use with static textures that do not change
+    /// often. If the texture is intended to be updated often, it is preferred to create the texture as streaming
+    /// and you should use other locking functions. While this function will work with streaming textures,
+    /// for optimization reasons you may not get the pixels back if you lock the texture afterward.
+    /// </remarks>
     public static unsafe void UpdateTexture(
         this IntPtr<SDL_Texture> texture,
         SDL_Rect? rect,
@@ -334,6 +503,33 @@ public static class Texture
         }
     }
 
+    /// <summary>
+    /// Updates a rectangle within a planar YV12 or IYUV texture with new pixel data.
+    /// </summary>
+    /// <param name="texture">
+    /// The texture to update.
+    /// </param>
+    /// <param name="rect">
+    /// The rectangle of pixels to update, or null to update the entire texture.
+    /// </param>
+    /// <param name="yPlane">
+    /// The raw pixel data for the Y plane.
+    /// </param>
+    /// <param name="yPitch">
+    /// The number of bytes between rows of pixel data for the Y plane.
+    /// </param>
+    /// <param name="uPlane">
+    /// The raw pixel data for the U plane.
+    /// </param>
+    /// <param name="uPitch">
+    /// The number of bytes between rows of pixel data for the U plane.
+    /// </param>
+    /// <param name="vPlane">
+    /// The raw pixel data for the V plane.
+    /// </param>
+    /// <param name="vPitch">
+    /// The number of bytes between rows of pixel data for the V plane.
+    /// </param>
     public static unsafe void UpdateYuvTexture(
         this IntPtr<SDL_Texture> texture,
         SDL_Rect? rect,
@@ -362,6 +558,27 @@ public static class Texture
         }
     }
 
+    /// <summary>
+    /// Updates a rectangle within a planar NV12 or NV21 texture with new pixels.
+    /// </summary>
+    /// <param name="texture">
+    /// The texture to update.
+    /// </param>
+    /// <param name="rect">
+    /// The rectangle of pixels to update, or null to update the entire texture.
+    /// </param>
+    /// <param name="yPlane">
+    /// The raw pixel data for the Y plane.
+    /// </param>
+    /// <param name="yPitch">
+    /// The number of bytes between rows of pixel data for the Y plane.
+    /// </param>
+    /// <param name="uvPlane">
+    /// The raw pixel data for the UV plane.
+    /// </param>
+    /// <param name="uvPitch">
+    /// The number of bytes between rows of pixel data for the UV plane.
+    /// </param>
     public static unsafe void UpdateNvTexture(
         this IntPtr<SDL_Texture> texture,
         SDL_Rect? rect,
@@ -383,5 +600,37 @@ public static class Texture
                 uvPitch
             ).AssertSdlSuccess();
         }
+    }
+
+    /// <summary>
+    /// Gets the palette used by a texture.
+    /// </summary>
+    /// <param name="texture">
+    /// Texture to get the palette from.
+    /// </param>
+    /// <returns>Palette used by the texture, or null if no palette is present.</returns>
+    public static unsafe IntPtr<SDL_Palette> GetPalette(
+        this IntPtr<SDL_Texture> texture
+    )
+    {
+        return SDL_GetTexturePalette(texture);
+    }
+
+    /// <summary>
+    /// Sets the palette used by a texture.
+    /// </summary>
+    /// <param name="texture">
+    /// Texture that will be assigned the palette.
+    /// </param>
+    /// <param name="palette">
+    /// Palette to assign.
+    /// </param>
+    public static unsafe void SetPalette(
+        this IntPtr<SDL_Texture> texture,
+        IntPtr<SDL_Palette> palette
+    )
+    {
+        SDL_SetTexturePalette(texture, palette)
+            .AssertSdlSuccess();
     }
 }

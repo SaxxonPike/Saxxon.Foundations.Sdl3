@@ -69,4 +69,10 @@ public static class SdlLib
         SDL_OpenURL(urlStr)
             .AssertSdlSuccess();
     }
+
+    /// <summary>
+    /// Returns the size of a page of memory.
+    /// </summary>
+    public static int GetPageSize() => 
+        SDL_GetSystemPageSize();
 }

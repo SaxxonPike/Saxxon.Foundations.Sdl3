@@ -62,4 +62,21 @@ public static class Cursor
                 .AssertSdlNotNull();
         }
     }
+
+    public static unsafe IntPtr<SDL_Cursor> CreateAnimated(
+        ReadOnlySpan<SDL_CursorFrameInfo> frames,
+        int hotX,
+        int hotY
+    )
+    {
+        fixed (SDL_CursorFrameInfo* framesPtr = frames)
+        {
+            return ((IntPtr<SDL_Cursor>)SDL_CreateAnimatedCursor(
+                framesPtr,
+                frames.Length,
+                hotX,
+                hotY
+            )).AssertSdlNotNull();
+        }
+    }
 }

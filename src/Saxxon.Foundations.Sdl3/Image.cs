@@ -359,7 +359,7 @@ public static class Image
     )
     {
         using var fileNameStr = new UnmanagedString(fileName);
-        IMG_SaveBMP(src, fileNameStr)
+        SDL_SaveBMP(src, fileNameStr)
             .AssertSdlSuccess();
     }
 
@@ -373,7 +373,34 @@ public static class Image
         bool closeIo
     )
     {
-        IMG_SaveBMP_IO(src, dst, closeIo)
+        SDL_SaveBMP_IO(src, dst, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into a CUR image file.
+    /// </summary>
+    public static unsafe void SaveCur(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new UnmanagedString(fileName);
+        IMG_SaveCUR(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into CUR image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveCurIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo
+    )
+    {
+        IMG_SaveCUR_IO(src, dst, closeIo)
             .AssertSdlSuccess();
     }
 
@@ -401,6 +428,33 @@ public static class Image
     )
     {
         IMG_SaveGIF_IO(src, dst, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an <see cref="SDL_Surface"/> into an ICO image file.
+    /// </summary>
+    public static unsafe void SaveIco(
+        this IntPtr<SDL_Surface> src,
+        ReadOnlySpan<char> fileName
+    )
+    {
+        using var fileNameStr = new UnmanagedString(fileName);
+        IMG_SaveICO(src, fileNameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Save an <see cref="SDL_Surface"/> into ICO image data, via an
+    /// <see cref="SDL_IOStream"/>.
+    /// </summary>
+    public static unsafe void SaveIcoIo(
+        this IntPtr<SDL_Surface> src,
+        IntPtr<SDL_IOStream> dst,
+        bool closeIo
+    )
+    {
+        IMG_SaveICO_IO(src, dst, closeIo)
             .AssertSdlSuccess();
     }
 
@@ -442,7 +496,7 @@ public static class Image
     )
     {
         using var fileNameStr = new UnmanagedString(fileName);
-        IMG_SavePNG(src, fileNameStr)
+        SDL_SavePNG(src, fileNameStr)
             .AssertSdlSuccess();
     }
 
@@ -456,7 +510,7 @@ public static class Image
         bool closeIo
     )
     {
-        IMG_SavePNG_IO(src, dst, closeIo)
+        SDL_SavePNG_IO(src, dst, closeIo)
             .AssertSdlSuccess();
     }
 

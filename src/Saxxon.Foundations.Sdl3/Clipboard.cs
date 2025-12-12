@@ -28,6 +28,9 @@ public static class Clipboard
         return SdlMemoryManager.Owned(data, (int)size);
     }
 
+    public static unsafe IntPtr<SDL_Surface> GetImage() => 
+        IMG_GetClipboardImage();
+
     public static unsafe List<string?> GetMimeTypes()
     {
         UIntPtr count;

@@ -110,7 +110,11 @@ public static class HidDevice
     /// <returns>
     /// A pointer to a <see cref="SDL_hid_device"/> object.
     /// </returns>
-    public static unsafe IntPtr<SDL_hid_device> Open(ushort vendorId, ushort productId, string? serialNumber)
+    public static unsafe IntPtr<SDL_hid_device> Open(
+        ushort vendorId,
+        ushort productId,
+        string? serialNumber
+    )
     {
         IntPtr<byte> serialNumberPtr = IntPtr.Zero;
 
@@ -124,5 +128,25 @@ public static class HidDevice
             if (!serialNumberPtr.IsNull)
                 Mem.Free(serialNumberPtr);
         }
+    }
+
+    /// <summary>
+    /// Gets the properties associated with an <see cref="SDL_hid_device"/>.
+    /// </summary>
+    /// <param name="dev">
+    /// A device handle returned from <see cref="Open"/>.
+    /// </param>
+    /// <returns>
+    /// Property ID associated with the device.
+    /// </returns>
+    public static unsafe SDL_PropertiesID GetProperties(
+        this IntPtr<SDL_hid_device> dev
+    )
+    {
+        var result = SDL_hid_get_properties(dev);
+
+        return result == default
+            ? throw new SdlException()
+            : result;
     }
 }
