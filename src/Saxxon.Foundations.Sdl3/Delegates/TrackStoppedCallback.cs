@@ -12,7 +12,9 @@ namespace Saxxon.Foundations.Sdl3.Delegates;
 /// Target that will be invoked when the callback fires.
 /// </param>
 [PublicAPI]
-public sealed unsafe class TrackStoppedCallback(Action<IntPtr<MIX_Track>> func) : IDisposable
+public sealed unsafe class TrackStoppedCallback(
+    Action<IntPtr<MIX_Track>> func
+) : IDisposable
 {
     /// <summary>
     /// SDL user data ID.
@@ -22,7 +24,8 @@ public sealed unsafe class TrackStoppedCallback(Action<IntPtr<MIX_Track>> func) 
     /// <summary>
     /// Pointer to the static function that receives calls from SDL.
     /// </summary>
-    internal static delegate* unmanaged[Cdecl]<IntPtr, MIX_Track*, void> Callback => &Ingress;
+    internal static delegate* unmanaged[Cdecl]<IntPtr, MIX_Track*, void> Callback =>
+        &Ingress;
 
     /// <summary>
     /// Ingress function from SDL.
@@ -38,8 +41,6 @@ public sealed unsafe class TrackStoppedCallback(Action<IntPtr<MIX_Track>> func) 
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose()
-    {
+    public void Dispose() =>
         UserDataStore.Remove(UserData);
-    }
 }

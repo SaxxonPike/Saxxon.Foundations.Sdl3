@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
-        <PackageVersion>2025.920.0.5-alpha</PackageVersion>
-        <Version>2025.920.0.5-alpha</Version>
+        <PackageVersion>2025.1205.0.0-alpha</PackageVersion>
+        <Version>2025.1205.0.0-alpha</Version>
         <RepositoryUrl>https://github.com/SaxxonPike/Saxxon.Foundations.Sdl3</RepositoryUrl>
         <Copyright>2025 Anthony Konzel</Copyright>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -13,9 +13,9 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="ppy.SDL3-CS" Version="2025.920.0"/>
-        <PackageReference Include="ppy.SDL3_image-CS" Version="2025.920.0"/>
-        <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.920.0"/>
-        <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.920.0"/>
+        <PackageReference Include="ppy.SDL3-CS" Version="2025.1205.0"/>
+        <PackageReference Include="ppy.SDL3_image-CS" Version="2025.1205.0"/>
+        <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.1205.0"/>
+        <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.1205.0"/>
     </ItemGroup>
 </Project>

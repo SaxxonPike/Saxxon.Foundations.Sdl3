@@ -116,6 +116,40 @@ public static class Properties
     }
 
     /// <summary>
+    /// Gets a boolean value from a property set, by key.
+    /// </summary>
+    public static bool TryGetBoolean(this SDL_PropertiesID id, ReadOnlySpan<char> name, out bool value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = false;
+            return false;
+        }
+
+        value = SDL_GetBooleanProperty(id, nameStr, false);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets a boolean value from a property set, by key.
+    /// </summary>
+    public static bool TryGetBoolean(this SDL_PropertiesID id, ReadOnlySpan<byte> name, out bool value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = false;
+            return false;
+        }
+
+        value = SDL_GetBooleanProperty(id, nameStr, false);
+        return true;
+    }
+
+    /// <summary>
     /// Gets a float value from a property set, by key.
     /// </summary>
     public static float GetFloat(this SDL_PropertiesID id, ReadOnlySpan<char> name, float defaultValue = 0)
@@ -131,6 +165,40 @@ public static class Properties
     {
         using var nameStr = new UnmanagedString(name);
         return SDL_GetFloatProperty(id, nameStr, defaultValue);
+    }
+
+    /// <summary>
+    /// Gets a float value from a property set, by key.
+    /// </summary>
+    public static bool TryGetFloat(this SDL_PropertiesID id, ReadOnlySpan<char> name, out float value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = 0;
+            return false;
+        }
+
+        value = SDL_GetFloatProperty(id, nameStr, 0);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets a float value from a property set, by key.
+    /// </summary>
+    public static bool TryGetFloat(this SDL_PropertiesID id, ReadOnlySpan<byte> name, out float value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = 0;
+            return false;
+        }
+
+        value = SDL_GetFloatProperty(id, nameStr, 0);
+        return true;
     }
 
     /// <summary>
@@ -152,6 +220,40 @@ public static class Properties
     }
 
     /// <summary>
+    /// Gets an integer value from a property set, by key.
+    /// </summary>
+    public static bool TryGetNumber(this SDL_PropertiesID id, ReadOnlySpan<char> name, out long value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = 0;
+            return false;
+        }
+
+        value = SDL_GetNumberProperty(id, nameStr, 0);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets an integer value from a property set, by key.
+    /// </summary>
+    public static bool TryGetNumber(this SDL_PropertiesID id, ReadOnlySpan<byte> name, out long value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = 0;
+            return false;
+        }
+
+        value = SDL_GetNumberProperty(id, nameStr, 0);
+        return true;
+    }
+
+    /// <summary>
     /// Gets a native pointer from a property set, by key.
     /// </summary>
     public static IntPtr GetPointer(this SDL_PropertiesID id, ReadOnlySpan<char> name, IntPtr defaultValue = 0)
@@ -167,6 +269,40 @@ public static class Properties
     {
         using var nameStr = new UnmanagedString(name);
         return SDL_GetPointerProperty(id, nameStr, defaultValue);
+    }
+
+    /// <summary>
+    /// Gets a native pointer from a property set, by key.
+    /// </summary>
+    public static bool TryGetPointer(this SDL_PropertiesID id, ReadOnlySpan<char> name, out IntPtr value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = 0;
+            return false;
+        }
+
+        value = SDL_GetPointerProperty(id, nameStr, 0);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets a native pointer from a property set, by key.
+    /// </summary>
+    public static bool TryGetPointer(this SDL_PropertiesID id, ReadOnlySpan<byte> name, out IntPtr value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = 0;
+            return false;
+        }
+
+        value = SDL_GetPointerProperty(id, nameStr, 0);
+        return true;
     }
 
     /// <summary>
@@ -189,6 +325,40 @@ public static class Properties
         using var nameStr = new UnmanagedString(name);
         using var defaultStr = new UnmanagedString(defaultValue);
         return SDL_GetStringProperty(id, nameStr, defaultStr);
+    }
+
+    /// <summary>
+    /// Gets a string from a property set, by key.
+    /// </summary>
+    public static bool TryGetString(this SDL_PropertiesID id, ReadOnlySpan<char> name, out string? value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = null;
+            return false;
+        }
+
+        value = SDL_GetStringProperty(id, nameStr, null);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets a string from a property set, by key.
+    /// </summary>
+    public static bool TryGetString(this SDL_PropertiesID id, ReadOnlySpan<byte> name, out string? value)
+    {
+        using var nameStr = new UnmanagedString(name);
+
+        if (!SDL_HasProperty(id, nameStr))
+        {
+            value = null;
+            return false;
+        }
+
+        value = SDL_GetStringProperty(id, nameStr, null);
+        return true;
     }
 
     /// <summary>

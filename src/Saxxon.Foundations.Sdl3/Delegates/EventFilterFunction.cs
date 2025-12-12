@@ -26,12 +26,14 @@ public sealed unsafe class EventFilterFunction(
     /// <summary>
     /// SDL user data ID.
     /// </summary>
-    public IntPtr UserData { get; } = UserDataStore.Add(func);
-    
+    public IntPtr UserData { get; } =
+        UserDataStore.Add(func);
+
     /// <summary>
     /// Pointer to the static function that receives calls from SDL.
     /// </summary>
-    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_Event*, SDLBool> Callback => &Ingress;
+    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_Event*, SDLBool> Callback =>
+        &Ingress;
 
     /// <summary>
     /// Ingress function from SDL.
@@ -39,16 +41,11 @@ public sealed unsafe class EventFilterFunction(
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static SDLBool Ingress(
         IntPtr userdata,
-        SDL_Event* @event
-    )
-    {
-        return !UserDataStore.TryGet<Del>(userdata, out var handler) ||
-               handler!(ref Unsafe.AsRef<SDL_Event>(@event));
-    }
+        SDL_Event* @event) =>
+        !UserDataStore.TryGet<Del>(userdata, out var handler) ||
+        handler!(ref Unsafe.AsRef<SDL_Event>(@event));
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose()
-    {
+    public void Dispose() =>
         UserDataStore.Remove(UserData);
-    }
 }

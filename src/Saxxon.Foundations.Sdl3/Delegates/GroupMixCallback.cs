@@ -6,25 +6,16 @@ using Saxxon.Foundations.Sdl3.Interop;
 namespace Saxxon.Foundations.Sdl3.Delegates;
 
 /// <summary>
-/// A callback that fires when data passes through an <see cref="SDL_AudioStream"/>.
+/// A callback that describes a function that will be called when audio data on a mix group is available.
 /// </summary>
 /// <param name="func">
 /// Target that will be invoked when the callback fires.
 /// </param>
 [PublicAPI]
-public sealed unsafe class AudioStreamCallbackFunction(
-    AudioStreamCallbackFunction.Del func
+public sealed unsafe class GroupMixCallback(
+    Action<IntPtr<MIX_Group>, SDL_AudioSpec, Span<float>> func
 ) : IDisposable
 {
-    /// <summary>
-    /// Delegate for the callback target.
-    /// </summary>
-    public delegate void Del(
-        IntPtr<SDL_AudioStream> audioStream,
-        int additionalAmount,
-        int totalAmount
-    );
-
     /// <summary>
     /// SDL user data ID.
     /// </summary>
@@ -34,7 +25,7 @@ public sealed unsafe class AudioStreamCallbackFunction(
     /// <summary>
     /// Pointer to the static function that receives calls from SDL.
     /// </summary>
-    internal static delegate* unmanaged[Cdecl]<IntPtr, SDL_AudioStream*, int, int, void> Callback =>
+    internal static delegate* unmanaged[Cdecl]<IntPtr, MIX_Group*, SDL_AudioSpec*, float*, int, void> Callback =>
         &Ingress;
 
     /// <summary>
@@ -43,19 +34,19 @@ public sealed unsafe class AudioStreamCallbackFunction(
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void Ingress(
         IntPtr userdata,
-        SDL_AudioStream* stream,
-        int additionalAmount,
-        int totalAmount
+        MIX_Group* group,
+        SDL_AudioSpec* spec,
+        float* pcm,
+        int samples
     )
     {
-        if (UserDataStore.TryGet<Del>(userdata, out var handler))
-            handler!(
-                stream,
-                additionalAmount, totalAmount
-            );
+        if (UserDataStore.TryGet<Action<IntPtr<MIX_Group>, SDL_AudioSpec, Span<float>>>(userdata, out var handler))
+            handler!(group, *spec, new Span<float>(pcm, samples));
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose() => 
+    public void Dispose()
+    {
         UserDataStore.Remove(UserData);
+    }
 }

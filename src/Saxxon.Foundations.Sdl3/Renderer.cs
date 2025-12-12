@@ -762,7 +762,7 @@ public static class Renderer
         IntPtr<SDL_GPURenderState> state
     )
     {
-        SDL_SetRenderGPUState(renderer, state)
+        SDL_SetGPURenderState(renderer, state)
             .AssertSdlSuccess();
     }
 
@@ -943,16 +943,14 @@ public static class Renderer
             .AssertSdlNotNull();
     }
 
-    public static unsafe (IntPtr<SDL_Renderer> Renderer, IntPtr<SDL_GPUDevice> Device) CreateGpu(
+    public static unsafe IntPtr<SDL_Renderer> CreateGpu(
+        IntPtr<SDL_GPUDevice> device,
         IntPtr<SDL_Window> window,
         SDL_GPUShaderFormat formatFlags
     )
     {
-        SDL_GPUDevice* device;
-        var renderer = ((IntPtr<SDL_Renderer>)SDL_CreateGPURenderer(window, formatFlags, &device))
+        return ((IntPtr<SDL_Renderer>)SDL_CreateGPURenderer(device, window))
             .AssertSdlNotNull();
-        // ReSharper disable once RedundantCast
-        return (renderer, (IntPtr<SDL_GPUDevice>)device);
     }
 
     public static unsafe IntPtr<SDL_Renderer> CreateWithProperties(SDL_PropertiesID props)

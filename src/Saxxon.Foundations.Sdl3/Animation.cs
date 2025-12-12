@@ -66,6 +66,17 @@ public static class Animation
     }
 
     /// <summary>
+    /// Loads an ANI animation directly.
+    /// </summary>
+    public static unsafe IntPtr<IMG_Animation> LoadAniIo(
+        IntPtr<SDL_IOStream> src
+    )
+    {
+        return ((IntPtr<IMG_Animation>)IMG_LoadANIAnimation_IO(src))
+            .AssertSdlNotNull();
+    }
+
+    /// <summary>
     /// Loads an APNG animation directly.
     /// </summary>
     public static unsafe IntPtr<IMG_Animation> LoadApngIo(
@@ -198,5 +209,105 @@ public static class Animation
     )
     {
         return animation.AsReadOnlyRef().count;
+    }
+
+    /// <summary>
+    /// Saves an animation to a file.
+    /// </summary>
+    /// <param name="animation">
+    /// Animation to save.
+    /// </param>
+    /// <param name="file">
+    /// Path on the filesystem containing an animated image.
+    /// </param>
+    public static unsafe void Save(
+        this IntPtr<IMG_Animation> animation,
+        string file
+    )
+    {
+        using var nameStr = new UnmanagedString(file);
+
+        IMG_SaveAnimation(animation, nameStr)
+            .AssertSdlSuccess();
+    }
+
+    /// <summary>
+    /// Saves an animation to an <see cref="SDL_IOStream"/>.
+    /// </summary>
+    /// <param name="anim">
+    /// Animation to save.
+    /// </param>
+    /// <param name="stream">
+    /// Stream that the data will be written to.
+    /// </param>
+    /// <param name="closeIo">
+    /// True to close the stream before returning, false to leave it open.
+    /// </param>
+    /// <param name="type">
+    /// A filename extension that represents this data ("GIF", etc.)
+    /// </param>
+    public static unsafe void SaveTypedIo(
+        this IntPtr<IMG_Animation> anim,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo,
+        ReadOnlySpan<char> type
+    )
+    {
+        using var typeStr = new UnmanagedString(type);
+
+        IMG_SaveAnimationTyped_IO(anim, stream, closeIo, typeStr)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SaveAniIo(
+        this IntPtr<IMG_Animation> animation,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo
+    )
+    {
+        IMG_SaveANIAnimation_IO(animation, stream, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SaveApngIo(
+        this IntPtr<IMG_Animation> animation,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo
+    )
+    {
+        IMG_SaveAPNGAnimation_IO(animation, stream, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SaveAvifIo(
+        this IntPtr<IMG_Animation> animation,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo,
+        int quality
+    )
+    {
+        IMG_SaveAVIFAnimation_IO(animation, stream, closeIo, quality)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SaveGifIo(
+        this IntPtr<IMG_Animation> animation,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo
+    )
+    {
+        IMG_SaveGIFAnimation_IO(animation, stream, closeIo)
+            .AssertSdlSuccess();
+    }
+
+    public static unsafe void SaveWebpIo(
+        this IntPtr<IMG_Animation> animation,
+        IntPtr<SDL_IOStream> stream,
+        bool closeIo,
+        int quality
+    )
+    {
+        IMG_SaveWEBPAnimation_IO(animation, stream, closeIo, quality)
+            .AssertSdlSuccess();
     }
 }

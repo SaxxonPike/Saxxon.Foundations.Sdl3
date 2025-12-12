@@ -12,7 +12,9 @@ namespace Saxxon.Foundations.Sdl3.Delegates;
 /// Target that will be invoked when the callback fires.
 /// </param>
 [PublicAPI]
-public sealed unsafe class MainThreadFunction(Action func) : IDisposable
+public sealed unsafe class MainThreadFunction(
+    Action func
+) : IDisposable
 {
     /// <summary>
     /// SDL user data ID.
@@ -37,8 +39,6 @@ public sealed unsafe class MainThreadFunction(Action func) : IDisposable
     }
 
     /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose()
-    {
+    public void Dispose() =>
         UserDataStore.Remove(UserData);
-    }
 }
