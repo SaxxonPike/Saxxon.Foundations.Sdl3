@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 using Saxxon.Foundations.Sdl3.Extensions;
@@ -164,5 +165,13 @@ internal readonly ref struct UnmanagedString : IDisposable
     public override string? ToString()
     {
         return Address.GetString();
+    }
+
+    /// <summary>
+    /// Gets the string as a byte span.
+    /// </summary>
+    public ReadOnlySpan<byte> AsSpan()
+    {
+        return this;
     }
 }
