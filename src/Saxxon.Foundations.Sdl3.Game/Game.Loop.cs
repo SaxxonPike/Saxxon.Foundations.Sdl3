@@ -37,6 +37,11 @@ public abstract partial class Game
     private ulong _lastPresent;
 
     /// <summary>
+    /// True while drawing is suspended - when the window is occluded fully, for instance.
+    /// </summary>
+    private bool _suspendDraw;
+
+    /// <summary>
     /// Number of times per second that game state updates should be performed.
     /// </summary>
     protected virtual double UpdatesPerSecond
@@ -119,15 +124,30 @@ public abstract partial class Game
         {
             if (game.ShouldInitGamepads)
                 SdlLib.Init(SDL_InitFlags.SDL_INIT_GAMEPAD);
+        }
+        catch
+        {
+            Log.Error("Failed to initialize gamepad subsystem.");
+        }
+
+        try
+        {
             if (game.ShouldInitMixer)
                 MixerLib.Init();
         }
         catch
         {
-            Log.Error("");
+            Log.Error("Failed to initialize mixer subsystem.");
         }
 
-        TtfLib.Init();
+        try
+        {
+            TtfLib.Init();
+        }
+        catch
+        {
+            Log.Error("Failed to initialize font subsystem.");
+        }
 
         //
         // Create the game window and renderer.
@@ -147,9 +167,12 @@ public abstract partial class Game
         //
 
         var backBufferFormat = game.Window.GetPixelFormat();
+        var (canvasWidth, canvasHeight) = game.CanvasSize;
+
         game.Backbuffer = Texture.Create(
-            game.Renderer, backBufferFormat, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, 640, 360
+            game.Renderer, backBufferFormat, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, canvasWidth, canvasHeight
         );
+
         game.Backbuffer.SetScaleMode(SDL_ScaleMode.SDL_SCALEMODE_PIXELART);
 
         //
@@ -184,11 +207,17 @@ public abstract partial class Game
         game._updateInterval = TimeSpan.FromSeconds(1) / game.UpdatesPerSecond;
         game._updateCallback = (_, elapsed) =>
         {
+            //
+            // Cancellation will stop the update timer.
+            //
+
             if (game._closeToken.IsCancellationRequested)
                 return TimeSpan.Zero;
 
+            //
             // While this callback may run on a different thread, it can be
             // assumed that the letterbox mode is on when entering the mutex.
+            //
 
             game._updateMutex.WaitOne();
             game.OnUpdating(elapsed);
@@ -220,16 +249,21 @@ public abstract partial class Game
     /// </summary>
     private static SDL_AppResult MainIter(Game game)
     {
-        if (game._closeToken.IsCancellationRequested)
+        //
+        // If the game window is occluded, no point in trying to render anything.
+        // Cancellation will also prevent drawing.
+        //
+
+        if (game._closeToken.IsCancellationRequested || game._suspendDraw)
             return SDL_AppResult.SDL_APP_SUCCESS;
 
-        var renderer = game.Renderer;
         game._updateMutex.WaitOne();
 
         //
         // Render game objects.
         //
 
+        var renderer = game.Renderer;
         game.SetLetterboxOff();
         renderer.SetTarget(game.Backbuffer);
 

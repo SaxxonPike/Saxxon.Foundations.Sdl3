@@ -254,6 +254,18 @@ public abstract partial class Game
             // Window events
             //
 
+            case SDL_EventType.SDL_EVENT_WINDOW_OCCLUDED:
+            {
+                game._suspendDraw = true;
+                game.OnWindowOccluded();
+                break;
+            }
+            case SDL_EventType.SDL_EVENT_WINDOW_EXPOSED:
+            {
+                game._suspendDraw = false;
+                game.OnWindowExposed();
+                break;
+            }
             case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
             {
                 game.IsFocused = true;
@@ -1140,5 +1152,37 @@ public abstract partial class Game
     protected virtual void OnPinchEnded(float scale)
     {
         PinchEnded?.Invoke(scale);
+    }
+
+    /// <summary>
+    /// Handler for when the game window is fully occluded.
+    /// </summary>
+    public delegate void WindowOccludedDelegate();
+
+    /// <summary>
+    /// Raised when the game window is fully occluded.
+    /// </summary>
+    public event WindowOccludedDelegate? WindowOccluded;
+
+    /// <inheritdoc cref="WindowOccludedDelegate"/>
+    protected virtual void OnWindowOccluded()
+    {
+        WindowOccluded?.Invoke();
+    }
+
+    /// <summary>
+    /// Handler for when the game window is no longer fully occluded.
+    /// </summary>
+    public delegate void WindowExposedDelegate();
+
+    /// <summary>
+    /// Raised when the game window is no longer fully occluded.
+    /// </summary>
+    public event WindowExposedDelegate? WindowExposed;
+
+    /// <inheritdoc cref="WindowExposedDelegate"/>
+    protected virtual void OnWindowExposed()
+    {
+        WindowExposed?.Invoke();
     }
 }

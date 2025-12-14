@@ -31,6 +31,11 @@ public abstract partial class Game
     /// Returns whether the game window is currently focused.
     /// </summary>
     public bool IsFocused { get; private set; }
+    
+    /// <summary>
+    /// Returns whether the game window is currently occluded (that is, completely hidden.)
+    /// </summary>
+    public bool IsOccluded { get; private set; }
 
     /// <summary>
     /// Gets or sets the title of the game window.
@@ -49,10 +54,13 @@ public abstract partial class Game
     /// <summary>
     /// Enables the letterboxed coordinate system.
     /// </summary>
-    private void SetLetterboxOn() =>
+    private void SetLetterboxOn()
+    {
+        var (w, h) = CanvasSize;
         Renderer.SetLogicalPresentation(
-            640, 360, SDL_RendererLogicalPresentation.SDL_LOGICAL_PRESENTATION_LETTERBOX
+            w, h, SDL_RendererLogicalPresentation.SDL_LOGICAL_PRESENTATION_LETTERBOX
         );
+    }
 
     /// <summary>
     /// Disables the letterboxed coordinate system.
@@ -61,4 +69,9 @@ public abstract partial class Game
         Renderer.SetLogicalPresentation(
             0, 0, SDL_RendererLogicalPresentation.SDL_LOGICAL_PRESENTATION_DISABLED
         );
+
+    /// <summary>
+    /// Gets the size, in pixels, of the virtual canvas.
+    /// </summary>
+    protected virtual (int Width, int Height) CanvasSize => (640, 360);
 }
