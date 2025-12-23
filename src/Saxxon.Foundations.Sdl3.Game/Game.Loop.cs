@@ -254,8 +254,11 @@ public abstract partial class Game
         // Cancellation will also prevent drawing.
         //
 
-        if (game._closeToken.IsCancellationRequested || game._suspendDraw)
+        if (game._closeToken.IsCancellationRequested)
             return SDL_AppResult.SDL_APP_SUCCESS;
+
+        if (game._suspendDraw)
+            return SDL_AppResult.SDL_APP_CONTINUE;
 
         game._updateMutex.WaitOne();
 
