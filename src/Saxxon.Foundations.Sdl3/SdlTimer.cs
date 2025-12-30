@@ -15,7 +15,7 @@ public static class SdlTimer
 
     public delegate ulong TimerNsCallback(SDL_TimerID timer, ulong elapsed);
 
-    public delegate TimeSpan TimerCallback(SDL_TimerID timer, TimeSpan elapsed);
+    public delegate TimeSpan? TimerCallback(SDL_TimerID timer, TimeSpan elapsed);
 
     public static unsafe SDL_TimerID CreateMilliseconds(TimerMsCallback? callback, uint interval)
     {
@@ -63,7 +63,7 @@ public static class SdlTimer
         static ulong Execute(IntPtr userData, SDL_TimerID timer, ulong elapsed)
         {
             return UserDataStore.TryGet<TimerCallback>(userData, out var target)
-                ? target!.Invoke(timer, Time.GetFromNanoseconds(elapsed)).ToNanoseconds()
+                ? target!.Invoke(timer, Time.GetFromNanoseconds(elapsed))?.ToNanoseconds() ?? elapsed
                 : 0;
         }
     }
