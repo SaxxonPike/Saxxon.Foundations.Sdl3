@@ -37,6 +37,11 @@ public abstract partial class Game
     private ulong _lastPresent;
 
     /// <summary>
+    /// Raw timestamp of the last update event.
+    /// </summary>
+    private ulong _lastUpdate;
+
+    /// <summary>
     /// True while drawing is suspended - when the window is occluded fully, for instance.
     /// </summary>
     private bool _suspendDraw;
@@ -204,6 +209,7 @@ public abstract partial class Game
         // Initialize update timer.
         //
 
+        game._lastUpdate = Time.GetNowNanoseconds();
         game._updateInterval = TimeSpan.FromSeconds(1) / game.UpdatesPerSecond;
         game._updateCallback = (_, elapsed) =>
         {
@@ -220,7 +226,8 @@ public abstract partial class Game
             //
 
             game._updateMutex.WaitOne();
-            game.OnUpdating(elapsed);
+            var now = Time.GetNowNanoseconds();
+            game.OnUpdating(Time.GetFromNanoseconds(now - game._lastUpdate));
             game._updateMutex.ReleaseMutex();
 
             return game._updateInterval;
