@@ -19,7 +19,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NUnit3TestAdapter" Version="6.0.1" />
-    <PackageReference Include="Shouldly" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Saxxon.Foundations.Sdl3.Game\Saxxon.Foundations.Sdl3.Game.csproj" />
     <ProjectReference Include="..\Saxxon.Foundations.Sdl3\Saxxon.Foundations.Sdl3.csproj" />
   </ItemGroup>
 

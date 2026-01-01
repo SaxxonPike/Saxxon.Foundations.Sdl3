@@ -31,7 +31,7 @@ public abstract partial class Game
     /// Returns whether the game window is currently focused.
     /// </summary>
     public bool IsFocused { get; private set; }
-    
+
     /// <summary>
     /// Returns whether the game window is currently occluded (that is, completely hidden.)
     /// </summary>

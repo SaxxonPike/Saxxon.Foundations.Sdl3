@@ -1,5 +1,4 @@
 using Saxxon.Foundations.Sdl3.Interop;
-using Shouldly;
 
 namespace Saxxon.Foundations.Sdl3.Test;
 
@@ -16,8 +15,8 @@ public class UserDataStoreTests
 
         // Nonexistent entries return false.
 
-        UserDataStore.TryGet<object>(new IntPtr(-1), out _).ShouldBeFalse();
-        UserDataStore.TryGet<string>(new IntPtr(-1), out _).ShouldBeFalse();
+        Assert.That(UserDataStore.TryGet<object>(new IntPtr(-1), out _), Is.False);
+        Assert.That(UserDataStore.TryGet<string>(new IntPtr(-1), out _), Is.False);
 
         // Adding the same object multiple times returns different user data
         // each time.
@@ -27,48 +26,48 @@ public class UserDataStoreTests
         var userData2 = UserDataStore.Add(obj2);
         var userData3 = UserDataStore.Add(obj3);
 
-        userData0.ShouldNotBe(IntPtr.Zero);
-        userData1.ShouldNotBe(IntPtr.Zero);
-        userData2.ShouldNotBeOneOf(IntPtr.Zero, userData1);
-        userData3.ShouldNotBeOneOf(IntPtr.Zero, userData1, userData2);
+        Assert.That(userData0, Is.Not.Zero);
+        Assert.That(userData1, Is.Not.Zero);
+        Assert.That(userData2, Is.Not.AnyOf(IntPtr.Zero, userData1));
+        Assert.That(userData3, Is.Not.AnyOf(IntPtr.Zero, userData1, userData2));
 
         // Retrieving each object should work.
 
-        UserDataStore.TryGet<object>(userData0, out var result0).ShouldBeTrue();
-        UserDataStore.TryGet<string>(userData1, out var result1).ShouldBeTrue();
-        UserDataStore.TryGet<string>(userData2, out var result2).ShouldBeTrue();
-        UserDataStore.TryGet<string>(userData3, out var result3).ShouldBeTrue();
+        Assert.That(UserDataStore.TryGet<object>(userData0, out var result0), Is.True);
+        Assert.That(UserDataStore.TryGet<object>(userData1, out var result1), Is.True);
+        Assert.That(UserDataStore.TryGet<object>(userData2, out var result2), Is.True);
+        Assert.That(UserDataStore.TryGet<object>(userData3, out var result3), Is.True);
 
-        result0.ShouldBe(obj0);
-        result1.ShouldBe(obj1);
-        result2.ShouldBe(obj2);
-        result3.ShouldBe(obj3);
+        Assert.That(result0, Is.SameAs(obj0));
+        Assert.That(result1, Is.SameAs(obj1));
+        Assert.That(result2, Is.SameAs(obj2));
+        Assert.That(result3, Is.SameAs(obj3));
 
-        UserDataStore.Get<object>(userData0).ShouldBe(result0);
-        UserDataStore.Get<string>(userData1).ShouldBe(result1);
-        UserDataStore.Get<string>(userData2).ShouldBe(result2);
-        UserDataStore.Get<string>(userData3).ShouldBe(result3);
+        Assert.That(UserDataStore.Get<object>(userData0), Is.SameAs(result0));
+        Assert.That(UserDataStore.Get<object>(userData1), Is.SameAs(result1));
+        Assert.That(UserDataStore.Get<object>(userData2), Is.SameAs(result2));
+        Assert.That(UserDataStore.Get<object>(userData3), Is.SameAs(result3));
 
         // Removing an object should make it no longer available.
 
         UserDataStore.Remove(userData0);
-        UserDataStore.TryGet<object>(userData0, out _).ShouldBeFalse();
+        Assert.That(UserDataStore.TryGet<object>(userData0, out _), Is.False);
 
         // Removing an object should not affect other objects.
 
         UserDataStore.Remove(userData1);
-        UserDataStore.TryGet<string>(userData1, out _).ShouldBeFalse();
-        UserDataStore.Get<string>(userData2).ShouldBe(obj2);
-        UserDataStore.Get<string>(userData3).ShouldBe(obj3);
+        Assert.That(UserDataStore.TryGet<string>(userData1, out _), Is.False);
+        Assert.That(UserDataStore.Get<string>(userData2), Is.SameAs(obj2));
+        Assert.That(UserDataStore.Get<string>(userData3), Is.SameAs(obj3));
 
         // Removing all objects of a given type should make them unavailable.
 
         UserDataStore.RemoveAll<object>();
         UserDataStore.RemoveAll<string>();
 
-        UserDataStore.TryGet<object>(userData0, out result0).ShouldBeFalse();
-        UserDataStore.TryGet(userData1, out result1).ShouldBeFalse();
-        UserDataStore.TryGet(userData2, out result2).ShouldBeFalse();
-        UserDataStore.TryGet(userData3, out result3).ShouldBeFalse();
+        Assert.That(UserDataStore.TryGet<object>(userData0, out result0), Is.False);
+        Assert.That(UserDataStore.TryGet(userData1, out result1), Is.False);
+        Assert.That(UserDataStore.TryGet(userData2, out result2), Is.False);
+        Assert.That(UserDataStore.TryGet(userData3, out result3), Is.False);
     }
 }
