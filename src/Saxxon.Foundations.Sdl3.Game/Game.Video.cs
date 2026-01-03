@@ -31,7 +31,7 @@ public abstract partial class Game
     /// Returns whether the game window is currently focused.
     /// </summary>
     public bool IsFocused { get; private set; }
-    
+
     /// <summary>
     /// Returns whether the game window is currently occluded (that is, completely hidden.)
     /// </summary>
@@ -65,10 +65,20 @@ public abstract partial class Game
     /// <summary>
     /// Disables the letterboxed coordinate system.
     /// </summary>
-    private void SetLetterboxOff() =>
+    private void SetLetterboxOff()
+    {
+        if (!ForceLetterbox)
+            return;
+
         Renderer.SetLogicalPresentation(
             0, 0, SDL_RendererLogicalPresentation.SDL_LOGICAL_PRESENTATION_DISABLED
         );
+    }
+
+    /// <summary>
+    /// If true, the letterbox presentation will always be active, even during <see cref="OnPresenting"/>.
+    /// </summary>
+    protected virtual bool ForceLetterbox => false;
 
     /// <summary>
     /// Gets the size, in pixels, of the virtual canvas.
