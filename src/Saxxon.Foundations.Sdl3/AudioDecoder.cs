@@ -49,10 +49,10 @@ public static class AudioDecoder
         MIX_DestroyAudioDecoder(decoder);
     }
 
-    public static unsafe IntPtr<MIX_AudioDecoder> Get(int index)
+    public static unsafe string? Get(int index)
     {
-        return ((IntPtr<MIX_AudioDecoder>)MIX_GetAudioDecoder(index))
-            .AssertSdlNotNull();
+        return ((IntPtr<byte>)MIX_GetAudioDecoder(index))
+            .GetString();
     }
 
     public static int GetCount()
