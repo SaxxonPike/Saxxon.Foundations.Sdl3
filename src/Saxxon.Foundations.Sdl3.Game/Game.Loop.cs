@@ -6,11 +6,6 @@ namespace Saxxon.Foundations.Sdl3.Game;
 public abstract partial class Game
 {
     /// <summary>
-    /// Handler for the update timer interval.
-    /// </summary>
-    private SdlTimer.TimerCallback? _updateCallback;
-
-    /// <summary>
     /// Mutex that indicates when updates are in progress.
     /// </summary>
     private Mutex _updateMutex = new();
@@ -211,30 +206,43 @@ public abstract partial class Game
 
         game._lastUpdate = Time.GetNowNanoseconds();
         game._updateInterval = TimeSpan.FromSeconds(1) / game.UpdatesPerSecond;
-        game._updateCallback = (_, _) =>
+
+        Task.Run(() =>
         {
             //
             // Cancellation will stop the update timer.
             //
 
-            if (game._closeToken.IsCancellationRequested)
-                return TimeSpan.Zero;
+            while (!game._closeToken.IsCancellationRequested)
+            {
+                //
+                // Efficient wait loop on this thread.
+                //
 
-            //
-            // While this callback may run on a different thread, it can be
-            // assumed that the letterbox mode is on when entering the mutex.
-            //
+                SpinWait.SpinUntil(() =>
+                    game._closeToken.IsCancellationRequested ||
+                    Time.GetNowNanoseconds() - game._lastUpdate >= game._updateInterval.ToNanoseconds());
 
-            var now = Time.GetNowNanoseconds();
-            game._updateMutex.WaitOne();
-            game.OnUpdating(Time.GetFromNanoseconds(now - game._lastUpdate));
-            game._lastUpdate = now;
-            game._updateMutex.ReleaseMutex();
+                //
+                // Catch the game timer up.
+                //
 
-            return game._updateInterval;
-        };
+                game._updateMutex.WaitOne();
+                var now = Time.GetNowNanoseconds();
+                var interval = game._updateInterval;
+                var intervalNs = interval.ToNanoseconds();
+                var cycles = (int)((now - game._lastUpdate) / intervalNs);
 
-        SdlTimer.Create(game._updateCallback, game._updateInterval);
+                while (!game._closeToken.IsCancellationRequested && cycles-- > 0)
+                {
+                    game.OnUpdating(interval);
+                    game._lastUpdate += intervalNs;
+                }
+
+                game._updateMutex.ReleaseMutex();
+            }
+        }, game._closeToken.Token);
+
         game._messageEventType = Events.Register(1);
 
         return (SDL_AppResult.SDL_APP_CONTINUE, game);
@@ -326,7 +334,9 @@ public abstract partial class Game
         //
 
         game._updateMutex.ReleaseMutex();
+
         renderer.Present();
+
         return SDL_AppResult.SDL_APP_CONTINUE;
     }
 }
