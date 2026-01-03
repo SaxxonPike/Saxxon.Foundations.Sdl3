@@ -69,7 +69,6 @@ public abstract partial class Game
     {
         _closeToken = new CancellationTokenSource();
 
-        Args = args;
         PendingGames.Enqueue(this);
 
         var main = new AppMain<Game>
@@ -112,6 +111,7 @@ public abstract partial class Game
         if (!PendingGames.TryDequeue(out var game))
             return (SDL_AppResult.SDL_APP_FAILURE, null!);
 
+        game._args = args.ToList();
         game._logOutputFunction = new LogOutputFunction(game.OnLogging);
 
         //
@@ -211,7 +211,7 @@ public abstract partial class Game
 
         game._lastUpdate = Time.GetNowNanoseconds();
         game._updateInterval = TimeSpan.FromSeconds(1) / game.UpdatesPerSecond;
-        game._updateCallback = (_, elapsed) =>
+        game._updateCallback = (_, _) =>
         {
             //
             // Cancellation will stop the update timer.

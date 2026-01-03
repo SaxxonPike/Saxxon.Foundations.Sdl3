@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 
 namespace Saxxon.Foundations.Sdl3.Game;
 
@@ -27,7 +28,12 @@ public abstract partial class Game
     /// <summary>
     /// Command line arguments that were passed to the game.
     /// </summary>
-    protected IReadOnlyList<string> Args { get; private set; } = [];
+    private List<string> _args = [];
+    
+    /// <summary>
+    /// Command line arguments that were passed to the game.
+    /// </summary>
+    protected IReadOnlyList<string> Args => _args;
 
     /// <summary>
     /// Gets whether the SDL gamepad subsystem should be enabled.
@@ -58,6 +64,21 @@ public abstract partial class Game
     private void HandleCrash(object sender, UnhandledExceptionEventArgs e)
     {
         Console.WriteLine(e.ExceptionObject);
-        SDL_Quit();
+        SdlLib.Quit();
+        OnCrash(e.ExceptionObject as Exception);
+    }
+
+    /// <summary>
+    /// Called when the application has encountered an unhandled exception, after
+    /// which recovery is not possible.
+    /// </summary>
+    /// <param name="exception">
+    /// Exception information.
+    /// </param>
+    /// <remarks>
+    /// SDL_Quit will have been called before this method is called.
+    /// </remarks>
+    protected virtual void OnCrash(Exception? exception)
+    {
     }
 }
