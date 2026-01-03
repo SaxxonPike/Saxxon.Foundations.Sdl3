@@ -14,7 +14,7 @@ public abstract partial class Game
     /// Interval of the update timer. This can be thought of as the amount of
     /// time between "game ticks".
     /// </summary>
-    private TimeSpan _updateInterval = TimeSpan.FromSeconds(1) / 200;
+    private TimeSpan? _updateInterval;
 
     /// <summary>
     /// Holds the <see cref="CancellationToken"/> used for signaling the game closing.
@@ -42,12 +42,12 @@ public abstract partial class Game
     private bool _suspendDraw;
 
     /// <summary>
-    /// Number of times per second that game state updates should be performed.
+    /// Number of times per second that game state updates should be performed. If null, this
+    /// value is ignored and updates are done once per frame instead.
     /// </summary>
-    protected virtual double UpdatesPerSecond
+    protected virtual double? UpdatesPerSecond
     {
-        get => TimeSpan.FromSeconds(1) / _updateInterval;
-        set => _updateInterval = TimeSpan.FromSeconds(1) / value;
+        get => null;
     }
 
     /// <summary>
@@ -205,43 +205,51 @@ public abstract partial class Game
         //
 
         game._lastUpdate = Time.GetNowNanoseconds();
-        game._updateInterval = TimeSpan.FromSeconds(1) / game.UpdatesPerSecond;
 
-        Task.Run(() =>
+        if (game.UpdatesPerSecond is { } ups)
         {
             //
-            // Cancellation will stop the update timer.
+            // When the game is configured to update at a specific rate, updates are performed
+            // on another thread.
             //
 
-            while (!game._closeToken.IsCancellationRequested)
+            var interval = TimeSpan.FromSeconds(1) / ups;
+            var intervalNs = interval.ToNanoseconds();
+            game._updateInterval = interval;
+
+            Task.Run(() =>
             {
                 //
-                // Efficient wait loop on this thread.
+                // Cancellation will stop the update timer.
                 //
 
-                SpinWait.SpinUntil(() =>
-                    game._closeToken.IsCancellationRequested ||
-                    Time.GetNowNanoseconds() - game._lastUpdate >= game._updateInterval.ToNanoseconds());
-
-                //
-                // Catch the game timer up.
-                //
-
-                game._updateMutex.WaitOne();
-                var now = Time.GetNowNanoseconds();
-                var interval = game._updateInterval;
-                var intervalNs = interval.ToNanoseconds();
-                var cycles = (int)((now - game._lastUpdate) / intervalNs);
-
-                while (!game._closeToken.IsCancellationRequested && cycles-- > 0)
+                while (!game._closeToken.IsCancellationRequested)
                 {
-                    game.OnUpdating(interval);
-                    game._lastUpdate += intervalNs;
-                }
+                    //
+                    // Efficient wait loop on this thread.
+                    //
 
-                game._updateMutex.ReleaseMutex();
-            }
-        }, game._closeToken.Token);
+                    SpinWait.SpinUntil(() => game._closeToken.IsCancellationRequested ||
+                                             Time.GetNowNanoseconds() - game._lastUpdate >= intervalNs);
+
+                    //
+                    // Catch the game timer up.
+                    //
+
+                    game._updateMutex.WaitOne();
+                    var now = Time.GetNowNanoseconds();
+                    var cycles = (int)((now - game._lastUpdate) / intervalNs);
+
+                    while (!game._closeToken.IsCancellationRequested && cycles-- > 0)
+                    {
+                        game.OnUpdating(interval);
+                        game._lastUpdate += intervalNs;
+                    }
+
+                    game._updateMutex.ReleaseMutex();
+                }
+            }, game._closeToken.Token);
+        }
 
         game._messageEventType = Events.Register(1);
 
@@ -278,6 +286,18 @@ public abstract partial class Game
 
         game._updateMutex.WaitOne();
 
+        //
+        // If game updates are configured to run once each frame, the updates are done
+        // on the same thread here.
+        //
+
+        if (game._updateInterval == null)
+        {
+            var now = Time.GetNowNanoseconds();
+            game.OnUpdating(Time.GetFromNanoseconds(now - game._lastUpdate));
+            game._lastUpdate = now;
+        }
+        
         //
         // Render game objects.
         //
