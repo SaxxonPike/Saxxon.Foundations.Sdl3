@@ -185,7 +185,8 @@ public static class Storage
 
     public static unsafe IntPtr<SDL_Storage> Open(SDL_StorageInterface @interface, IntPtr userData)
     {
-        return SDL_OpenStorage(&@interface, userData);
+        return ((IntPtr<SDL_Storage>)SDL_OpenStorage(&@interface, userData))
+            .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Storage> OpenUser(
@@ -197,7 +198,8 @@ public static class Storage
         using var orgStr = new UnmanagedString(org);
         using var appStr = new UnmanagedString(app);
 
-        return SDL_OpenUserStorage(orgStr, appStr, props);
+        return ((IntPtr<SDL_Storage>)SDL_OpenUserStorage(orgStr, appStr, props))
+            .AssertSdlNotNull();
     }
 
     public static unsafe IntPtr<SDL_Storage> OpenTitle(
@@ -207,7 +209,8 @@ public static class Storage
     {
         using var overrideStr = new UnmanagedString(@override);
 
-        return SDL_OpenTitleStorage(overrideStr, props);
+        return ((IntPtr<SDL_Storage>)SDL_OpenTitleStorage(overrideStr, props))
+            .AssertSdlNotNull();
     }
     
     
