@@ -228,6 +228,7 @@ public abstract partial class Game
             game._updateMutex.WaitOne();
             var now = Time.GetNowNanoseconds();
             game.OnUpdating(Time.GetFromNanoseconds(now - game._lastUpdate));
+            game._lastUpdate = now;
             game._updateMutex.ReleaseMutex();
 
             return game._updateInterval;
