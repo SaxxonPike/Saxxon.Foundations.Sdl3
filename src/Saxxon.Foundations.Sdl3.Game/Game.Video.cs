@@ -67,7 +67,7 @@ public abstract partial class Game
     /// </summary>
     private void SetLetterboxOff()
     {
-        if (!ForceLetterbox)
+        if (ForceLetterbox)
             return;
 
         Renderer.SetLogicalPresentation(

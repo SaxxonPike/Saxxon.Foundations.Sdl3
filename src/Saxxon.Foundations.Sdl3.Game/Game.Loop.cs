@@ -225,8 +225,8 @@ public abstract partial class Game
             // assumed that the letterbox mode is on when entering the mutex.
             //
 
-            game._updateMutex.WaitOne();
             var now = Time.GetNowNanoseconds();
+            game._updateMutex.WaitOne();
             game.OnUpdating(Time.GetFromNanoseconds(now - game._lastUpdate));
             game._lastUpdate = now;
             game._updateMutex.ReleaseMutex();
