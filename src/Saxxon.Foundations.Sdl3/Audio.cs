@@ -22,14 +22,18 @@ public static class Audio
     /// <param name="amplitude">
     /// Amplitude of the sine wave from 0.0f to 1.0f.
     /// </param>
+    /// <param name="ms">
+    /// Duration of the sine wave in milliseconds.
+    /// </param>
     /// <returns></returns>
     public static unsafe IntPtr<MIX_Audio> CreateSineWave(
         IntPtr<MIX_Mixer> mixer,
         int hz,
-        float amplitude
+        float amplitude,
+        long ms
     )
     {
-        return ((IntPtr<MIX_Audio>)MIX_CreateSineWaveAudio(mixer, hz, amplitude))
+        return ((IntPtr<MIX_Audio>)MIX_CreateSineWaveAudio(mixer, hz, amplitude, ms))
             .AssertSdlNotNull();
     }
     

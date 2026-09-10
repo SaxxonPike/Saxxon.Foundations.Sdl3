@@ -64,11 +64,11 @@ public static class Mixer
         }
     }
 
-    public static unsafe float GetMasterGain(
+    public static unsafe float GetMixerGain(
         this IntPtr<MIX_Mixer> mixer
     )
     {
-        return MIX_GetMasterGain(mixer);
+        return MIX_GetMixerGain(mixer);
     }
 
     public static unsafe SDL_AudioSpec GetFormat(
@@ -156,12 +156,12 @@ public static class Mixer
             .AssertSdlSuccess();
     }
 
-    public static unsafe void SetMasterGain(
+    public static unsafe void SetMixerGain(
         this IntPtr<MIX_Mixer> mixer,
         float gain
     )
     {
-        MIX_SetMasterGain(mixer, gain)
+        MIX_SetMixerGain(mixer, gain)
             .AssertSdlSuccess();
     }
     

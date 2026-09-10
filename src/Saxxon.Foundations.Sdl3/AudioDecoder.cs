@@ -51,7 +51,7 @@ public static class AudioDecoder
 
     public static unsafe string? Get(int index)
     {
-        return ((IntPtr<byte>)MIX_GetAudioDecoder(index))
+        return ((IntPtr<byte>)Unsafe_MIX_GetAudioDecoder(index))
             .GetString();
     }
 

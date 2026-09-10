@@ -66,6 +66,13 @@ public static class Track
     {
         return MIX_GetTrackGain(track);
     }
+    
+    public static unsafe int GetLoops(
+        this IntPtr<MIX_Track> track
+    )
+    {
+        return MIX_GetTrackLoops(track);
+    }
 
     public static unsafe IntPtr<MIX_Mixer> GetMixer(
         this IntPtr<MIX_Track> track
@@ -100,13 +107,6 @@ public static class Track
             < 0 => null,
             var x => x
         };
-    }
-
-    public static unsafe bool IsLooping(
-        this IntPtr<MIX_Track> track
-    )
-    {
-        return MIX_TrackLooping(track);
     }
 
     public static unsafe bool IsPaused(
@@ -238,6 +238,14 @@ public static class Track
     {
         MIX_SetTrackIOStream(track, stream, closeIo)
             .AssertSdlSuccess();
+    }
+
+    public static unsafe void SetLoops(
+        this IntPtr<MIX_Track> track,
+        int value
+    )
+    {
+        MIX_SetTrackLoops(track, value);
     }
 
     public static unsafe void SetOutputChannelMap(
