@@ -10,6 +10,8 @@ on:
 jobs:
   publish:
 
+    environment: release
+
     permissions:
       id-token: write
 
